@@ -49,6 +49,7 @@ export default function PlanBuilderModal({ open, onClose }) {
   const [goal, setGoal] = useState(GOALS[0]);
   const [location, setLocation] = useState(LOCATIONS[0]);
   const [showResult, setShowResult] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const reset = useCallback(() => {
     setName('');
@@ -57,6 +58,7 @@ export default function PlanBuilderModal({ open, onClose }) {
     setGoal(GOALS[0]);
     setLocation(LOCATIONS[0]);
     setShowResult(false);
+    setShowConfirmation(false);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -190,7 +192,7 @@ export default function PlanBuilderModal({ open, onClose }) {
           </div>
         )}
 
-        {showResult && (
+        {showResult && !showConfirmation && (
           <PlanResult
             name={displayName}
             selectedDays={selectedDays}
@@ -201,15 +203,39 @@ export default function PlanBuilderModal({ open, onClose }) {
           />
         )}
 
+        {showConfirmation && (
+          <div className={styles.planResultShow}>
+            <h3>You're all set, {displayName}.</h3>
+            <p className={styles.resultSummary}>
+              Your plan has been saved. Your dashboard is coming soon — Vela
+              will notify you when it's ready.
+            </p>
+            <p className={styles.resultGoal}>
+              In the meantime, your daily briefing is active and your schedule
+              is locked in. Consistency starts now.
+            </p>
+          </div>
+        )}
+
         <div className={styles.footer}>
           <button className={styles.btnCancel} onClick={handleClose}>
-            {showResult ? 'Close' : 'Cancel'}
+            {showResult || showConfirmation ? 'Close' : 'Cancel'}
           </button>
           <button
             className={styles.btnBuild}
-            onClick={showResult ? handleClose : handleBuild}
+            onClick={
+              showConfirmation
+                ? handleClose
+                : showResult
+                  ? () => setShowConfirmation(true)
+                  : handleBuild
+            }
           >
-            {showResult ? 'Start My First Session →' : 'Build My Plan →'}
+            {showConfirmation
+              ? 'Done'
+              : showResult
+                ? 'Start My First Session →'
+                : 'Build My Plan →'}
           </button>
         </div>
       </div>

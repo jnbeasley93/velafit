@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AuthModal.module.css';
 
-export default function AuthModal({ open, onClose }) {
+export default function AuthModal({ open, onClose, onSuccess }) {
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
@@ -43,7 +43,8 @@ export default function AuthModal({ open, onClose }) {
     try {
       if (mode === 'login') {
         await signIn(email, password);
-        handleClose();
+        reset();
+        onSuccess?.();
       } else {
         await signUp(email, password);
         setSuccess('Check your email to confirm your account.');
@@ -55,7 +56,7 @@ export default function AuthModal({ open, onClose }) {
     } finally {
       setSubmitting(false);
     }
-  }, [email, password, mode, signIn, signUp, handleClose]);
+  }, [email, password, mode, signIn, signUp, reset, onSuccess]);
 
   if (!open) return null;
 

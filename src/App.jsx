@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import HowItWorks from './components/HowItWorks';
@@ -15,30 +15,63 @@ import PlanBuilderModal from './components/PlanBuilderModal';
 import AuthModal from './components/AuthModal';
 import './App.css';
 
-function App() {
+function AppInner() {
+  const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const openModal = () => setModalOpen(true);
+  const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
+
+  const handleGetStarted = useCallback(() => {
+    if (user) {
+      setModalOpen(true);
+    } else {
+      setPendingPlanBuilder(true);
+      setAuthOpen(true);
+    }
+  }, [user]);
+
+  const handleAuthClose = useCallback(() => {
+    setAuthOpen(false);
+    setPendingPlanBuilder(false);
+  }, []);
+
+  const handleAuthSuccess = useCallback(() => {
+    setAuthOpen(false);
+    if (pendingPlanBuilder) {
+      setPendingPlanBuilder(false);
+      setModalOpen(true);
+    }
+  }, [pendingPlanBuilder]);
 
   return (
+    <BrowserRouter>
+      <Navbar
+        onGetStarted={handleGetStarted}
+        onLogin={() => setAuthOpen(true)}
+      />
+      <Hero onBuildPlan={handleGetStarted} />
+      <HowItWorks />
+      <FeaturesGrid />
+      <DailyBriefing />
+      <MindJournal />
+      <Nutrition />
+      <Pricing onGetStarted={handleGetStarted} />
+      <WaitlistCTA onSignUp={() => setAuthOpen(true)} />
+      <Footer />
+      <PlanBuilderModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <AuthModal
+        open={authOpen}
+        onClose={handleAuthClose}
+        onSuccess={handleAuthSuccess}
+      />
+    </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
     <AuthProvider>
-      <BrowserRouter>
-        <Navbar
-          onGetStarted={openModal}
-          onLogin={() => setAuthOpen(true)}
-        />
-        <Hero onBuildPlan={openModal} />
-        <HowItWorks />
-        <FeaturesGrid />
-        <DailyBriefing />
-        <MindJournal />
-        <Nutrition />
-        <Pricing onGetStarted={openModal} />
-        <WaitlistCTA />
-        <Footer />
-        <PlanBuilderModal open={modalOpen} onClose={() => setModalOpen(false)} />
-        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
-      </BrowserRouter>
+      <AppInner />
     </AuthProvider>
   );
 }
