@@ -1,0 +1,173 @@
+.section {
+  background: var(--green-deep);
+  padding: 7rem 6rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 5rem;
+  align-items: center;
+  margin-top: 4rem;
+}
+
+.left .tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-light);
+  margin-bottom: 1rem;
+}
+
+.left .title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  color: var(--cream);
+  line-height: 1.15;
+  margin-bottom: 1.2rem;
+}
+
+.left .body {
+  font-size: 1.05rem;
+  color: rgba(245, 240, 232, 0.55);
+  line-height: 1.75;
+  max-width: 520px;
+  font-weight: 300;
+}
+
+.card {
+  background: rgba(245, 240, 232, 0.06);
+  border: 1px solid rgba(122, 189, 138, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.2rem 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cardTitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-light);
+}
+
+.date {
+  font-size: 0.75rem;
+  color: rgba(245, 240, 232, 0.3);
+}
+
+.cardBody {
+  padding: 1.8rem;
+}
+
+.planLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.planLine:last-child {
+  border-bottom: none;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-accent);
+  margin-top: 0.4rem;
+  flex-shrink: 0;
+}
+
+.dotGold {
+  composes: dot;
+  background: var(--gold);
+}
+
+.dotDim {
+  composes: dot;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.planText {
+  font-size: 0.9rem;
+  color: rgba(245, 240, 232, 0.75);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+.planDuration {
+  margin-left: auto;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: rgba(245, 240, 232, 0.3);
+  white-space: nowrap;
+  padding-left: 1rem;
+}
+
+.cardFooter {
+  padding: 1.4rem 1.8rem;
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sig {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--green-light);
+}
+
+.sigDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--green-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.beginBtn {
+  background: var(--gold);
+  color: var(--green-deep);
+  border: none;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+
+.beginBtn:hover {
+  background: var(--gold-light);
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 4rem 1.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}

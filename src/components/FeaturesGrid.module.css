@@ -1,0 +1,90 @@
+.section {
+  background: var(--warm-white);
+  padding: 7rem 6rem;
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: end;
+  margin-bottom: 4rem;
+}
+
+.tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-accent);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  color: var(--green-deep);
+  line-height: 1.15;
+  margin-bottom: 1.2rem;
+}
+
+.body {
+  font-size: 1.05rem;
+  color: var(--stone);
+  line-height: 1.75;
+  max-width: 520px;
+  font-weight: 300;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5px;
+  background: rgba(74, 140, 92, 0.12);
+  border: 1.5px solid rgba(74, 140, 92, 0.12);
+}
+
+.card {
+  background: var(--warm-white);
+  padding: 2.2rem;
+  transition: background 0.2s;
+}
+
+.card:hover {
+  background: var(--cream);
+}
+
+.icon {
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+  display: block;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: var(--stone);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 4rem 1.5rem;
+  }
+
+  .intro {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

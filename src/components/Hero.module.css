@@ -1,0 +1,268 @@
+.section {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 80px;
+  background: var(--green-deep);
+  position: relative;
+  overflow: hidden;
+}
+
+.bgPattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6rem 4rem 6rem 6rem;
+  position: relative;
+  z-index: 2;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(74, 140, 92, 0.3);
+  border: 1px solid rgba(122, 189, 138, 0.3);
+  color: var(--green-light);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  width: fit-content;
+}
+
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--green-light);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  line-height: 1.05;
+  color: var(--cream);
+  margin-bottom: 1.5rem;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--green-light);
+}
+
+.sub {
+  font-size: 1.1rem;
+  color: rgba(245, 240, 232, 0.65);
+  line-height: 1.7;
+  max-width: 440px;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btnPrimary {
+  background: var(--gold);
+  color: var(--green-deep);
+  border: none;
+  padding: 0.9rem 2rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s, transform 0.15s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btnPrimary:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+
+.btnGhost {
+  color: rgba(245, 240, 232, 0.6);
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
+}
+
+.btnGhost:hover {
+  color: var(--cream);
+}
+
+.stats {
+  display: flex;
+  gap: 2.5rem;
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.statNum {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  color: var(--green-light);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: rgba(245, 240, 232, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.2rem;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  padding: 4rem;
+}
+
+/* Vela Card */
+.velaCard {
+  background: rgba(245, 240, 232, 0.06);
+  border: 1px solid rgba(122, 189, 138, 0.2);
+  border-radius: 4px;
+  padding: 2.5rem;
+  max-width: 380px;
+  width: 100%;
+  animation: fadeInUp 0.8s ease 0.3s both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.velaHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+}
+
+.velaAvatar {
+  width: 52px;
+  height: 52px;
+  background: var(--green-mid);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border: 2px solid var(--green-accent);
+}
+
+.velaName {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--cream);
+}
+
+.velaRole {
+  font-size: 0.72rem;
+  color: var(--green-light);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.15rem;
+}
+
+.velaMessage {
+  font-size: 0.95rem;
+  color: rgba(245, 240, 232, 0.8);
+  line-height: 1.75;
+  font-weight: 300;
+}
+
+.velaMessage p + p {
+  margin-top: 0.85rem;
+}
+
+.velaMessage strong {
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.velaDivider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 1.8rem 0;
+}
+
+.velaAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.velaActionText {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--green-light);
+  letter-spacing: 0.05em;
+}
+
+.velaActionBtn {
+  background: var(--green-accent);
+  color: var(--cream);
+  border: none;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.velaActionBtn:hover {
+  background: var(--green-light);
+  color: var(--green-deep);
+}
+
+@media (max-width: 900px) {
+  .section {
+    grid-template-columns: 1fr;
+  }
+
+  .left {
+    padding: 5rem 1.5rem 2rem;
+  }
+
+  .right {
+    display: none;
+  }
+}

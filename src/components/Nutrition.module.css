@@ -1,0 +1,84 @@
+.section {
+  background: var(--warm-white);
+  padding: 7rem 6rem;
+}
+
+.tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-accent);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  color: var(--green-deep);
+  line-height: 1.15;
+  margin-bottom: 1.2rem;
+}
+
+.body {
+  font-size: 1.05rem;
+  color: var(--stone);
+  line-height: 1.75;
+  max-width: 520px;
+  font-weight: 300;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 6rem;
+  align-items: center;
+  margin-top: 4rem;
+}
+
+.principles {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.principle {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: var(--cream);
+  border-radius: 2px;
+  border-left: 3px solid var(--green-accent);
+}
+
+.principleIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.principleTitle {
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.principleText {
+  font-size: 0.85rem;
+  color: var(--stone);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 4rem 1.5rem;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}

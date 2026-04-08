@@ -1,0 +1,23 @@
+:root {
+  --green-deep: #1a3a2a;
+  --green-mid: #2d5a3d;
+  --green-accent: #4a8c5c;
+  --green-light: #7abd8a;
+  --cream: #f5f0e8;
+  --warm-white: #faf8f4;
+  --charcoal: #1e1e1e;
+  --stone: #8a8478;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--warm-white);
+  color: var(--charcoal);
+  overflow-x: hidden;
+}

@@ -1,0 +1,96 @@
+.section {
+  background: var(--cream);
+  padding: 7rem 6rem;
+}
+
+.tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-accent);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  color: var(--green-deep);
+  line-height: 1.15;
+  margin-bottom: 1.2rem;
+}
+
+.body {
+  font-size: 1.05rem;
+  color: var(--stone);
+  line-height: 1.75;
+  max-width: 520px;
+  font-weight: 300;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 4rem;
+}
+
+.card {
+  background: var(--warm-white);
+  border: 1px solid rgba(74, 140, 92, 0.12);
+  border-radius: 4px;
+  padding: 2.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(26, 58, 42, 0.08);
+}
+
+.cardIcon {
+  font-size: 2rem;
+  margin-bottom: 1.2rem;
+}
+
+.cardTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--green-deep);
+  margin-bottom: 0.75rem;
+}
+
+.cardDesc {
+  font-size: 0.9rem;
+  color: var(--stone);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.tagChip {
+  background: rgba(74, 140, 92, 0.1);
+  color: var(--green-accent);
+  font-size: 0.72rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 2px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 4rem 1.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}

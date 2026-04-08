@@ -1,0 +1,333 @@
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 58, 42, 0.8);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.overlayOpen {
+  composes: overlay;
+  display: flex;
+}
+
+.modal {
+  background: var(--warm-white);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  background: var(--green-deep);
+  padding: 2rem;
+  color: var(--cream);
+}
+
+.header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+}
+
+.header p {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 232, 0.6);
+  margin-top: 0.4rem;
+  font-weight: 300;
+}
+
+.body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.formGroup {
+  margin-bottom: 1.2rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: var(--green-accent);
+}
+
+.dayPicker {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  padding: 0.4rem 0.75rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  border-radius: 2px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--stone);
+  transition: all 0.15s;
+  background: white;
+}
+
+.dayChipSelected {
+  composes: dayChip;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+.dayHint {
+  font-size: 0.78rem;
+  color: var(--stone);
+  margin-bottom: 0.75rem;
+  font-weight: 300;
+}
+
+.dayTimeSlots {
+  margin-top: 0.25rem;
+}
+
+.dayTimeSlotsLabel {
+  composes: formLabel;
+  margin-bottom: 0.6rem;
+  display: block;
+}
+
+.dayTimeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dayTimeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--cream);
+  border-radius: 2px;
+  padding: 0.6rem 0.9rem;
+}
+
+.dayTimeRowLabel {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--green-deep);
+  font-weight: 700;
+  min-width: 28px;
+}
+
+.dayTimeRowSelect {
+  composes: formSelect;
+  flex: 1;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  border-color: rgba(74, 140, 92, 0.2);
+}
+
+.footer {
+  padding: 0 2rem 2rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 2px;
+  color: var(--stone);
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  border-color: var(--stone);
+}
+
+.btnBuild {
+  flex: 2;
+  padding: 0.75rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnBuild:hover {
+  background: var(--green-mid);
+}
+
+/* Plan Result */
+.planResult {
+  display: none;
+  padding: 2rem;
+  background: var(--green-deep);
+  color: var(--cream);
+}
+
+.planResultShow {
+  composes: planResult;
+  display: block;
+}
+
+.planResult h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  margin-bottom: 1.2rem;
+  color: var(--green-light);
+}
+
+.planWeek {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.dayBox {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  padding: 0.6rem 0.3rem;
+  text-align: center;
+  font-size: 0.65rem;
+}
+
+.dayBoxActive {
+  composes: dayBox;
+  background: var(--green-accent);
+}
+
+.dayAbbr {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  color: rgba(245, 240, 232, 0.4);
+  margin-bottom: 0.3rem;
+  font-size: 0.6rem;
+}
+
+.dayBoxActive .dayAbbr {
+  color: rgba(245, 240, 232, 0.8);
+}
+
+.dayType {
+  color: rgba(245, 240, 232, 0.25);
+  font-weight: 300;
+  font-size: 0.62rem;
+}
+
+.dayBoxActive .dayType {
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.scheduleTable {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scheduleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: rgba(245, 240, 232, 0.7);
+  padding: 0.55rem 0.9rem;
+}
+
+.scheduleRowEven {
+  composes: scheduleRow;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.scheduleRowToday {
+  border-left: 3px solid var(--gold);
+}
+
+.todayBadge {
+  font-size: 0.65rem;
+  background: var(--gold);
+  color: var(--green-deep);
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+  font-weight: 700;
+}
+
+.scheduleRowTime {
+  font-family: 'Space Mono', monospace;
+  color: var(--green-light);
+}
+
+.resultSummary {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 232, 0.55);
+  font-weight: 300;
+  margin-bottom: 1.2rem;
+  line-height: 1.65;
+}
+
+.resultGoal {
+  font-size: 0.8rem;
+  color: rgba(245, 240, 232, 0.4);
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.resultGoalHighlight {
+  color: var(--green-light);
+}
