@@ -1,0 +1,157 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 58, 42, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--warm-white);
+  max-width: 420px;
+  width: 90%;
+  border-radius: 4px;
+  overflow: hidden;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  background: var(--green-deep);
+  padding: 2rem;
+  color: var(--cream);
+}
+
+.header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+}
+
+.header p {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 232, 0.6);
+  margin-top: 0.4rem;
+  font-weight: 300;
+}
+
+.body {
+  padding: 2rem;
+}
+
+.formGroup {
+  margin-bottom: 1.2rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  border-color: var(--green-accent);
+}
+
+.error {
+  color: #c9a84c;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+.success {
+  color: var(--green-accent);
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+.footer {
+  padding: 0 2rem 2rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 2px;
+  color: var(--stone);
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  border-color: var(--stone);
+}
+
+.btnSubmit {
+  flex: 2;
+  padding: 0.75rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnSubmit:hover {
+  background: var(--green-mid);
+}
+
+.btnSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--stone);
+  margin-top: 1rem;
+}
+
+.toggleLink {
+  color: var(--green-accent);
+  cursor: pointer;
+  font-weight: 600;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  text-decoration: underline;
+}

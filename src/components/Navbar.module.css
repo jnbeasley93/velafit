@@ -67,6 +67,26 @@
   background: var(--green-mid) !important;
 }
 
+.userInfo {
+  font-size: 0.85rem;
+  color: var(--green-deep);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.proBadge {
+  background: var(--gold);
+  color: var(--green-deep);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 900px) {
   .nav {
     padding: 1rem 1.5rem;

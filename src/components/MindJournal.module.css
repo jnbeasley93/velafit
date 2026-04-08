@@ -84,6 +84,20 @@
   letter-spacing: 0.04em;
 }
 
+.tagChipLocked {
+  composes: tagChip;
+  background: rgba(74, 140, 92, 0.05);
+  color: var(--stone);
+  opacity: 0.65;
+}
+
+.proLabel {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+
 @media (max-width: 900px) {
   .section {
     padding: 4rem 1.5rem;

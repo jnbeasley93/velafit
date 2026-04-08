@@ -1,3 +1,4 @@
+import { useAuth } from '../contexts/AuthContext';
 import styles from './Pricing.module.css';
 
 const plans = [
@@ -12,7 +13,6 @@ const plans = [
       'Whole-food nutrition guide',
       '3 journal entries / week',
     ],
-    btnLabel: 'Get Started',
     featured: false,
   },
   {
@@ -27,7 +27,6 @@ const plans = [
       'Nutrition meal templates',
       'Progress analytics',
     ],
-    btnLabel: 'Start Free Trial',
     featured: true,
     badge: 'Most Popular',
   },
@@ -42,12 +41,27 @@ const plans = [
       'Aggregate analytics',
       'Dedicated onboarding',
     ],
-    btnLabel: 'Contact Us',
     featured: false,
   },
 ];
 
 export default function Pricing({ onGetStarted }) {
+  const { user, isPro } = useAuth();
+
+  function btnLabel(tier) {
+    if (tier === 'Employer') return 'Contact Us';
+    if (!user) return tier === 'Pro' ? 'Start Free Trial' : 'Get Started';
+    if (tier === 'Pro') return isPro ? 'Current Plan' : 'Upgrade to Pro';
+    return isPro ? 'Free Tier' : 'Current Plan';
+  }
+
+  function btnDisabled(tier) {
+    if (!user) return false;
+    if (tier === 'Free' && !isPro) return true;
+    if (tier === 'Pro' && isPro) return true;
+    return false;
+  }
+
   return (
     <section id="pricing" className={styles.section}>
       <span className={styles.tag}>Simple Pricing</span>
@@ -78,8 +92,9 @@ export default function Pricing({ onGetStarted }) {
             <button
               className={p.featured ? styles.btnFeatured : styles.btn}
               onClick={() => onGetStarted?.()}
+              disabled={btnDisabled(p.tier)}
             >
-              {p.btnLabel}
+              {btnLabel(p.tier)}
             </button>
           </div>
         ))}

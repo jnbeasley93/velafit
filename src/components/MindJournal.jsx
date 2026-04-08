@@ -1,3 +1,4 @@
+import { useAuth } from '../contexts/AuthContext';
 import styles from './MindJournal.module.css';
 
 const cards = [
@@ -5,17 +6,21 @@ const cards = [
     icon: '🧩',
     title: 'Daily Mind Games',
     desc: 'Five to ten minute brain challenges slotted into your available windows. Keeps the mind engaged without adding to your to-do list.',
-    tags: ['Sudoku', 'Crossword', 'Memory', 'Word Puzzles', 'Logic Games'],
+    freeTags: ['Sudoku', 'Crossword', 'Memory'],
+    proTags: ['Word Puzzles', 'Logic Games'],
   },
   {
     icon: '✍️',
     title: 'Personal Journal',
     desc: 'Structured prompts or free-write — your choice. Designed for five to ten minute sessions that build self-awareness and reinforce consistency over time.',
-    tags: ['Daily Prompts', 'Weekly Reflection', 'Free Write', 'Progress Log'],
+    freeTags: ['Daily Prompts', 'Free Write'],
+    proTags: ['Weekly Reflection', 'Progress Log'],
   },
 ];
 
 export default function MindJournal() {
+  const { isPro } = useAuth();
+
   return (
     <section id="mind" className={styles.section}>
       <div className={styles.tag}>Mental Fitness</div>
@@ -36,9 +41,19 @@ export default function MindJournal() {
             <h3 className={styles.cardTitle}>{c.title}</h3>
             <p className={styles.cardDesc}>{c.desc}</p>
             <div className={styles.tags}>
-              {c.tags.map((t) => (
+              {c.freeTags.map((t) => (
                 <span key={t} className={styles.tagChip}>
                   {t}
+                </span>
+              ))}
+              {c.proTags.map((t) => (
+                <span
+                  key={t}
+                  className={isPro ? styles.tagChip : styles.tagChipLocked}
+                  title={isPro ? undefined : 'Pro feature'}
+                >
+                  {t}
+                  {!isPro && <span className={styles.proLabel}> PRO</span>}
                 </span>
               ))}
             </div>

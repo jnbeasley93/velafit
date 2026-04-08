@@ -149,6 +149,12 @@
   background: var(--gold-light);
 }
 
+.btn:disabled,
+.btnFeatured:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 @media (max-width: 900px) {
   .section {
     padding: 4rem 1.5rem;
