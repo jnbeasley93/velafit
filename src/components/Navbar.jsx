@@ -27,6 +27,9 @@ export default function Navbar({ onGetStarted, onLogin }) {
               </span>
             </li>
             <li>
+              <Link to="/history" style={{ opacity: 1 }}>History</Link>
+            </li>
+            <li>
               <Link to="/settings" style={{ opacity: 1 }}>Settings</Link>
             </li>
             <li>

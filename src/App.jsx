@@ -17,6 +17,8 @@ import OnboardingSurvey from './components/OnboardingSurvey';
 import PostWorkoutRating from './components/PostWorkoutRating';
 import SessionPlayer from './components/SessionPlayer';
 import Settings from './components/Settings';
+import WorkoutHistory from './components/WorkoutHistory';
+import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import { buildSession } from './lib/buildSession';
 import './App.css';
 
@@ -75,14 +77,26 @@ function AppInner() {
     }
   }, [pendingPlanBuilder]);
 
-  const handleStartSession = useCallback((mins) => {
+  const [quickSessionOpen, setQuickSessionOpen] = useState(false);
+
+  const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
     const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
     const intensity = profile?.intensity_level ?? 2;
-    const session = buildSession(fitnessProfile, mins, noMindGames, intensity);
+    // If bodyweight only, override the profile equipment
+    const fp = bodyweightOnly
+      ? { ...fitnessProfile, equipment: ['None — bodyweight only'] }
+      : fitnessProfile;
+    const session = buildSession(fp, mins, noMindGames, intensity);
     setSessionMins(mins);
+    setSessionIsImpromptu(impromptu);
     setSessionData(session);
     setSessionOpen(true);
   }, [fitnessProfile, profile]);
+
+  const handleQuickStart = useCallback(({ minutes, bodyweightOnly }) => {
+    setQuickSessionOpen(false);
+    handleStartSession(minutes, { impromptu: true, bodyweightOnly });
+  }, [handleStartSession]);
 
   return (
     <BrowserRouter>
@@ -104,11 +118,20 @@ function AppInner() {
               <Pricing onGetStarted={handleGetStarted} />
               <WaitlistCTA onSignUp={handleGetStarted} />
               <Footer />
+              {user && onboardingCompleted && (
+                <QuickSessionFAB onClick={() => setQuickSessionOpen(true)} />
+              )}
             </>
           }
         />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/history" element={<WorkoutHistory />} />
       </Routes>
+      <QuickSessionModal
+        open={quickSessionOpen}
+        onClose={() => setQuickSessionOpen(false)}
+        onStart={handleQuickStart}
+      />
       <PlanBuilderModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
