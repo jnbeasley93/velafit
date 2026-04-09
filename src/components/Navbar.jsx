@@ -4,11 +4,13 @@ import velaImg from '../assets/vela.jpg';
 import styles from './Navbar.module.css';
 
 function scrollToHash(hash, navigate, pathname) {
-  if (pathname === '/') {
+  // If already on a page with the section, scroll directly
+  if (pathname === '/' || pathname === '/home') {
     const el = document.getElementById(hash);
     if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
   }
-  navigate('/#' + hash);
+  // Navigate to the marketing page with hash
+  navigate('/home#' + hash);
 }
 
 export default function Navbar({ onGetStarted, onLogin }) {
@@ -23,21 +25,22 @@ export default function Navbar({ onGetStarted, onLogin }) {
 
   return (
     <nav className={styles.nav}>
-      <Link to="/" className={styles.logo}>
+      <Link to={user ? '/dashboard' : '/'} className={styles.logo}>
         <img src={velaImg} alt="Vela" className={styles.avatar} />
         VelaFit
       </Link>
 
       {user ? (
         <ul className={styles.centerLinks}>
-          <li><a href="#mind" onClick={handleHash('mind')}>Mind &amp; Journal</a></li>
-          <li><a href="#nutrition" onClick={handleHash('nutrition')}>Nutrition</a></li>
+          <li><Link to="/dashboard">Home</Link></li>
+          <li><a href="/#mind" onClick={handleHash('mind')}>Mind &amp; Journal</a></li>
+          <li><a href="/#nutrition" onClick={handleHash('nutrition')}>Nutrition</a></li>
           <li><Link to="/history">History</Link></li>
           <li><Link to="/settings">Settings</Link></li>
           {!isPro && (
             <li>
               <a
-                href="#pricing"
+                href="/#pricing"
                 className={styles.upgradeLink}
                 onClick={handleHash('pricing')}
               >

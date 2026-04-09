@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -18,6 +18,7 @@ import PostWorkoutRating from './components/PostWorkoutRating';
 import SessionPlayer from './components/SessionPlayer';
 import Settings from './components/Settings';
 import WorkoutHistory from './components/WorkoutHistory';
+import Dashboard from './components/Dashboard';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import { buildSession } from './lib/buildSession';
 import './App.css';
@@ -108,6 +109,43 @@ function AppInner() {
         <Route
           path="/"
           element={
+            user ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <>
+                <Hero onBuildPlan={handleGetStarted} />
+                <HowItWorks />
+                <FeaturesGrid />
+                <DailyBriefing />
+                <MindJournal />
+                <Nutrition />
+                <Pricing onGetStarted={handleGetStarted} />
+                <WaitlistCTA onSignUp={handleGetStarted} />
+                <Footer />
+              </>
+            )
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            user ? (
+              <Dashboard
+                onStartSession={handleStartSession}
+                onBuildPlan={() => setModalOpen(true)}
+                onQuickSession={() => setQuickSessionOpen(true)}
+              />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/history" element={<WorkoutHistory />} />
+        {/* Marketing page accessible even when logged in via direct path */}
+        <Route
+          path="/home"
+          element={
             <>
               <Hero onBuildPlan={handleGetStarted} />
               <HowItWorks />
@@ -121,8 +159,6 @@ function AppInner() {
             </>
           }
         />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/history" element={<WorkoutHistory />} />
       </Routes>
       {user && (
         <QuickSessionFAB onClick={() => setQuickSessionOpen(true)} />
