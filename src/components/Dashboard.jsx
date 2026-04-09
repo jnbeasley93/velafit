@@ -128,11 +128,21 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession 
 
   const breakdown = isTrainingDay ? getTimeBreakdown(todayMins, noMindGames) : null;
 
-  // Notification prompt — show after first session, once only
+  // Notification prompt — show if user has sessions and hasn't been prompted
   const [notifDismissed, setNotifDismissed] = useState(
     () => localStorage.getItem('vela_notif_prompted') === 'true'
   );
-  const showNotifPrompt = stats.total === 1 && !notifDismissed;
+  const [delayedPrompt, setDelayedPrompt] = useState(false);
+
+  // For users with sessions: show immediately. For zero sessions: show after 10s delay
+  const showNotifPrompt = !notifDismissed && (stats.total >= 1 || delayedPrompt);
+
+  useEffect(() => {
+    if (stats.total === 0 && !notifDismissed && !loading) {
+      const timer = setTimeout(() => setDelayedPrompt(true), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [stats.total, notifDismissed, loading]);
 
   const handleEnableNotifications = useCallback(async () => {
     await promptNotificationPermission();

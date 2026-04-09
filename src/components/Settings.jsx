@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { promptNotificationPermission } from '../lib/oneSignal';
 import OnboardingSurvey from './OnboardingSurvey';
 import styles from './Settings.module.css';
 
@@ -85,8 +86,8 @@ export default function Settings() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <Link to="/" className={styles.backLink}>
-          ← Back to home
+        <Link to="/dashboard" className={styles.backLink}>
+          ← Back to dashboard
         </Link>
         <h1 className={styles.title}>Settings</h1>
         <p className={styles.subtitle}>
@@ -170,12 +171,57 @@ export default function Settings() {
             </button>
           </div>
         </div>
+        {/* Notifications */}
+        <NotificationsSection />
       </div>
 
       <OnboardingSurvey
         open={retakeOpen}
         onComplete={handleRetakeComplete}
       />
+    </div>
+  );
+}
+
+function NotificationsSection() {
+  const [status, setStatus] = useState(
+    () => localStorage.getItem('vela_notif_prompted') === 'true' ? 'prompted' : 'not_prompted'
+  );
+  const [enabling, setEnabling] = useState(false);
+
+  const handleEnable = useCallback(async () => {
+    setEnabling(true);
+    try {
+      await promptNotificationPermission();
+      localStorage.setItem('vela_notif_prompted', 'true');
+      setStatus('enabled');
+    } catch {
+      setStatus('prompted');
+    } finally {
+      setEnabling(false);
+    }
+  }, []);
+
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}>Notifications</h3>
+      <p className={styles.sectionDesc}>
+        Get reminders on your training days so you never miss a session.
+        Streak alerts help you stay consistent.
+      </p>
+      {status === 'enabled' ? (
+        <p style={{ fontSize: '0.85rem', color: 'var(--green-accent)', fontWeight: 500 }}>
+          Notifications enabled. You'll receive session reminders.
+        </p>
+      ) : (
+        <button
+          className={styles.btnSave}
+          onClick={handleEnable}
+          disabled={enabling}
+        >
+          {enabling ? 'Enabling...' : 'Enable Push Notifications'}
+        </button>
+      )}
     </div>
   );
 }

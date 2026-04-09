@@ -21,16 +21,22 @@ export default defineConfig({
         start_url: '/dashboard',
         icons: [
           {
-            src: 'vela.jpg',
+            src: '/vela.jpg',
             sizes: '192x192',
             type: 'image/jpeg',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: 'vela.jpg',
+            src: '/vela.jpg',
             sizes: '512x512',
             type: 'image/jpeg',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/vela.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg',
+            purpose: 'maskable'
           }
         ]
       },
