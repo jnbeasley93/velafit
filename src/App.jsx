@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import PlanBuilderModal from './components/PlanBuilderModal';
 import AuthModal from './components/AuthModal';
 import OnboardingSurvey from './components/OnboardingSurvey';
+import PostWorkoutRating from './components/PostWorkoutRating';
 import './App.css';
 
 function AppInner() {
@@ -23,6 +24,8 @@ function AppInner() {
   const [authMode, setAuthMode] = useState('login');
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [ratingSessionLength, setRatingSessionLength] = useState(30);
 
   const handleGetStarted = useCallback(() => {
     if (user) {
@@ -80,7 +83,19 @@ function AppInner() {
       <Pricing onGetStarted={handleGetStarted} />
       <WaitlistCTA onSignUp={handleGetStarted} />
       <Footer />
-      <PlanBuilderModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <PlanBuilderModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSessionComplete={(length) => {
+          setRatingSessionLength(length);
+          setRatingOpen(true);
+        }}
+      />
+      <PostWorkoutRating
+        open={ratingOpen}
+        onClose={() => setRatingOpen(false)}
+        sessionLength={ratingSessionLength}
+      />
       <OnboardingSurvey
         open={onboardingOpen}
         onComplete={handleOnboardingComplete}

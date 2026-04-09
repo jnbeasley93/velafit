@@ -62,7 +62,7 @@ function getTodayName() {
     .slice(0, 3);
 }
 
-export default function PlanBuilderModal({ open, onClose }) {
+export default function PlanBuilderModal({ open, onClose, onSessionComplete }) {
   const { fitnessProfile } = useAuth();
   const noMindGames =
     fitnessProfile?.mind_games?.includes('No mind games') ?? false;
@@ -262,14 +262,19 @@ export default function PlanBuilderModal({ open, onClose }) {
             className={styles.btnBuild}
             onClick={
               showConfirmation
-                ? handleClose
+                ? () => {
+                    const todayDay = getTodayName();
+                    const todayMins = parseInt(dayTimes[todayDay] || '30', 10);
+                    handleClose();
+                    onSessionComplete?.(todayMins);
+                  }
                 : showResult
                   ? () => setShowConfirmation(true)
                   : handleBuild
             }
           >
             {showConfirmation
-              ? 'Done'
+              ? 'Rate My Session →'
               : showResult
                 ? 'Start My First Session →'
                 : 'Build My Plan →'}
