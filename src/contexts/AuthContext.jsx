@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { setOneSignalUserId, sendTag } from '../lib/oneSignal';
 
 const AuthContext = createContext(null);
 
@@ -42,7 +43,9 @@ export function AuthProvider({ children }) {
         setSession(session);
         if (session?.user) {
           fetchProfile(session.user.id);
-          fetchPlan(session.user.id);
+          fetchPlan(session.user.id).then(() => {
+            setOneSignalUserId(session.user.id);
+          });
         } else {
           setProfile(null);
           setUserPlan(null);
@@ -52,6 +55,13 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe();
   }, [fetchProfile, fetchPlan]);
+
+  // Tag OneSignal user with plan status when it changes
+  useEffect(() => {
+    if (session?.user && userPlan !== undefined) {
+      sendTag('has_plan', userPlan ? 'true' : 'false');
+    }
+  }, [session, userPlan]);
 
   const signUp = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
