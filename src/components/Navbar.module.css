@@ -35,10 +35,10 @@
   border: 2px solid var(--green-accent);
 }
 
-/* ── Center links (logged-out only) ─────────── */
+/* ── Center links ───────────────────────────── */
 .centerLinks {
   display: flex;
-  gap: 2rem;
+  gap: 1.6rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -47,17 +47,23 @@
 .centerLinks a {
   text-decoration: none;
   color: var(--green-deep);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.65;
-  transition: opacity 0.2s;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
   white-space: nowrap;
 }
 
 .centerLinks a:hover {
   opacity: 1;
+}
+
+.upgradeLink {
+  color: var(--gold) !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
 }
 
 /* ── Right section ──────────────────────────── */
