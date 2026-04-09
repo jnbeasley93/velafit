@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { promptNotificationPermission } from '../lib/oneSignal';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -127,6 +128,23 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession 
 
   const breakdown = isTrainingDay ? getTimeBreakdown(todayMins, noMindGames) : null;
 
+  // Notification prompt — show after first session, once only
+  const [notifDismissed, setNotifDismissed] = useState(
+    () => localStorage.getItem('vela_notif_prompted') === 'true'
+  );
+  const showNotifPrompt = stats.total === 1 && !notifDismissed;
+
+  const handleEnableNotifications = useCallback(async () => {
+    await promptNotificationPermission();
+    localStorage.setItem('vela_notif_prompted', 'true');
+    setNotifDismissed(true);
+  }, []);
+
+  const handleDismissNotif = useCallback(() => {
+    localStorage.setItem('vela_notif_prompted', 'true');
+    setNotifDismissed(true);
+  }, []);
+
   const recentLogs = logs.slice(0, 3);
 
   return (
@@ -180,6 +198,25 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession 
             <button className={styles.btnBuild} onClick={onBuildPlan}>
               Build Your Plan →
             </button>
+          </div>
+        )}
+
+        {/* ── Notification prompt ── */}
+        {showNotifPrompt && (
+          <div className={styles.notifCard}>
+            <span className={styles.notifIcon}>🔔</span>
+            <div className={styles.notifContent}>
+              <strong>Stay on track</strong>
+              <p>Get reminders on your training days so you never miss a session.</p>
+            </div>
+            <div className={styles.notifActions}>
+              <button className={styles.notifEnable} onClick={handleEnableNotifications}>
+                Enable Reminders
+              </button>
+              <button className={styles.notifDismiss} onClick={handleDismissNotif}>
+                Not now
+              </button>
+            </div>
           </div>
         )}
 

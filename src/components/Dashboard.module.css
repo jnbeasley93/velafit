@@ -331,3 +331,80 @@
   text-align: center;
   padding: 1rem;
 }
+
+/* ── Notification prompt card ───────────────── */
+.notifCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  background: white;
+  border: 1.5px solid rgba(201, 168, 76, 0.25);
+  border-radius: 4px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.notifIcon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.notifContent {
+  flex: 1;
+}
+
+.notifContent strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--green-deep);
+  margin-bottom: 0.2rem;
+}
+
+.notifContent p {
+  font-size: 0.82rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.notifActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.notifEnable {
+  padding: 0.45rem 1rem;
+  background: var(--gold);
+  color: var(--green-deep);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.notifEnable:hover {
+  opacity: 0.85;
+}
+
+.notifDismiss {
+  padding: 0.3rem 0.6rem;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  color: var(--stone);
+  cursor: pointer;
+  text-align: center;
+}
+
+.notifDismiss:hover {
+  color: var(--green-deep);
+}
