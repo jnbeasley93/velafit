@@ -8,63 +8,53 @@ export default function Navbar({ onGetStarted, onLogin }) {
 
   return (
     <nav className={styles.nav}>
-      <a href="#" className={styles.logo}>
+      <Link to="/" className={styles.logo}>
         <img src={velaImg} alt="Vela" className={styles.avatar} />
         VelaFit
-      </a>
-      <ul className={styles.links}>
-        <li><a href="#how">How It Works</a></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#mind">Mind &amp; Journal</a></li>
-        <li><a href="#nutrition">Nutrition</a></li>
-        <li><a href="#pricing">Pricing</a></li>
+      </Link>
+
+      {!user && (
+        <ul className={styles.centerLinks}>
+          <li><a href="#how">How It Works</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#mind">Mind &amp; Journal</a></li>
+          <li><a href="#nutrition">Nutrition</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      )}
+
+      <div className={styles.right}>
         {user ? (
           <>
-            <li>
-              <span className={styles.userInfo}>
-                {isPro && <span className={styles.proBadge}>PRO</span>}
-                {user.email.split('@')[0]}
-              </span>
-            </li>
-            <li>
-              <Link to="/history" style={{ opacity: 1 }}>History</Link>
-            </li>
-            <li>
-              <Link to="/settings" style={{ opacity: 1 }}>Settings</Link>
-            </li>
-            <li>
-              <a
-                href="#"
-                className={styles.cta}
-                onClick={(e) => { e.preventDefault(); signOut(); }}
-              >
-                Sign Out
-              </a>
-            </li>
+            <span className={styles.userInfo}>
+              {isPro && <span className={styles.proBadge}>PRO</span>}
+              {user.email.split('@')[0]}
+            </span>
+            <Link to="/history" className={styles.navLink}>History</Link>
+            <Link to="/settings" className={styles.navLink}>Settings</Link>
+            <button className={styles.signOutBtn} onClick={signOut}>
+              Sign Out
+            </button>
           </>
         ) : (
           <>
-            <li>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); onLogin?.(); }}
-                style={{ opacity: 1 }}
-              >
-                Sign In
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className={styles.cta}
-                onClick={(e) => { e.preventDefault(); onGetStarted?.(); }}
-              >
-                Get Started
-              </a>
-            </li>
+            <a
+              href="#"
+              className={styles.navLink}
+              onClick={(e) => { e.preventDefault(); onLogin?.(); }}
+            >
+              Sign In
+            </a>
+            <a
+              href="#"
+              className={styles.cta}
+              onClick={(e) => { e.preventDefault(); onGetStarted?.(); }}
+            >
+              Get Started
+            </a>
           </>
         )}
-      </ul>
+      </div>
     </nav>
   );
 }

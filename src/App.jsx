@@ -118,15 +118,15 @@ function AppInner() {
               <Pricing onGetStarted={handleGetStarted} />
               <WaitlistCTA onSignUp={handleGetStarted} />
               <Footer />
-              {user && onboardingCompleted && (
-                <QuickSessionFAB onClick={() => setQuickSessionOpen(true)} />
-              )}
             </>
           }
         />
         <Route path="/settings" element={<Settings />} />
         <Route path="/history" element={<WorkoutHistory />} />
       </Routes>
+      {user && (
+        <QuickSessionFAB onClick={() => setQuickSessionOpen(true)} />
+      )}
       <QuickSessionModal
         open={quickSessionOpen}
         onClose={() => setQuickSessionOpen(false)}
