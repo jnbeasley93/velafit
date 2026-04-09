@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './PlanBuilderModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -26,6 +27,25 @@ const LOCATIONS = [
   'Mix of both',
 ];
 
+function getTimeBreakdown(totalMins, noMindGames) {
+  const mins = parseInt(totalMins, 10);
+  if (mins <= 15) {
+    if (noMindGames) return { workout: 15, journal: 0, mindGame: 0 };
+    return { workout: 10, journal: 0, mindGame: 5 };
+  }
+  if (mins <= 30) {
+    if (noMindGames) return { workout: 25, journal: 5, mindGame: 0 };
+    return { workout: 20, journal: 7, mindGame: 3 };
+  }
+  if (mins <= 45) {
+    if (noMindGames) return { workout: 35, journal: 10, mindGame: 0 };
+    return { workout: 30, journal: 10, mindGame: 5 };
+  }
+  // 60+
+  if (noMindGames) return { workout: 45, journal: 15, mindGame: 0 };
+  return { workout: 40, journal: 12, mindGame: 8 };
+}
+
 function sessionDesc(mins) {
   if (mins <= 15)
     return 'Quick movement session — 1 priority block. Short and focused.';
@@ -43,11 +63,27 @@ function getTodayName() {
 }
 
 export default function PlanBuilderModal({ open, onClose }) {
+  const { fitnessProfile } = useAuth();
+  const noMindGames =
+    fitnessProfile?.mind_games?.includes('No mind games') ?? false;
+
   const [name, setName] = useState('');
   const [selectedDays, setSelectedDays] = useState([]);
   const [dayTimes, setDayTimes] = useState({});
   const [goal, setGoal] = useState(GOALS[0]);
-  const [location, setLocation] = useState(LOCATIONS[0]);
+
+  // Pre-fill location from fitness profile equipment answer
+  const equipmentToLocation = {
+    'None — bodyweight only': 'Home — no equipment',
+    'Resistance bands': 'Home — some equipment',
+    'Dumbbells': 'Home — some equipment',
+    'Full home gym': 'Home — some equipment',
+    'Commercial gym access': 'Gym',
+  };
+  const defaultLocation =
+    (fitnessProfile?.equipment && equipmentToLocation[fitnessProfile.equipment]) ||
+    LOCATIONS[0];
+  const [location, setLocation] = useState(defaultLocation);
   const [showResult, setShowResult] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -200,6 +236,7 @@ export default function PlanBuilderModal({ open, onClose }) {
             goal={goal}
             location={location}
             todayName={todayName}
+            noMindGames={noMindGames}
           />
         )}
 
@@ -243,7 +280,37 @@ export default function PlanBuilderModal({ open, onClose }) {
   );
 }
 
-function PlanResult({ name, selectedDays, dayTimes, goal, location, todayName }) {
+function BreakdownBar({ breakdown }) {
+  const total = breakdown.workout + breakdown.journal + breakdown.mindGame;
+  return (
+    <div className={styles.breakdownBar}>
+      <div
+        className={styles.breakdownWorkout}
+        style={{ width: `${(breakdown.workout / total) * 100}%` }}
+      >
+        {breakdown.workout}m workout
+      </div>
+      {breakdown.journal > 0 && (
+        <div
+          className={styles.breakdownJournal}
+          style={{ width: `${(breakdown.journal / total) * 100}%` }}
+        >
+          {breakdown.journal}m journal
+        </div>
+      )}
+      {breakdown.mindGame > 0 && (
+        <div
+          className={styles.breakdownMind}
+          style={{ width: `${(breakdown.mindGame / total) * 100}%` }}
+        >
+          {breakdown.mindGame}m mind
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlanResult({ name, selectedDays, dayTimes, goal, location, todayName, noMindGames }) {
   return (
     <div className={styles.planResultShow}>
       <h3>Your plan is ready, {name}.</h3>
@@ -281,20 +348,26 @@ function PlanResult({ name, selectedDays, dayTimes, goal, location, todayName })
       <div className={styles.scheduleTable}>
         {selectedDays.map((d, i) => {
           const isToday = d === todayName;
+          const mins = dayTimes[d] || '30';
+          const breakdown = getTimeBreakdown(mins, noMindGames);
           return (
-            <div
-              key={d}
-              className={`${
-                i % 2 === 0 ? styles.scheduleRowEven : styles.scheduleRow
-              } ${isToday ? styles.scheduleRowToday : ''}`}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {isToday && <span className={styles.todayBadge}>TODAY</span>}
-                {d}
-              </span>
-              <span className={styles.scheduleRowTime}>
-                {dayTimes[d] || '30'} min
-              </span>
+            <div key={d}>
+              <div
+                className={`${
+                  i % 2 === 0 ? styles.scheduleRowEven : styles.scheduleRow
+                } ${isToday ? styles.scheduleRowToday : ''}`}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {isToday && <span className={styles.todayBadge}>TODAY</span>}
+                  {d}
+                </span>
+                <span className={styles.scheduleRowTime}>
+                  {mins} min
+                </span>
+              </div>
+              <div style={{ padding: '0.3rem 0.9rem 0.5rem' }}>
+                <BreakdownBar breakdown={breakdown} />
+              </div>
             </div>
           );
         })}

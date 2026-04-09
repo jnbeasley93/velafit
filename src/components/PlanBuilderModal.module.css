@@ -331,3 +331,43 @@
 .resultGoalHighlight {
   color: var(--green-light);
 }
+
+/* Time breakdown bar */
+.breakdownBar {
+  display: flex;
+  border-radius: 2px;
+  overflow: hidden;
+  font-size: 0.6rem;
+  font-family: 'Space Mono', monospace;
+  height: 20px;
+}
+
+.breakdownWorkout {
+  background: var(--green-accent);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
+
+.breakdownJournal {
+  background: var(--gold);
+  color: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
+
+.breakdownMind {
+  background: rgba(245, 240, 232, 0.15);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
