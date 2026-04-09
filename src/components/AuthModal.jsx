@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AuthModal.module.css';
 
-export default function AuthModal({ open, onClose, onSuccess }) {
+export default function AuthModal({ open, onClose, onSuccess, initialMode = 'login' }) {
   const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,8 +17,13 @@ export default function AuthModal({ open, onClose, onSuccess }) {
     setError('');
     setSuccess('');
     setSubmitting(false);
-    setMode('login');
-  }, []);
+    setMode(initialMode);
+  }, [initialMode]);
+
+  // Sync mode when initialMode prop changes (e.g. opening from different buttons)
+  useEffect(() => {
+    if (open) setMode(initialMode);
+  }, [open, initialMode]);
 
   const handleClose = useCallback(() => {
     reset();
@@ -46,10 +51,16 @@ export default function AuthModal({ open, onClose, onSuccess }) {
         reset();
         onSuccess?.();
       } else {
-        await signUp(email, password);
-        setSuccess('Check your email to confirm your account.');
-        setEmail('');
-        setPassword('');
+        const data = await signUp(email, password);
+        // If Supabase returns a session (email confirmation disabled), proceed immediately
+        if (data?.session) {
+          reset();
+          onSuccess?.();
+        } else {
+          setSuccess('Check your email to confirm your account.');
+          setEmail('');
+          setPassword('');
+        }
       }
     } catch (err) {
       setError(err.message);

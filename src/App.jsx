@@ -19,6 +19,7 @@ function AppInner() {
   const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
 
   const handleGetStarted = useCallback(() => {
@@ -26,9 +27,15 @@ function AppInner() {
       setModalOpen(true);
     } else {
       setPendingPlanBuilder(true);
+      setAuthMode('signup');
       setAuthOpen(true);
     }
   }, [user]);
+
+  const handleLogin = useCallback(() => {
+    setAuthMode('login');
+    setAuthOpen(true);
+  }, []);
 
   const handleAuthClose = useCallback(() => {
     setAuthOpen(false);
@@ -47,7 +54,7 @@ function AppInner() {
     <BrowserRouter>
       <Navbar
         onGetStarted={handleGetStarted}
-        onLogin={() => setAuthOpen(true)}
+        onLogin={handleLogin}
       />
       <Hero onBuildPlan={handleGetStarted} />
       <HowItWorks />
@@ -56,13 +63,14 @@ function AppInner() {
       <MindJournal />
       <Nutrition />
       <Pricing onGetStarted={handleGetStarted} />
-      <WaitlistCTA onSignUp={() => setAuthOpen(true)} />
+      <WaitlistCTA onSignUp={handleGetStarted} />
       <Footer />
       <PlanBuilderModal open={modalOpen} onClose={() => setModalOpen(false)} />
       <AuthModal
         open={authOpen}
         onClose={handleAuthClose}
         onSuccess={handleAuthSuccess}
+        initialMode={authMode}
       />
     </BrowserRouter>
   );
