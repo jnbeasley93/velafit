@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -15,6 +15,7 @@ import PlanBuilderModal from './components/PlanBuilderModal';
 import AuthModal from './components/AuthModal';
 import OnboardingSurvey from './components/OnboardingSurvey';
 import PostWorkoutRating from './components/PostWorkoutRating';
+import Settings from './components/Settings';
 import './App.css';
 
 function AppInner() {
@@ -74,15 +75,25 @@ function AppInner() {
         onGetStarted={handleGetStarted}
         onLogin={handleLogin}
       />
-      <Hero onBuildPlan={handleGetStarted} />
-      <HowItWorks />
-      <FeaturesGrid />
-      <DailyBriefing />
-      <MindJournal />
-      <Nutrition />
-      <Pricing onGetStarted={handleGetStarted} />
-      <WaitlistCTA onSignUp={handleGetStarted} />
-      <Footer />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <Hero onBuildPlan={handleGetStarted} />
+              <HowItWorks />
+              <FeaturesGrid />
+              <DailyBriefing />
+              <MindJournal />
+              <Nutrition />
+              <Pricing onGetStarted={handleGetStarted} />
+              <WaitlistCTA onSignUp={handleGetStarted} />
+              <Footer />
+            </>
+          }
+        />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
       <PlanBuilderModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

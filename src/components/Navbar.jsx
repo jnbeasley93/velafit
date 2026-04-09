@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import velaImg from '../assets/vela.jpg';
 import styles from './Navbar.module.css';
@@ -24,6 +25,9 @@ export default function Navbar({ onGetStarted, onLogin }) {
                 {isPro && <span className={styles.proBadge}>PRO</span>}
                 {user.email.split('@')[0]}
               </span>
+            </li>
+            <li>
+              <Link to="/settings" style={{ opacity: 1 }}>Settings</Link>
             </li>
             <li>
               <a

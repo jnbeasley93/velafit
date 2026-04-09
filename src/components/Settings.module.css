@@ -1,0 +1,191 @@
+.page {
+  min-height: 100vh;
+  background: var(--warm-white);
+  padding: 6rem 1.5rem 4rem;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--stone);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--green-deep);
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: var(--green-deep);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+}
+
+/* Section card */
+.section {
+  background: white;
+  border: 1.5px solid rgba(74, 140, 92, 0.1);
+  border-radius: 4px;
+  padding: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+}
+
+.sectionDesc {
+  font-size: 0.82rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 1.4rem;
+}
+
+/* Chip grid */
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.chip {
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--green-accent);
+}
+
+.chipSelected {
+  composes: chip;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+/* Profile fields */
+.fieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(74, 140, 92, 0.06);
+}
+
+.fieldRow:last-child {
+  border-bottom: none;
+}
+
+.fieldLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fieldValue {
+  font-size: 0.85rem;
+  color: var(--charcoal);
+}
+
+/* Buttons */
+.btnSave {
+  padding: 0.65rem 1.4rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnSave:hover {
+  background: var(--green-mid);
+}
+
+.btnSave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnRetake {
+  padding: 0.65rem 1.4rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--stone);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.btnRetake:hover {
+  border-color: var(--green-accent);
+  color: var(--green-deep);
+}
+
+.saved {
+  font-size: 0.82rem;
+  color: var(--green-accent);
+  font-weight: 500;
+  margin-left: 0.75rem;
+}
+
+.intensityRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(74, 140, 92, 0.06);
+}
+
+.intensityLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.intensityValue {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--green-accent);
+  font-weight: 700;
+}
