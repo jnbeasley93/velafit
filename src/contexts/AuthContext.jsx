@@ -63,6 +63,8 @@ export function AuthProvider({ children }) {
     user: session?.user ?? null,
     profile,
     isPro: profile?.is_pro ?? false,
+    onboardingCompleted: profile?.onboarding_completed ?? false,
+    fitnessProfile: profile?.fitness_profile ?? null,
     loading,
     signUp,
     signIn,

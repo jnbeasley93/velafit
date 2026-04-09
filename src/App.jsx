@@ -13,24 +13,31 @@ import WaitlistCTA from './components/WaitlistCTA';
 import Footer from './components/Footer';
 import PlanBuilderModal from './components/PlanBuilderModal';
 import AuthModal from './components/AuthModal';
+import OnboardingSurvey from './components/OnboardingSurvey';
 import './App.css';
 
 function AppInner() {
-  const { user } = useAuth();
+  const { user, onboardingCompleted } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
 
   const handleGetStarted = useCallback(() => {
     if (user) {
-      setModalOpen(true);
+      if (!onboardingCompleted) {
+        setPendingPlanBuilder(true);
+        setOnboardingOpen(true);
+      } else {
+        setModalOpen(true);
+      }
     } else {
       setPendingPlanBuilder(true);
       setAuthMode('signup');
       setAuthOpen(true);
     }
-  }, [user]);
+  }, [user, onboardingCompleted]);
 
   const handleLogin = useCallback(() => {
     setAuthMode('login');
@@ -44,6 +51,14 @@ function AppInner() {
 
   const handleAuthSuccess = useCallback(() => {
     setAuthOpen(false);
+    if (pendingPlanBuilder) {
+      // After auth, check if onboarding is needed
+      setOnboardingOpen(true);
+    }
+  }, [pendingPlanBuilder]);
+
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingOpen(false);
     if (pendingPlanBuilder) {
       setPendingPlanBuilder(false);
       setModalOpen(true);
@@ -66,6 +81,10 @@ function AppInner() {
       <WaitlistCTA onSignUp={handleGetStarted} />
       <Footer />
       <PlanBuilderModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <OnboardingSurvey
+        open={onboardingOpen}
+        onComplete={handleOnboardingComplete}
+      />
       <AuthModal
         open={authOpen}
         onClose={handleAuthClose}

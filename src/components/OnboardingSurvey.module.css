@@ -1,0 +1,206 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 58, 42, 0.85);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  background: var(--warm-white);
+  max-width: 480px;
+  width: 92%;
+  max-height: 90vh;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress bar */
+.progressBar {
+  height: 4px;
+  background: rgba(74, 140, 92, 0.12);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--green-accent);
+  transition: width 0.35s ease;
+}
+
+/* Header */
+.header {
+  background: var(--green-deep);
+  padding: 1.6rem 2rem 1.2rem;
+  color: var(--cream);
+}
+
+.stepLabel {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(245, 240, 232, 0.4);
+  margin-bottom: 0.5rem;
+}
+
+.header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  line-height: 1.3;
+}
+
+/* Vela prompt */
+.velaPrompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.2rem 2rem;
+  background: var(--cream);
+  border-bottom: 1px solid rgba(74, 140, 92, 0.08);
+}
+
+.velaAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.velaText {
+  font-size: 0.85rem;
+  color: var(--green-deep);
+  line-height: 1.55;
+  font-weight: 300;
+}
+
+/* Body */
+.body {
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Option chips (single select) */
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option {
+  padding: 0.7rem 1rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: var(--charcoal);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.option:hover {
+  border-color: var(--green-accent);
+}
+
+.optionSelected {
+  composes: option;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+/* Multi-select chips (mind games) */
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.55rem 1rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--green-accent);
+}
+
+.chipSelected {
+  composes: chip;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+/* Footer */
+.footer {
+  padding: 0 2rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnBack {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 2px;
+  color: var(--stone);
+  transition: all 0.2s;
+}
+
+.btnBack:hover {
+  border-color: var(--stone);
+}
+
+.btnNext {
+  flex: 2;
+  padding: 0.75rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnNext:hover {
+  background: var(--green-mid);
+}
+
+.btnNext:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
