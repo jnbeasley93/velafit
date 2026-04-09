@@ -1,0 +1,333 @@
+.page {
+  min-height: 100vh;
+  background: var(--warm-white);
+  padding: 5.5rem 1.5rem 4rem;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* ── Greeting header ────────────────────────── */
+.greeting {
+  margin-bottom: 0.25rem;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--green-deep);
+}
+
+.velaRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.velaAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.velaMessage {
+  font-size: 0.88rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Today card ─────────────────────────────── */
+.todayCard {
+  background: var(--green-deep);
+  border-radius: 4px;
+  padding: 1.6rem 1.5rem;
+  color: var(--cream);
+  margin-bottom: 1.5rem;
+}
+
+.todayLabel {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(245, 240, 232, 0.45);
+  margin-bottom: 0.4rem;
+}
+
+.todayTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.todayMeta {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 232, 0.6);
+  font-weight: 300;
+  margin-bottom: 1rem;
+}
+
+.breakdownBar {
+  display: flex;
+  border-radius: 2px;
+  overflow: hidden;
+  font-size: 0.58rem;
+  font-family: 'Space Mono', monospace;
+  height: 18px;
+  margin-bottom: 1.2rem;
+}
+
+.breakdownWorkout {
+  background: var(--green-accent);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
+
+.breakdownJournal {
+  background: var(--gold);
+  color: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
+
+.breakdownMind {
+  background: rgba(245, 240, 232, 0.15);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 0.3rem;
+}
+
+.btnStart {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--green-accent);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnStart:hover {
+  background: var(--green-light);
+  color: var(--green-deep);
+}
+
+/* ── Rest day card ──────────────────────────── */
+.restCard {
+  background: white;
+  border: 1.5px solid rgba(74, 140, 92, 0.1);
+  border-radius: 4px;
+  padding: 1.6rem 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.restTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+}
+
+.restSub {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 1rem;
+}
+
+.quickLink {
+  font-size: 0.82rem;
+  color: var(--gold);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.2s;
+}
+
+.quickLink:hover {
+  opacity: 0.7;
+}
+
+/* ── No plan card ───────────────────────────── */
+.noPlanCard {
+  background: white;
+  border: 1.5px dashed rgba(74, 140, 92, 0.2);
+  border-radius: 4px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.noPlanTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+}
+
+.noPlanSub {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 1.2rem;
+}
+
+.btnBuild {
+  padding: 0.7rem 1.6rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnBuild:hover {
+  background: var(--green-mid);
+}
+
+/* ── Stats row ──────────────────────────────── */
+.statsRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.statBox {
+  flex: 1;
+  background: white;
+  border: 1.5px solid rgba(74, 140, 92, 0.1);
+  border-radius: 4px;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.statValue {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--stone);
+  margin-top: 0.2rem;
+}
+
+/* ── Recent sessions ────────────────────────── */
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--green-deep);
+  margin-bottom: 0.75rem;
+}
+
+.recentCard {
+  background: white;
+  border: 1.5px solid rgba(74, 140, 92, 0.08);
+  border-radius: 4px;
+  padding: 0.9rem 1.2rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recentLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.recentDate {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.recentJournal {
+  font-size: 0.75rem;
+  color: var(--stone);
+  font-weight: 300;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.recentLength {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--stone);
+}
+
+.feelingBadge {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 2px;
+  background: rgba(74, 140, 92, 0.08);
+  color: var(--green-accent);
+  font-weight: 600;
+}
+
+.viewAll {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--green-accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.viewAll:hover {
+  opacity: 0.7;
+}
+
+.empty {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  text-align: center;
+  padding: 1rem;
+}
