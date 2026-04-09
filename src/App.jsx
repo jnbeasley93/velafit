@@ -15,11 +15,13 @@ import PlanBuilderModal from './components/PlanBuilderModal';
 import AuthModal from './components/AuthModal';
 import OnboardingSurvey from './components/OnboardingSurvey';
 import PostWorkoutRating from './components/PostWorkoutRating';
+import SessionPlayer from './components/SessionPlayer';
 import Settings from './components/Settings';
+import { buildSession } from './lib/buildSession';
 import './App.css';
 
 function AppInner() {
-  const { user, onboardingCompleted } = useAuth();
+  const { user, onboardingCompleted, fitnessProfile, profile } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
@@ -27,6 +29,9 @@ function AppInner() {
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
   const [ratingSessionLength, setRatingSessionLength] = useState(30);
+  const [sessionOpen, setSessionOpen] = useState(false);
+  const [sessionData, setSessionData] = useState(null);
+  const [sessionMins, setSessionMins] = useState(30);
 
   const handleGetStarted = useCallback(() => {
     if (user) {
@@ -69,6 +74,15 @@ function AppInner() {
     }
   }, [pendingPlanBuilder]);
 
+  const handleStartSession = useCallback((mins) => {
+    const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
+    const intensity = profile?.intensity_level ?? 2;
+    const session = buildSession(fitnessProfile, mins, noMindGames, intensity);
+    setSessionMins(mins);
+    setSessionData(session);
+    setSessionOpen(true);
+  }, [fitnessProfile, profile]);
+
   return (
     <BrowserRouter>
       <Navbar
@@ -97,8 +111,15 @@ function AppInner() {
       <PlanBuilderModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSessionComplete={(length) => {
-          setRatingSessionLength(length);
+        onStartSession={handleStartSession}
+      />
+      <SessionPlayer
+        open={sessionOpen}
+        session={sessionData}
+        sessionMins={sessionMins}
+        onClose={() => setSessionOpen(false)}
+        onRequestRating={(mins) => {
+          setRatingSessionLength(mins);
           setRatingOpen(true);
         }}
       />
