@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vela.jpg', 'vela-192.png', 'vela-512.png'],
+      includeAssets: ['vela.jpg', 'vela-192.png', 'vela-512.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'VelaFit',
         short_name: 'VelaFit',
