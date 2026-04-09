@@ -28,10 +28,11 @@ function AppInner() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
-  const [ratingSessionLength, setRatingSessionLength] = useState(30);
+  const [ratingData, setRatingData] = useState({ sessionMins: 30, isImpromptu: false, exercisesCompleted: [], journalEntry: null });
   const [sessionOpen, setSessionOpen] = useState(false);
   const [sessionData, setSessionData] = useState(null);
   const [sessionMins, setSessionMins] = useState(30);
+  const [sessionIsImpromptu, setSessionIsImpromptu] = useState(false);
 
   const handleGetStarted = useCallback(() => {
     if (user) {
@@ -117,16 +118,20 @@ function AppInner() {
         open={sessionOpen}
         session={sessionData}
         sessionMins={sessionMins}
+        isImpromptu={sessionIsImpromptu}
         onClose={() => setSessionOpen(false)}
-        onRequestRating={(mins) => {
-          setRatingSessionLength(mins);
+        onRequestRating={(data) => {
+          setRatingData(data);
           setRatingOpen(true);
         }}
       />
       <PostWorkoutRating
         open={ratingOpen}
-        onClose={() => setRatingOpen(false)}
-        sessionLength={ratingSessionLength}
+        onClose={() => { setRatingOpen(false); setSessionIsImpromptu(false); }}
+        sessionLength={ratingData.sessionMins}
+        isImpromptu={ratingData.isImpromptu}
+        exercisesCompleted={ratingData.exercisesCompleted}
+        journalEntry={ratingData.journalEntry}
       />
       <OnboardingSurvey
         open={onboardingOpen}

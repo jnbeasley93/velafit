@@ -7,7 +7,7 @@ const INTENSITY_OPTIONS = ['Too easy', 'Just right', 'Too hard'];
 const COMPLETION_OPTIONS = ['Yes', 'Mostly', 'No — ran out of time'];
 const FEELING_OPTIONS = ['Great', 'Good', 'Tired', 'Drained'];
 
-export default function PostWorkoutRating({ open, onClose, sessionLength }) {
+export default function PostWorkoutRating({ open, onClose, sessionLength, isImpromptu, exercisesCompleted, journalEntry }) {
   const { user, profile, refreshProfile } = useAuth();
   const [intensity, setIntensity] = useState('');
   const [completion, setCompletion] = useState('');
@@ -29,6 +29,9 @@ export default function PostWorkoutRating({ open, onClose, sessionLength }) {
         intensity_rating: intensity,
         completion_rating: completion,
         feeling_rating: feeling,
+        is_impromptu: isImpromptu || false,
+        exercises_completed: exercisesCompleted || [],
+        journal_entry: journalEntry || null,
       });
 
       // Auto-adjust intensity level based on recent ratings

@@ -137,20 +137,19 @@ function RestTimer({ seconds, nextExercise, onDone, onSkip }) {
 // Phase: Journal
 // ─────────────────────────────────────────────
 
-function JournalPhase({ onDone, onSkip }) {
+function JournalPhase({ onDone, onSkip, journalText, setJournalText }) {
   const { user } = useAuth();
-  const [entry, setEntry] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
-    if (!entry.trim() || !user) { onSkip(); return; }
+    if (!journalText.trim() || !user) { onSkip(); return; }
     setSaving(true);
     try {
       await supabase.from('journal_entries').insert({
         user_id: user.id,
         date: new Date().toISOString().slice(0, 10),
         prompt: "What's one thing that felt different today than last session?",
-        entry: entry.trim(),
+        entry: journalText.trim(),
         created_at: new Date().toISOString(),
       });
       onDone();
@@ -160,7 +159,7 @@ function JournalPhase({ onDone, onSkip }) {
     } finally {
       setSaving(false);
     }
-  }, [entry, user, onDone, onSkip]);
+  }, [journalText, user, onDone, onSkip]);
 
   return (
     <div className={styles.bodyInner}>
@@ -174,8 +173,8 @@ function JournalPhase({ onDone, onSkip }) {
         <textarea
           className={styles.journalTextarea}
           placeholder="Today I noticed..."
-          value={entry}
-          onChange={(e) => setEntry(e.target.value)}
+          value={journalText}
+          onChange={(e) => setJournalText(e.target.value)}
         />
       </div>
       <div className={styles.footer} style={{ border: 'none', padding: '1rem 0 0' }}>
@@ -230,7 +229,7 @@ function MindGamePhase({ preferences, onDone }) {
 // Main SessionPlayer
 // ─────────────────────────────────────────────
 
-export default function SessionPlayer({ open, session, sessionMins, onClose, onRequestRating }) {
+export default function SessionPlayer({ open, session, sessionMins, isImpromptu, onClose, onRequestRating }) {
   const { profile, fitnessProfile } = useAuth();
   const intensityLevel = profile?.intensity_level ?? 2;
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
@@ -257,12 +256,14 @@ export default function SessionPlayer({ open, session, sessionMins, onClose, onR
   // State
   const [phase, setPhase] = useState('workout'); // workout | rest | journal | mind | done
   const [exIndex, setExIndex] = useState(0);
+  const [journalText, setJournalText] = useState('');
 
   // Reset on open
   useEffect(() => {
     if (open) {
       setPhase('workout');
       setExIndex(0);
+      setJournalText('');
     }
   }, [open]);
 
@@ -313,10 +314,16 @@ export default function SessionPlayer({ open, session, sessionMins, onClose, onR
   // "done" phase triggers rating and closes
   useEffect(() => {
     if (phase === 'done' && open) {
+      const exerciseNames = allExercises.map((e) => e.name);
       onClose();
-      onRequestRating?.(sessionMins);
+      onRequestRating?.({
+        sessionMins,
+        isImpromptu: isImpromptu || false,
+        exercisesCompleted: exerciseNames,
+        journalEntry: journalText.trim() || null,
+      });
     }
-  }, [phase, open, onClose, onRequestRating, sessionMins]);
+  }, [phase, open, onClose, onRequestRating, sessionMins, isImpromptu, allExercises, journalText]);
 
   if (!open || !session) return null;
 
@@ -393,7 +400,12 @@ export default function SessionPlayer({ open, session, sessionMins, onClose, onR
 
         {/* ── Journal phase ── */}
         {phase === 'journal' && (
-          <JournalPhase onDone={handleJournalDone} onSkip={handleJournalDone} />
+          <JournalPhase
+            onDone={handleJournalDone}
+            onSkip={handleJournalDone}
+            journalText={journalText}
+            setJournalText={setJournalText}
+          />
         )}
 
         {/* ── Mind game phase ── */}
