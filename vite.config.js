@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vela.jpg'],
+      includeAssets: ['vela.jpg', 'vela-192.png', 'vela-512.png'],
       manifest: {
         name: 'VelaFit',
         short_name: 'VelaFit',
@@ -21,21 +21,21 @@ export default defineConfig({
         start_url: '/dashboard',
         icons: [
           {
-            src: '/vela.jpg',
+            src: '/vela-192.png',
             sizes: '192x192',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/vela.jpg',
+            src: '/vela-512.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/vela.jpg',
+            src: '/vela-512.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'maskable'
           }
         ]
