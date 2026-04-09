@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [userPlan, setUserPlan] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId) => {
@@ -17,10 +18,22 @@ export function AuthProvider({ children }) {
     setProfile(data);
   }, []);
 
+  const fetchPlan = useCallback(async (userId) => {
+    const { data } = await supabase
+      .from('user_plans')
+      .select('plan')
+      .eq('user_id', userId)
+      .single();
+    setUserPlan(data?.plan ?? null);
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        fetchPlan(session.user.id);
+      }
       setLoading(false);
     });
 
@@ -29,14 +42,16 @@ export function AuthProvider({ children }) {
         setSession(session);
         if (session?.user) {
           fetchProfile(session.user.id);
+          fetchPlan(session.user.id);
         } else {
           setProfile(null);
+          setUserPlan(null);
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [fetchProfile, fetchPlan]);
 
   const signUp = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -65,11 +80,13 @@ export function AuthProvider({ children }) {
     isPro: profile?.is_pro ?? false,
     onboardingCompleted: profile?.onboarding_completed ?? false,
     fitnessProfile: profile?.fitness_profile ?? null,
+    userPlan,
     loading,
     signUp,
     signIn,
     signOut,
     refreshProfile: () => session?.user && fetchProfile(session.user.id),
+    refreshPlan: () => session?.user && fetchPlan(session.user.id),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

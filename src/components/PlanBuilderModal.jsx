@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import styles from './PlanBuilderModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -63,7 +64,7 @@ function getTodayName() {
 }
 
 export default function PlanBuilderModal({ open, onClose, onStartSession }) {
-  const { fitnessProfile } = useAuth();
+  const { user, fitnessProfile, refreshPlan } = useAuth();
   const noMindGames =
     fitnessProfile?.mind_games?.includes('No mind games') ?? false;
 
@@ -264,7 +265,26 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
               showConfirmation
                 ? handleClose
                 : showResult
-                  ? () => {
+                  ? async () => {
+                      // Build the plan object with day → minutes mapping
+                      const days = {};
+                      for (const d of selectedDays) {
+                        days[d] = parseInt(dayTimes[d] || '30', 10);
+                      }
+                      const plan = {
+                        days,
+                        goal,
+                        location,
+                        createdAt: new Date().toISOString().slice(0, 10),
+                      };
+                      // Upsert to Supabase
+                      if (user) {
+                        await supabase.from('user_plans').upsert(
+                          { user_id: user.id, plan, updated_at: new Date().toISOString() },
+                          { onConflict: 'user_id' }
+                        );
+                        refreshPlan?.();
+                      }
                       const todayDay = getTodayName();
                       const todayMins = parseInt(dayTimes[todayDay] || '30', 10);
                       handleClose();
