@@ -6,8 +6,8 @@ export async function initOneSignal() {
   if (initialized) return;
   try {
     await OneSignal.init({
-      appId: 'ONESIGNAL_APP_ID_PLACEHOLDER',
-      safari_web_id: 'SAFARI_WEB_ID_PLACEHOLDER',
+      appId: 'c1c9bf15-50ef-41c0-a427-c7849e520527',
+      safari_web_id: 'web.onesignal.auto.4d38dcde-f055-4772-b947-a310d959e18a',
       notifyButton: { enable: false },
       allowLocalhostAsSecureOrigin: true,
       promptOptions: {
