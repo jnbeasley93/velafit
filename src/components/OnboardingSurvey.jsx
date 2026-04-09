@@ -40,12 +40,14 @@ const STEPS = [
   {
     key: 'equipment',
     title: 'Available equipment',
-    vela: "What do you have access to? I'll build around whatever you've got.",
-    type: 'single',
+    vela: "What do you have access to? Select all that apply — I'll build around whatever you've got.",
+    type: 'multi',
+    exclusive: 'None — bodyweight only',
     options: [
       'None — bodyweight only',
       'Resistance bands',
-      'Dumbbells',
+      'Dumbbells and/or Kettlebells',
+      'Pull-up bar',
       'Full home gym',
       'Commercial gym access',
     ],
@@ -55,6 +57,7 @@ const STEPS = [
     title: 'Mind game preferences',
     vela: "VelaFit includes short cognitive games between sets and after sessions. Pick what sounds fun — you can change these later in settings.",
     type: 'multi',
+    exclusive: 'No mind games',
     options: [
       'Sudoku',
       'Crossword',
@@ -87,10 +90,15 @@ export default function OnboardingSurvey({ open, onComplete }) {
     (value) => {
       setAnswers((prev) => {
         const existing = prev[current.key] || [];
-        if (value === 'No mind games') {
-          return { ...prev, [current.key]: ['No mind games'] };
+        const exclusive = current.exclusive;
+        // If the user picked the exclusive/"none" option, deselect everything else
+        if (exclusive && value === exclusive) {
+          return { ...prev, [current.key]: [exclusive] };
         }
-        const without = existing.filter((v) => v !== 'No mind games');
+        // Otherwise remove the exclusive option and toggle normally
+        const without = exclusive
+          ? existing.filter((v) => v !== exclusive)
+          : existing;
         const next = without.includes(value)
           ? without.filter((v) => v !== value)
           : [...without, value];

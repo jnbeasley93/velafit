@@ -139,7 +139,9 @@ export default function Settings() {
                 <div key={key} className={styles.fieldRow}>
                   <span className={styles.fieldLabel}>{label}</span>
                   <span className={styles.fieldValue}>
-                    {fitnessProfile[key] || '—'}
+                    {Array.isArray(fitnessProfile[key])
+                      ? fitnessProfile[key].join(', ')
+                      : fitnessProfile[key] || '—'}
                   </span>
                 </div>
               ))}

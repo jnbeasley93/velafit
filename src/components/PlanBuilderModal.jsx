@@ -72,17 +72,17 @@ export default function PlanBuilderModal({ open, onClose, onSessionComplete }) {
   const [dayTimes, setDayTimes] = useState({});
   const [goal, setGoal] = useState(GOALS[0]);
 
-  // Pre-fill location from fitness profile equipment answer
-  const equipmentToLocation = {
-    'None — bodyweight only': 'Home — no equipment',
-    'Resistance bands': 'Home — some equipment',
-    'Dumbbells': 'Home — some equipment',
-    'Full home gym': 'Home — some equipment',
-    'Commercial gym access': 'Gym',
-  };
-  const defaultLocation =
-    (fitnessProfile?.equipment && equipmentToLocation[fitnessProfile.equipment]) ||
-    LOCATIONS[0];
+  // Pre-fill location from fitness profile equipment (array)
+  function deriveLocation(equipment) {
+    if (!equipment) return LOCATIONS[0];
+    const list = Array.isArray(equipment) ? equipment : [equipment];
+    if (list.includes('Commercial gym access')) return 'Gym';
+    if (list.includes('Full home gym') || list.some((e) =>
+      e !== 'None — bodyweight only'
+    )) return 'Home — some equipment';
+    return 'Home — no equipment';
+  }
+  const defaultLocation = deriveLocation(fitnessProfile?.equipment);
   const [location, setLocation] = useState(defaultLocation);
   const [showResult, setShowResult] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
