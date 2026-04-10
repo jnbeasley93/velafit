@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
+import { sendTag } from '../lib/oneSignal';
 import styles from './PlanBuilderModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -285,6 +286,11 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
                           { onConflict: 'user_id' }
                         );
                         refreshPlan?.();
+                        // OneSignal tags for notification scheduling
+                        const daysList = Object.keys(days).join(',');
+                        sendTag('training_days', daysList);
+                        sendTag('plan_updated', new Date().toISOString());
+                        sendTag('has_plan', 'true');
                       }
                       const todayDay = getTodayName();
                       const todayMins = parseInt(dayTimes[todayDay] || '30', 10);

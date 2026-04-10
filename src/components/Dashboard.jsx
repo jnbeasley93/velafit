@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
+import { updateDailyNotificationTags } from '../lib/notifications';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -137,6 +138,14 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   }, [user]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  // Update OneSignal tags whenever plan or logs change so notification
+  // triggers stay accurate
+  useEffect(() => {
+    if (userPlan && !loading) {
+      updateDailyNotificationTags(userPlan, logs);
+    }
+  }, [userPlan, logs, loading]);
 
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
   const userName = user?.email?.split('@')[0] || 'there';

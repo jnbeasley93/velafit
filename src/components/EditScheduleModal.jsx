@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
+import { sendTag } from '../lib/oneSignal';
 import styles from './EditScheduleModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -156,6 +157,12 @@ export default function EditScheduleModal({ open, onClose }) {
     }
 
     await refreshPlan?.();
+    // OneSignal tags for notification scheduling
+    const daysList = Object.keys(days).join(',');
+    sendTag('training_days', daysList);
+    sendTag('plan_updated', new Date().toISOString());
+    sendTag('has_plan', 'true');
+
     setSuccess(true);
     setTimeout(() => {
       setSuccess(false);

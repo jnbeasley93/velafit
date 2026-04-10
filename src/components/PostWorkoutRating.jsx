@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
+import { sendTag } from '../lib/oneSignal';
 import styles from './PostWorkoutRating.module.css';
 
 const INTENSITY_OPTIONS = ['Too easy', 'Just right', 'Too hard'];
@@ -52,6 +53,12 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
       }
 
       console.log('[PostWorkoutRating] insert success:', insertData);
+
+      // OneSignal tags — notification scheduling uses these
+      const totalSessions = (profile?.total_sessions || 0) + 1;
+      sendTag('last_session', localDateStr());
+      sendTag('total_sessions', String(totalSessions));
+      sendTag('session_completed_today', 'true');
 
       // Auto-adjust intensity level based on recent ratings
       const { data: recentLogs, error: fetchError } = await supabase
