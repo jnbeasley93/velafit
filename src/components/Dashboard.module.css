@@ -187,7 +187,7 @@
   color: var(--green-accent);
   font-weight: 600;
   background: none;
-  border: 3px solid red;
+  border: none;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
   margin: 0.5rem 0 1.5rem;
