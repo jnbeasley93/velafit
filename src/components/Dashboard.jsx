@@ -94,7 +94,7 @@ function BreakdownBar({ breakdown }) {
   );
 }
 
-export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession }) {
+export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity }) {
   const { user, userPlan, fitnessProfile, profile } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,9 +194,14 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession 
             <div className={styles.restCard}>
               <h2 className={styles.restTitle}>Rest Day</h2>
               <p className={styles.restSub}>Recovery is part of the plan.</p>
-              <button className={styles.quickLink} onClick={onQuickSession}>
-                Quick Session anyway? ⚡
-              </button>
+              <div className={styles.restActions}>
+                <button className={styles.quickLink} onClick={onQuickSession}>
+                  Quick Session anyway? ⚡
+                </button>
+                <button className={styles.quickLink} onClick={onLogActivity}>
+                  + Log other activity
+                </button>
+              </div>
             </div>
           )
         ) : (
@@ -209,6 +214,12 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession 
               Build Your Plan →
             </button>
           </div>
+        )}
+
+        {hasPlan && isTrainingDay && (
+          <button className={styles.logActivityLink} onClick={onLogActivity}>
+            + Log other activity
+          </button>
         )}
 
         {/* ── Notification prompt ── */}

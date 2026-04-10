@@ -159,6 +159,12 @@
   margin-bottom: 1rem;
 }
 
+.restActions {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
 .quickLink {
   font-size: 0.82rem;
   color: var(--gold);
@@ -172,6 +178,26 @@
 
 .quickLink:hover {
   opacity: 0.7;
+}
+
+.logActivityLink {
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--stone);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin: -0.75rem 0 1.5rem;
+  padding: 0.4rem 0;
+  transition: color 0.2s;
+  width: 100%;
+}
+
+.logActivityLink:hover {
+  color: var(--green-deep);
 }
 
 /* ── No plan card ───────────────────────────── */

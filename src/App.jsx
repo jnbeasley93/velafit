@@ -20,6 +20,7 @@ import Settings from './components/Settings';
 import WorkoutHistory from './components/WorkoutHistory';
 import Dashboard from './components/Dashboard';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
+import LogActivityModal from './components/LogActivityModal';
 import { buildSession } from './lib/buildSession';
 import './App.css';
 
@@ -79,6 +80,7 @@ function AppInner() {
   }, [pendingPlanBuilder]);
 
   const [quickSessionOpen, setQuickSessionOpen] = useState(false);
+  const [logActivityOpen, setLogActivityOpen] = useState(false);
 
   const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
     const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
@@ -134,6 +136,7 @@ function AppInner() {
                 onStartSession={handleStartSession}
                 onBuildPlan={() => setModalOpen(true)}
                 onQuickSession={() => setQuickSessionOpen(true)}
+                onLogActivity={() => setLogActivityOpen(true)}
               />
             ) : (
               <Navigate to="/" replace />
@@ -163,6 +166,10 @@ function AppInner() {
       {user && (
         <QuickSessionFAB onClick={() => setQuickSessionOpen(true)} />
       )}
+      <LogActivityModal
+        open={logActivityOpen}
+        onClose={() => setLogActivityOpen(false)}
+      />
       <QuickSessionModal
         open={quickSessionOpen}
         onClose={() => setQuickSessionOpen(false)}
