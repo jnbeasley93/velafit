@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import OnboardingSurvey from './OnboardingSurvey';
@@ -94,6 +95,9 @@ export default function Settings() {
           Manage your preferences and fitness profile.
         </p>
 
+        {/* Appearance */}
+        <AppearanceSection />
+
         {/* Mind Game Preferences */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Mind Game Preferences</h3>
@@ -179,6 +183,34 @@ export default function Settings() {
         open={retakeOpen}
         onComplete={handleRetakeComplete}
       />
+    </div>
+  );
+}
+
+function AppearanceSection() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}>Appearance</h3>
+      <p className={styles.sectionDesc}>
+        Choose your preferred visual theme.
+      </p>
+      <div className={styles.themeToggleRow}>
+        <span className={styles.themeLabel}>
+          {isDark ? 'Dark' : 'Light'} Mode
+        </span>
+        <button
+          className={isDark ? styles.pillSwitchOn : styles.pillSwitch}
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+        >
+          <span className={styles.pillKnob}>
+            {isDark ? '🌙' : '☀️'}
+          </span>
+        </button>
+      </div>
     </div>
   );
 }

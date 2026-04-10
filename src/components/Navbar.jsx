@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import velaImg from '../assets/vela.jpg';
 import styles from './Navbar.module.css';
 
@@ -15,6 +16,7 @@ function scrollToHash(hash, navigate, pathname) {
 
 export default function Navbar({ onGetStarted, onLogin }) {
   const { user, isPro, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -66,6 +68,13 @@ export default function Navbar({ onGetStarted, onLogin }) {
               {isPro && <span className={styles.proBadge}>PRO</span>}
               {user.email.split('@')[0]}
             </span>
+            <button
+              className={styles.themeBtn}
+              onClick={toggleTheme}
+              aria-label="Toggle dark mode"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <button className={styles.signOutBtn} onClick={signOut}>
               Sign Out
             </button>
