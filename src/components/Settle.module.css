@@ -1,0 +1,262 @@
+.page {
+  min-height: 100vh;
+  background: var(--warm-white);
+  padding: 5.5rem 1.5rem 4rem;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.7rem;
+  color: var(--charcoal);
+  margin-bottom: 0.4rem;
+}
+
+.pageSub {
+  font-size: 0.9rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 2.2rem;
+  font-style: italic;
+}
+
+/* ── Section card base ──────────────────────── */
+.card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1.6rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cardGratitude {
+  composes: card;
+  border-left: 4px solid var(--gold);
+}
+
+.cardJournal {
+  composes: card;
+  border-left: 4px solid var(--green-accent);
+}
+
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--charcoal);
+  margin-bottom: 0.4rem;
+}
+
+.velaPrompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.velaAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.velaText {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Inputs ─────────────────────────────────── */
+.input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  margin-bottom: 0.75rem;
+}
+
+.input:focus {
+  border-color: var(--green-accent);
+}
+
+.textarea {
+  composes: input;
+  min-height: 110px;
+  resize: vertical;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btnSave {
+  padding: 0.65rem 1.4rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnSave:hover {
+  background: var(--green-mid);
+}
+
+.btnSave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Saved state ────────────────────────────── */
+.savedState {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(74, 140, 92, 0.08);
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+}
+
+.savedCheck {
+  color: var(--green-accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.savedText {
+  font-size: 0.88rem;
+  color: var(--charcoal);
+  line-height: 1.5;
+}
+
+.savedHint {
+  font-size: 0.78rem;
+  color: var(--stone);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.btnEdit {
+  background: none;
+  border: none;
+  color: var(--green-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btnEdit:hover {
+  text-decoration: underline;
+}
+
+/* ── Journal prompt ─────────────────────────── */
+.promptBox {
+  background: rgba(74, 140, 92, 0.06);
+  border-radius: 2px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Breathing modes grid ───────────────────── */
+.breatheGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.modeCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1.2rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.modeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(26, 58, 42, 0.12);
+  border-color: var(--green-accent);
+}
+
+.modeEmoji {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 0.4rem;
+  line-height: 1;
+}
+
+.modeTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+  margin-bottom: 0.3rem;
+}
+
+.modeDesc {
+  font-size: 0.74rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.modeTimerChips {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.timeChip {
+  padding: 0.25rem 0.55rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 2px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.timeChip:hover {
+  border-color: var(--green-accent);
+}
+
+.timeChipSelected {
+  composes: timeChip;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}

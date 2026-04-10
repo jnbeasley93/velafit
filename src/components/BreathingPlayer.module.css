@@ -1,0 +1,278 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--green-deep);
+  z-index: 1300;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.header {
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modeLabel {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(245, 240, 232, 0.5);
+}
+
+.btnExit {
+  padding: 0.45rem 1rem;
+  border: 1px solid rgba(245, 240, 232, 0.25);
+  background: none;
+  color: rgba(245, 240, 232, 0.7);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.btnExit:hover {
+  border-color: var(--cream);
+  color: var(--cream);
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+/* ── Box breathing circle ───────────────────── */
+.boxWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.boxCircle {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boxCircle svg {
+  width: 100%;
+  height: 100%;
+}
+
+.boxCircleBg {
+  fill: none;
+  stroke: rgba(245, 240, 232, 0.12);
+  stroke-width: 2;
+}
+
+.boxCircleAnim {
+  fill: rgba(245, 240, 232, 0.06);
+  stroke: var(--cream);
+  stroke-width: 3;
+  transform-origin: center;
+  transition: r 4s ease-in-out, opacity 4s ease-in-out;
+}
+
+.boxLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.phaseText {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--cream);
+  margin-bottom: 0.4rem;
+}
+
+.phaseCount {
+  font-family: 'Space Mono', monospace;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+.roundCounter {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(245, 240, 232, 0.5);
+}
+
+/* ── Free timer ─────────────────────────────── */
+.freeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.freeRing {
+  position: relative;
+  width: 260px;
+  height: 260px;
+}
+
+.freeRing svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.freeRingBg {
+  fill: none;
+  stroke: rgba(245, 240, 232, 0.12);
+  stroke-width: 4;
+}
+
+.freeRingFill {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.freeRingInner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.velaSmall {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.6rem;
+  border: 2px solid var(--cream);
+  opacity: 0.85;
+}
+
+.freeTime {
+  font-family: 'Space Mono', monospace;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+/* ── Body scan ──────────────────────────────── */
+.scanWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 500px;
+  text-align: center;
+  gap: 2rem;
+}
+
+.scanText {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  color: var(--cream);
+  line-height: 1.55;
+  animation: fadeText 0.8s ease;
+  min-height: 5rem;
+}
+
+@keyframes fadeText {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scanProgress {
+  width: 200px;
+  height: 3px;
+  background: rgba(245, 240, 232, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scanProgressFill {
+  height: 100%;
+  background: var(--cream);
+  transition: width 0.4s linear;
+}
+
+.velaScanFooter {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0.7;
+}
+
+/* ── Completion screen ──────────────────────── */
+.completeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.completeVela {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--cream);
+}
+
+.completeText {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--cream);
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.btnDone {
+  padding: 0.85rem 2rem;
+  border: 1.5px solid var(--cream);
+  background: none;
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.btnDone:hover {
+  background: var(--cream);
+  color: var(--green-deep);
+}
