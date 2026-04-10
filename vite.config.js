@@ -42,7 +42,9 @@ export default defineConfig({
         ]
       },
       workbox: {
-        cacheId: 'velafit-v2',
+        cacheId: 'velafit-v3',
+        clientsClaim: true,
+        skipWaiting: true,
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg}'],
         runtimeCaching: [
           {
