@@ -122,6 +122,12 @@
   color: var(--gold);
 }
 
+.badgeActivity {
+  composes: badge;
+  background: rgba(122, 189, 138, 0.15);
+  color: var(--green-accent);
+}
+
 /* ── Ratings row ────────────────────────────── */
 .cardBody {
   padding: 1rem 1.4rem;
@@ -201,6 +207,24 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+  margin-top: 0.25rem;
+}
+
+/* ── Activity card ──────────────────────────── */
+.activityCard {
+  background: white;
+  border: 1.5px solid rgba(74, 140, 92, 0.1);
+  border-left: 4px solid var(--green-light);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.activityNotes {
+  font-size: 0.82rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.5;
   margin-top: 0.25rem;
 }
 

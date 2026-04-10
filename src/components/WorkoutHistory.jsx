@@ -14,30 +14,31 @@ function formatDate(dateStr) {
   });
 }
 
-function computeStats(logs) {
-  const total = logs.length;
-  if (total === 0) return { total: 0, streak: 0, topFeeling: '—' };
+function computeStats(workoutLogs, activityLogs) {
+  const total = workoutLogs.length;
 
-  // Current streak
-  const dates = logs.map((l) => l.date).sort().reverse();
+  // Current streak — count days with ANY entry
+  const allDates = new Set([
+    ...workoutLogs.map((l) => l.date),
+    ...activityLogs.map((l) => l.date),
+  ]);
   let streak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < dates.length; i++) {
+  for (let i = 0; i < 365; i++) {
     const target = new Date(today);
-    target.setDate(target.getDate() - i);
+    target.setDate(today.getDate() - i);
     const targetStr = target.toISOString().slice(0, 10);
-    if (dates.includes(targetStr)) {
+    if (allDates.has(targetStr)) {
       streak++;
     } else {
       break;
     }
   }
 
-  // Most common feeling
+  // Most common feeling (from workouts)
   const feelings = {};
-  for (const l of logs) {
+  for (const l of workoutLogs) {
     if (l.feeling_rating) {
       feelings[l.feeling_rating] = (feelings[l.feeling_rating] || 0) + 1;
     }
@@ -47,6 +48,17 @@ function computeStats(logs) {
 
   return { total, streak, topFeeling };
 }
+
+const ACTIVITY_EMOJIS = {
+  'Walking': '🚶',
+  'Running': '🏃',
+  'Cycling': '🚴',
+  'Swimming': '🏊',
+  'Yard Work': '🌿',
+  'Playing with Kids': '👶',
+  'Outdoor Sports': '⚽',
+  'Yoga / Stretching': '🧘',
+};
 
 function JournalEntry({ text }) {
   const [expanded, setExpanded] = useState(false);
@@ -127,34 +139,79 @@ function SessionCard({ log }) {
   );
 }
 
+function ActivityCard({ log }) {
+  const emoji = ACTIVITY_EMOJIS[log.activity_type] || '🏃';
+
+  return (
+    <div className={styles.activityCard}>
+      <div className={styles.cardHeader}>
+        <div>
+          <p className={styles.cardDate}>
+            {emoji} {formatDate(log.date)}
+          </p>
+          <p className={styles.cardLength}>
+            {log.activity_type}
+            {log.duration_mins ? ` · ${log.duration_mins} min` : ''}
+          </p>
+        </div>
+        <span className={styles.badgeActivity}>Life Movement</span>
+      </div>
+
+      <div className={styles.cardBody}>
+        <div className={styles.ratingsRow}>
+          {log.feeling && (
+            <span className={styles.ratingChip}>Feeling: {log.feeling}</span>
+          )}
+        </div>
+        {log.notes && (
+          <p className={styles.activityNotes}>{log.notes}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function WorkoutHistory() {
   const { user } = useAuth();
-  const [logs, setLogs] = useState([]);
+  const [workoutLogs, setWorkoutLogs] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('workout_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false });
-    setLogs(data || []);
+    const [workoutRes, activityRes] = await Promise.all([
+      supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false }),
+      supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false }),
+    ]);
+    setWorkoutLogs(workoutRes.data || []);
+    setActivityLogs(activityRes.data || []);
     setLoading(false);
   }, [user]);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
-  const stats = computeStats(logs);
+  const stats = computeStats(workoutLogs, activityLogs);
+
+  // Merge and sort all entries chronologically
+  const allEntries = [
+    ...workoutLogs.map((l) => ({ ...l, _type: 'workout' })),
+    ...activityLogs.map((l) => ({ ...l, _type: 'activity' })),
+  ].sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
 
   if (!user) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
-          <Link to="/" className={styles.backLink}>← Back to home</Link>
+          <Link to="/dashboard" className={styles.backLink}>← Back to dashboard</Link>
           <h1 className={styles.title}>Workout History</h1>
           <p className={styles.subtitle}>Please sign in to view your history.</p>
         </div>
@@ -165,7 +222,7 @@ export default function WorkoutHistory() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <Link to="/" className={styles.backLink}>← Back to home</Link>
+        <Link to="/dashboard" className={styles.backLink}>← Back to dashboard</Link>
         <h1 className={styles.title}>Workout History</h1>
         <p className={styles.subtitle}>Every session, tracked and reviewed.</p>
 
@@ -188,7 +245,7 @@ export default function WorkoutHistory() {
           <p style={{ textAlign: 'center', color: 'var(--stone)', padding: '2rem' }}>
             Loading...
           </p>
-        ) : logs.length === 0 ? (
+        ) : allEntries.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🏋️</div>
             <p className={styles.emptyTitle}>No sessions yet</p>
@@ -197,7 +254,13 @@ export default function WorkoutHistory() {
             </p>
           </div>
         ) : (
-          logs.map((log, i) => <SessionCard key={log.id || i} log={log} />)
+          allEntries.map((entry, i) =>
+            entry._type === 'workout' ? (
+              <SessionCard key={`w-${entry.id || i}`} log={entry} />
+            ) : (
+              <ActivityCard key={`a-${entry.id || i}`} log={entry} />
+            )
+          )
         )}
       </div>
     </div>

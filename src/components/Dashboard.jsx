@@ -38,28 +38,31 @@ function getTimeBreakdown(totalMins, noMindGames) {
   return { workout: 40, journal: 12, mindGame: 8 };
 }
 
-function computeStats(logs, userPlan) {
+function computeStats(logs, activityLogs, userPlan) {
   const total = logs.length;
 
-  // Current streak
+  // Current streak — count days with ANY entry (workout or activity)
+  const allDates = new Set([
+    ...logs.map((l) => l.date),
+    ...activityLogs.map((l) => l.date),
+  ]);
   let streak = 0;
-  const dates = logs.map((l) => l.date).sort().reverse();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  for (let i = 0; i < dates.length; i++) {
+  for (let i = 0; i < 365; i++) {
     const target = new Date(today);
-    target.setDate(target.getDate() - i);
+    target.setDate(today.getDate() - i);
     const targetStr = target.toISOString().slice(0, 10);
-    if (dates.includes(targetStr)) {
+    if (allDates.has(targetStr)) {
       streak++;
     } else {
       break;
     }
   }
 
-  // This week's sessions
+  // This week's sessions (workouts only for the X/Y count)
   const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+  startOfWeek.setDate(today.getDate() - today.getDay());
   const weekStr = startOfWeek.toISOString().slice(0, 10);
   const thisWeekSessions = logs.filter((l) => l.date >= weekStr).length;
   const plannedPerWeek = userPlan?.days ? Object.keys(userPlan.days).length : 0;
@@ -97,18 +100,28 @@ function BreakdownBar({ breakdown }) {
 export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity }) {
   const { user, userPlan, fitnessProfile, profile } = useAuth();
   const [logs, setLogs] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('workout_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(50);
-    setLogs(data || []);
+    const [workoutRes, activityRes] = await Promise.all([
+      supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(50),
+      supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(50),
+    ]);
+    setLogs(workoutRes.data || []);
+    setActivityLogs(activityRes.data || []);
     setLoading(false);
   }, [user]);
 
@@ -116,7 +129,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
 
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
   const userName = user?.email?.split('@')[0] || 'there';
-  const stats = computeStats(logs, userPlan);
+  const stats = computeStats(logs, activityLogs, userPlan);
 
   // Today's schedule
   const todayIdx = new Date().getDay();
