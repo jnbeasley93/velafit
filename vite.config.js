@@ -13,6 +13,7 @@ export default defineConfig({
         name: 'VelaFit',
         short_name: 'VelaFit',
         description: 'Fitness that fits your life.',
+        version: '1.1.0',
         theme_color: '#1a3a2a',
         background_color: '#faf8f4',
         display: 'standalone',
@@ -41,6 +42,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cacheId: 'velafit-v2',
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg}'],
         runtimeCaching: [
           {
