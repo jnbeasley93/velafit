@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import styles from './PlanBuilderModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -275,7 +276,7 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
                         days,
                         goal,
                         location,
-                        createdAt: new Date().toISOString().slice(0, 10),
+                        createdAt: localDateStr(),
                       };
                       // Upsert to Supabase
                       if (user) {

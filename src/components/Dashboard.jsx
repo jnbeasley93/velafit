@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
+import { localDateStr } from '../lib/dates';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -52,7 +53,7 @@ function computeStats(logs, activityLogs, userPlan) {
   for (let i = 0; i < 365; i++) {
     const target = new Date(today);
     target.setDate(today.getDate() - i);
-    const targetStr = target.toISOString().slice(0, 10);
+    const targetStr = localDateStr(target);
     if (allDates.has(targetStr)) {
       streak++;
     } else {
@@ -63,7 +64,7 @@ function computeStats(logs, activityLogs, userPlan) {
   // This week's sessions (workouts only for the X/Y count)
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
-  const weekStr = startOfWeek.toISOString().slice(0, 10);
+  const weekStr = localDateStr(startOfWeek);
   const thisWeekSessions = logs.filter((l) => l.date >= weekStr).length;
   const plannedPerWeek = userPlan?.days ? Object.keys(userPlan.days).length : 0;
 

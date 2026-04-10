@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import styles from './PostWorkoutRating.module.css';
 
 const INTENSITY_OPTIONS = ['Too easy', 'Just right', 'Too hard'];
@@ -24,7 +25,7 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
       // Save workout log
       await supabase.from('workout_logs').insert({
         user_id: user.id,
-        date: new Date().toISOString().slice(0, 10),
+        date: localDateStr(),
         session_length: sessionLength || 30,
         intensity_rating: intensity,
         completion_rating: completion,

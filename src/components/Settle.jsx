@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import BreathingPlayer from './BreathingPlayer';
 import styles from './Settle.module.css';
 
@@ -15,7 +16,7 @@ const JOURNAL_PROMPTS = [
 ];
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateStr();
 }
 
 // ─────────────────────────────────────────────

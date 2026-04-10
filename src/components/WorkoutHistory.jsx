@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import styles from './WorkoutHistory.module.css';
 
 function formatDate(dateStr) {
@@ -28,7 +29,7 @@ function computeStats(workoutLogs, activityLogs) {
   for (let i = 0; i < 365; i++) {
     const target = new Date(today);
     target.setDate(today.getDate() - i);
-    const targetStr = target.toISOString().slice(0, 10);
+    const targetStr = localDateStr(target);
     if (allDates.has(targetStr)) {
       streak++;
     } else {

@@ -164,16 +164,49 @@
 /* ── Mobile ─────────────────────────────────── */
 @media (max-width: 900px) {
   .nav {
-    padding: 0.8rem 1.2rem;
+    padding: 0.7rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
   }
 
   .centerLinks {
-    display: none;
+    order: 3;
+    flex-basis: 100%;
+    justify-content: space-around;
+    gap: 0.75rem;
+    padding: 0.4rem 0 0;
+    border-top: 1px solid rgba(74, 140, 92, 0.1);
+  }
+
+  .centerLinks a {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  .right {
+    gap: 0.6rem;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+  }
+
+  .logo .avatar {
+    width: 28px;
+    height: 28px;
   }
 }
 
 @media (max-width: 600px) {
   .userInfo {
     display: none;
+  }
+
+  .centerLinks {
+    gap: 0.4rem;
+  }
+
+  .centerLinks a {
+    font-size: 0.62rem;
   }
 }

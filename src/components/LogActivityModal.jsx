@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import styles from './LogActivityModal.module.css';
 
 const ACTIVITIES = [
@@ -67,7 +68,7 @@ export default function LogActivityModal({ open, onClose }) {
     try {
       await supabase.from('activity_logs').insert({
         user_id: user.id,
-        date: new Date().toISOString().slice(0, 10),
+        date: localDateStr(),
         activity_type: activityType,
         duration_mins: duration,
         feeling: feeling || null,

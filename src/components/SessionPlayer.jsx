@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { localDateStr } from '../lib/dates';
 import styles from './SessionPlayer.module.css';
 
 const CIRCLE_R = 70;
@@ -147,7 +148,7 @@ function JournalPhase({ onDone, onSkip, journalText, setJournalText }) {
     try {
       await supabase.from('journal_entries').insert({
         user_id: user.id,
-        date: new Date().toISOString().slice(0, 10),
+        date: localDateStr(),
         prompt: "What's one thing that felt different today than last session?",
         entry: journalText.trim(),
         created_at: new Date().toISOString(),
