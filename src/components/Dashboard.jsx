@@ -217,6 +217,21 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
     setCheckinDismissed(true);
   }, []);
 
+  // Evening streak alert — after 6pm on a training day when session not done
+  const todayLocalStr = localDateStr();
+  const completedToday = logs.some((l) => l.date === todayLocalStr);
+  const [streakAlertDismissed, setStreakAlertDismissed] = useState(
+    () => localStorage.getItem('vela_streak_alert_dismissed') === todayLocalStr
+  );
+  const isEvening = new Date().getHours() >= 18;
+  const showStreakAlert =
+    isEvening && isTrainingDay && !completedToday && !streakAlertDismissed;
+
+  const handleDismissStreakAlert = useCallback(() => {
+    localStorage.setItem('vela_streak_alert_dismissed', todayLocalStr);
+    setStreakAlertDismissed(true);
+  }, [todayLocalStr]);
+
   const planSummary = hasPlan
     ? Object.entries(userPlan.days)
         .map(([d, m]) => `${d} ${m}m`)
@@ -309,6 +324,29 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
             </p>
             <button className={styles.btnBuild} onClick={onBuildPlan}>
               Build Your Plan →
+            </button>
+          </div>
+        )}
+
+        {/* ── Evening streak alert ── */}
+        {showStreakAlert && (
+          <div className={styles.streakAlert}>
+            <p className={styles.streakAlertText}>
+              <span className={styles.streakAlertBolt}>⚡</span>
+              You're developing good habits, don't stop hopping now!
+            </p>
+            <button
+              className={styles.streakAlertBtn}
+              onClick={() => onStartSession?.(todayMins)}
+            >
+              Start Now →
+            </button>
+            <button
+              className={styles.streakAlertClose}
+              onClick={handleDismissStreakAlert}
+              aria-label="Dismiss"
+            >
+              ×
             </button>
           </div>
         )}
