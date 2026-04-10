@@ -91,7 +91,7 @@
 
 /* ── Exercise card ──────────────────────────── */
 .exerciseCard {
-  background: white;
+  background: var(--card-bg);
   border: 1.5px solid rgba(74, 140, 92, 0.1);
   border-radius: 4px;
   overflow: hidden;
@@ -329,7 +329,7 @@
   display: flex;
   gap: 0.75rem;
   border-top: 1px solid rgba(74, 140, 92, 0.08);
-  background: white;
+  background: var(--card-bg);
   flex-shrink: 0;
 }
 
@@ -380,7 +380,7 @@
 
 /* ── Journal phase ──────────────────────────── */
 .journalCard {
-  background: white;
+  background: var(--card-bg);
   border: 1.5px solid rgba(74, 140, 92, 0.1);
   border-radius: 4px;
   padding: 1.8rem;
@@ -423,7 +423,7 @@
 
 /* ── Mind game placeholder ──────────────────── */
 .mindCard {
-  background: white;
+  background: var(--card-bg);
   border: 1.5px solid rgba(201, 168, 76, 0.2);
   border-radius: 4px;
   padding: 2rem;

@@ -41,7 +41,7 @@
 
 /* Section card */
 .section {
-  background: white;
+  background: var(--card-bg);
   border: 1.5px solid rgba(74, 140, 92, 0.1);
   border-radius: 4px;
   padding: 1.8rem;

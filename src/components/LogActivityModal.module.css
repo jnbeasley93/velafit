@@ -79,7 +79,7 @@
   padding: 0.7rem 0.3rem;
   border: 1.5px solid rgba(74, 140, 92, 0.12);
   border-radius: 4px;
-  background: white;
+  background: var(--card-bg);
   cursor: pointer;
   transition: all 0.15s;
   font-family: 'DM Sans', sans-serif;
@@ -117,7 +117,7 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   color: var(--charcoal);
-  background: white;
+  background: var(--card-bg);
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -143,7 +143,7 @@
   font-family: 'Space Mono', monospace;
   font-size: 0.75rem;
   color: var(--charcoal);
-  background: white;
+  background: var(--card-bg);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -175,7 +175,7 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
   color: var(--charcoal);
-  background: white;
+  background: var(--card-bg);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -201,7 +201,7 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   color: var(--charcoal);
-  background: white;
+  background: var(--card-bg);
   outline: none;
   resize: vertical;
   box-sizing: border-box;

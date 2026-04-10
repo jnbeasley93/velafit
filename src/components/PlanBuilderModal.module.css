@@ -85,7 +85,7 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   color: var(--charcoal);
-  background: white;
+  background: var(--card-bg);
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -111,7 +111,7 @@
   cursor: pointer;
   color: var(--stone);
   transition: all 0.15s;
-  background: white;
+  background: var(--card-bg);
 }
 
 .dayChipSelected {
