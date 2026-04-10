@@ -98,7 +98,17 @@ function BreakdownBar({ breakdown }) {
   );
 }
 
-export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity }) {
+// ISO week helper — returns YYYY-Www
+function getISOWeek(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity, onEditSchedule }) {
   const { user, userPlan, fitnessProfile, profile } = useAuth();
   const [logs, setLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
@@ -169,6 +179,41 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
     setNotifDismissed(true);
   }, []);
 
+  // Weekly check-in — show on Sun/Mon if user has a plan and hasn't confirmed this week
+  const currentWeek = getISOWeek();
+  const dayOfWeek = new Date().getDay();
+  const isCheckinDay = dayOfWeek === 0 || dayOfWeek === 1;
+  const [checkinDismissed, setCheckinDismissed] = useState(() => {
+    const stored = localStorage.getItem('vela_checkin_week');
+    if (stored === currentWeek) return true;
+    const skipTs = parseInt(localStorage.getItem('vela_checkin_skip') || '0', 10);
+    if (skipTs && Date.now() - skipTs < 24 * 60 * 60 * 1000) return true;
+    return false;
+  });
+  const showCheckin = isCheckinDay && hasPlan && !checkinDismissed;
+
+  const handleConfirmCheckin = useCallback(() => {
+    localStorage.setItem('vela_checkin_week', currentWeek);
+    setCheckinDismissed(true);
+  }, [currentWeek]);
+
+  const handleTweakCheckin = useCallback(() => {
+    localStorage.setItem('vela_checkin_week', currentWeek);
+    setCheckinDismissed(true);
+    onEditSchedule?.();
+  }, [currentWeek, onEditSchedule]);
+
+  const handleSkipCheckin = useCallback(() => {
+    localStorage.setItem('vela_checkin_skip', String(Date.now()));
+    setCheckinDismissed(true);
+  }, []);
+
+  const planSummary = hasPlan
+    ? Object.entries(userPlan.days)
+        .map(([d, m]) => `${d} ${m}m`)
+        .join(' · ')
+    : '';
+
   const recentLogs = logs.slice(0, 3);
 
   return (
@@ -182,6 +227,40 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
           <div className={styles.velaAvatar}>🐸</div>
           <p className={styles.velaMessage}>{getVelaMessage(stats.streak)}</p>
         </div>
+
+        {/* ── Weekly check-in ── */}
+        {showCheckin && (
+          <div className={styles.checkinCard}>
+            <div className={styles.checkinHeader}>
+              <span className={styles.checkinIcon}>📅</span>
+              <div className={styles.checkinContent}>
+                <strong>New week ahead.</strong>
+                <p>Does your schedule still work for you?</p>
+                <p className={styles.checkinSummary}>{planSummary}</p>
+              </div>
+            </div>
+            <div className={styles.checkinActions}>
+              <button
+                className={styles.checkinConfirm}
+                onClick={handleConfirmCheckin}
+              >
+                ✅ Same as last week
+              </button>
+              <button
+                className={styles.checkinTweak}
+                onClick={handleTweakCheckin}
+              >
+                ✏️ Tweak it
+              </button>
+            </div>
+            <button
+              className={styles.checkinSkip}
+              onClick={handleSkipCheckin}
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
 
         {/* ── Today's Session ── */}
         {hasPlan ? (
