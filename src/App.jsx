@@ -21,6 +21,7 @@ import WorkoutHistory from './components/WorkoutHistory';
 import Dashboard from './components/Dashboard';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
 import './App.css';
 
@@ -215,9 +216,11 @@ function AppInner() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

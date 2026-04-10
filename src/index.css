@@ -9,6 +9,23 @@
   --stone: #8a8478;
   --gold: #c9a84c;
   --gold-light: #e8c97a;
+  --card-bg: #ffffff;
+  --card-border: rgba(74, 140, 92, 0.1);
+}
+
+[data-theme="dark"] {
+  --green-deep: #a8d5b5;
+  --green-mid: #7abd8a;
+  --green-accent: #4a8c5c;
+  --green-light: #2d5a3d;
+  --cream: #1a2e1f;
+  --warm-white: #0f1a13;
+  --charcoal: #f5f0e8;
+  --stone: #a0a090;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --card-bg: #1a2e1f;
+  --card-border: rgba(74, 140, 92, 0.2);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

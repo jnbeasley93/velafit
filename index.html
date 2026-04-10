@@ -16,6 +16,12 @@
     <meta name="theme-color" content="#1a3a2a">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <title>VelaFit</title>
+    <script>
+      (function() {
+        var theme = localStorage.getItem('vela_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
