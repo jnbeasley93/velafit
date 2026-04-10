@@ -8,12 +8,19 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: { enabled: false },
       includeAssets: ['vela.jpg', 'vela-192.png', 'vela-512.png', 'apple-touch-icon.png'],
+      workbox: {
+        globPatterns: [],
+        runtimeCaching: [],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+      },
       manifest: {
         name: 'VelaFit',
         short_name: 'VelaFit',
         description: 'Fitness that fits your life.',
-        version: '1.1.0',
         theme_color: '#1a3a2a',
         background_color: '#faf8f4',
         display: 'standalone',
@@ -21,40 +28,9 @@ export default defineConfig({
         scope: '/',
         start_url: '/dashboard',
         icons: [
-          {
-            src: '/vela-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: '/vela-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: '/vela-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
-          }
-        ]
-      },
-      workbox: {
-        cacheId: 'velafit-v3',
-        clientsClaim: true,
-        skipWaiting: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/nrlqgxsusnxarajofasd\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 300 }
-            }
-          }
+          { src: '/vela-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/vela-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/vela-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })
