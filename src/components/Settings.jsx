@@ -24,7 +24,7 @@ const PROFILE_LABELS = {
   equipment: 'Equipment',
 };
 
-export default function Settings() {
+export default function Settings({ onEditSchedule }) {
   const { user, profile, fitnessProfile, refreshProfile } = useAuth();
   const [mindGames, setMindGames] = useState(
     fitnessProfile?.mind_games || [],
@@ -166,12 +166,18 @@ export default function Settings() {
             </p>
           )}
 
-          <div style={{ marginTop: '1.2rem' }}>
+          <div style={{ marginTop: '1.2rem', display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <button
               className={styles.btnRetake}
               onClick={() => setRetakeOpen(true)}
             >
               {fitnessProfile ? 'Retake Survey' : 'Take Survey'}
+            </button>
+            <button
+              className={styles.btnRetake}
+              onClick={() => onEditSchedule?.()}
+            >
+              Edit Schedule
             </button>
           </div>
         </div>

@@ -24,6 +24,7 @@ import Settle from './components/Settle';
 import Sharpen from './components/Sharpen';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
+import EditScheduleModal from './components/EditScheduleModal';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
 import './App.css';
@@ -85,6 +86,7 @@ function AppInner() {
 
   const [quickSessionOpen, setQuickSessionOpen] = useState(false);
   const [logActivityOpen, setLogActivityOpen] = useState(false);
+  const [editScheduleOpen, setEditScheduleOpen] = useState(false);
 
   const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
     console.log('[App] handleStartSession:', { mins, impromptu, bodyweightOnly });
@@ -143,6 +145,7 @@ function AppInner() {
                 onBuildPlan={() => setModalOpen(true)}
                 onQuickSession={() => setQuickSessionOpen(true)}
                 onLogActivity={() => setLogActivityOpen(true)}
+                onEditSchedule={() => setEditScheduleOpen(true)}
               />
             ) : (
               <Navigate to="/" replace />
@@ -157,7 +160,10 @@ function AppInner() {
           path="/sharpen"
           element={user ? <Sharpen /> : <Navigate to="/" replace />}
         />
-        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/settings"
+          element={<Settings onEditSchedule={() => setEditScheduleOpen(true)} />}
+        />
         <Route path="/history" element={<WorkoutHistory />} />
         {/* Marketing page accessible even when logged in via direct path */}
         <Route
@@ -183,6 +189,10 @@ function AppInner() {
       <LogActivityModal
         open={logActivityOpen}
         onClose={() => setLogActivityOpen(false)}
+      />
+      <EditScheduleModal
+        open={editScheduleOpen}
+        onClose={() => setEditScheduleOpen(false)}
       />
       <QuickSessionModal
         open={quickSessionOpen}
