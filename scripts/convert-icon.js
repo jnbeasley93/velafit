@@ -1,3 +1,6 @@
+// One-time icon generator. Requires sharp:
+//   npm install --no-save sharp
+//   node scripts/convert-icon.js
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
