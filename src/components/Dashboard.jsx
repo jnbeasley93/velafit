@@ -207,14 +207,9 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
             <div className={styles.restCard}>
               <h2 className={styles.restTitle}>Rest Day</h2>
               <p className={styles.restSub}>Recovery is part of the plan.</p>
-              <div className={styles.restActions}>
-                <button className={styles.quickLink} onClick={onQuickSession}>
-                  Quick Session anyway? ⚡
-                </button>
-                <button className={styles.quickLink} onClick={onLogActivity}>
-                  + Log other activity
-                </button>
-              </div>
+              <button className={styles.quickLink} onClick={onQuickSession}>
+                Quick Session anyway? ⚡
+              </button>
             </div>
           )
         ) : (
@@ -229,7 +224,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
           </div>
         )}
 
-        {hasPlan && isTrainingDay && (
+        {user && (
           <button className={styles.logActivityLink} onClick={onLogActivity}>
             + Log other activity
           </button>
