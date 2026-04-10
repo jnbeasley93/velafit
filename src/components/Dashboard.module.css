@@ -54,6 +54,11 @@
   margin-bottom: 1.5rem;
 }
 
+:global([data-theme="dark"]) .todayCard {
+  background: #1e3828;
+  border: 1.5px solid rgba(106, 184, 126, 0.3);
+}
+
 .todayLabel {
   font-family: 'Space Mono', monospace;
   font-size: 0.62rem;
@@ -183,10 +188,11 @@
 .logActivityLink {
   display: block;
   text-align: center;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--green-accent);
-  font-weight: 700;
+  font-weight: 800;
   background: none;
   border: none;
   cursor: pointer;

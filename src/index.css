@@ -14,21 +14,21 @@
 }
 
 [data-theme="dark"] {
-  --green-deep: #a8d5b5;
-  --green-mid: #7abd8a;
-  --green-accent: #4a8c5c;
-  --green-light: #2d5a3d;
-  --cream: #162a1e;
+  --green-deep: #e8f5ee;
+  --green-mid: #c8e6d4;
+  --green-accent: #6ab87e;
+  --green-light: #3d6b4f;
+  --cream: #1e3828;
   --warm-white: #0f1a13;
-  --charcoal: #f5f0e8;
-  --stone: #a0a090;
-  --gold: #c9a84c;
-  --gold-light: #e8c97a;
-  --card-bg: #1a2e1f;
-  --card-border: rgba(74, 140, 92, 0.2);
+  --charcoal: #e8f5ee;
+  --stone: #8aab96;
+  --gold: #e8c97a;
+  --gold-light: #f0d898;
+  --card-bg: #1a2e20;
+  --card-border: rgba(74, 140, 92, 0.25);
   /* Always-dark accent surface for prominent cards (e.g. today's session) */
-  --accent-bg: #162a1e;
-  --accent-text: #f5f0e8;
+  --accent-bg: #1e3828;
+  --accent-text: #e8f5ee;
 }
 
 :root {
