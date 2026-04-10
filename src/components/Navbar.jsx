@@ -34,9 +34,9 @@ export default function Navbar({ onGetStarted, onLogin }) {
 
       {user ? (
         <ul className={styles.centerLinks}>
-          <li><Link to="/dashboard">Home</Link></li>
-          <li><a href="/#mind" onClick={handleHash('mind')}>Mind &amp; Journal</a></li>
-          <li><a href="/#nutrition" onClick={handleHash('nutrition')}>Nutrition</a></li>
+          <li><Link to="/dashboard">🏋️ Move</Link></li>
+          <li><Link to="/sharpen">🧩 Sharpen</Link></li>
+          <li><Link to="/settle">🧘 Settle</Link></li>
           <li><Link to="/history">History</Link></li>
           <li><Link to="/settings">Settings</Link></li>
           {!isPro && (

@@ -19,6 +19,8 @@ import SessionPlayer from './components/SessionPlayer';
 import Settings from './components/Settings';
 import WorkoutHistory from './components/WorkoutHistory';
 import Dashboard from './components/Dashboard';
+import Settle from './components/Settle';
+import Sharpen from './components/Sharpen';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -143,6 +145,14 @@ function AppInner() {
               <Navigate to="/" replace />
             )
           }
+        />
+        <Route
+          path="/settle"
+          element={user ? <Settle /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/sharpen"
+          element={user ? <Sharpen /> : <Navigate to="/" replace />}
         />
         <Route path="/settings" element={<Settings />} />
         <Route path="/history" element={<WorkoutHistory />} />
