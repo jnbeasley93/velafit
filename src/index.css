@@ -18,7 +18,7 @@
   --green-mid: #7abd8a;
   --green-accent: #4a8c5c;
   --green-light: #2d5a3d;
-  --cream: #1a2e1f;
+  --cream: #162a1e;
   --warm-white: #0f1a13;
   --charcoal: #f5f0e8;
   --stone: #a0a090;
@@ -26,6 +26,15 @@
   --gold-light: #e8c97a;
   --card-bg: #1a2e1f;
   --card-border: rgba(74, 140, 92, 0.2);
+  /* Always-dark accent surface for prominent cards (e.g. today's session) */
+  --accent-bg: #162a1e;
+  --accent-text: #f5f0e8;
+}
+
+:root {
+  /* Light-mode defaults for accent surface — same dark green as before */
+  --accent-bg: #1a3a2a;
+  --accent-text: #f5f0e8;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

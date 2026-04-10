@@ -47,10 +47,10 @@
 
 /* ── Today card ─────────────────────────────── */
 .todayCard {
-  background: var(--green-deep);
+  background: var(--accent-bg);
   border-radius: 4px;
   padding: 1.6rem 1.5rem;
-  color: var(--cream);
+  color: var(--accent-text);
   margin-bottom: 1.5rem;
 }
 
@@ -183,9 +183,10 @@
 .logActivityLink {
   display: block;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
   color: var(--green-accent);
-  font-weight: bold;
+  font-weight: 700;
   background: none;
   border: none;
   cursor: pointer;
@@ -261,7 +262,7 @@
   font-family: 'Space Mono', monospace;
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--green-deep);
+  color: var(--charcoal);
 }
 
 .statLabel {
