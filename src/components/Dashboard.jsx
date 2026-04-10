@@ -182,7 +182,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   // Weekly check-in — show on Sun/Mon if user has a plan and hasn't confirmed this week
   const currentWeek = getISOWeek();
   const dayOfWeek = new Date().getDay();
-  const isCheckinDay = true; // TEMP: testing — revert to (dayOfWeek === 0 || dayOfWeek === 1)
+  const isCheckinDay = dayOfWeek === 0 || dayOfWeek === 1;
   const [checkinDismissed, setCheckinDismissed] = useState(() => {
     const stored = localStorage.getItem('vela_checkin_week');
     if (stored === currentWeek) return true;
