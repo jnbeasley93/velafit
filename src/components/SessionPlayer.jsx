@@ -316,13 +316,15 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
   useEffect(() => {
     if (phase === 'done' && open) {
       const exerciseNames = allExercises.map((e) => e.name);
-      onClose();
-      onRequestRating?.({
+      const ratingPayload = {
         sessionMins,
         isImpromptu: isImpromptu || false,
         exercisesCompleted: exerciseNames,
         journalEntry: journalText.trim() || null,
-      });
+      };
+      console.log('[SessionPlayer] done phase, triggering rating with:', ratingPayload);
+      onClose();
+      onRequestRating?.(ratingPayload);
     }
   }, [phase, open, onClose, onRequestRating, sessionMins, isImpromptu, allExercises, journalText]);
 

@@ -87,6 +87,7 @@ function AppInner() {
   const [logActivityOpen, setLogActivityOpen] = useState(false);
 
   const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
+    console.log('[App] handleStartSession:', { mins, impromptu, bodyweightOnly });
     const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
     const intensity = profile?.intensity_level ?? 2;
     // If bodyweight only, override the profile equipment
@@ -101,6 +102,7 @@ function AppInner() {
   }, [fitnessProfile, profile]);
 
   const handleQuickStart = useCallback(({ minutes, bodyweightOnly }) => {
+    console.log('[App] handleQuickStart:', { minutes, bodyweightOnly });
     setQuickSessionOpen(false);
     handleStartSession(minutes, { impromptu: true, bodyweightOnly });
   }, [handleStartSession]);
@@ -199,6 +201,7 @@ function AppInner() {
         isImpromptu={sessionIsImpromptu}
         onClose={() => setSessionOpen(false)}
         onRequestRating={(data) => {
+          console.log('[App] onRequestRating received:', data);
           setRatingData(data);
           setRatingOpen(true);
         }}

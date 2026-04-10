@@ -14,36 +14,56 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
   const [completion, setCompletion] = useState('');
   const [feeling, setFeeling] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const canSubmit = intensity && completion && feeling;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit || !user) return;
     setSaving(true);
+    setError('');
+
+    const payload = {
+      user_id: user.id,
+      date: localDateStr(),
+      session_length: sessionLength || 30,
+      intensity_rating: intensity,
+      completion_rating: completion,
+      feeling_rating: feeling,
+      is_impromptu: isImpromptu || false,
+      exercises_completed: exercisesCompleted || [],
+      journal_entry: journalEntry || null,
+    };
+
+    console.log('[PostWorkoutRating] attempting insert:', payload);
 
     try {
-      // Save workout log
-      await supabase.from('workout_logs').insert({
-        user_id: user.id,
-        date: localDateStr(),
-        session_length: sessionLength || 30,
-        intensity_rating: intensity,
-        completion_rating: completion,
-        feeling_rating: feeling,
-        is_impromptu: isImpromptu || false,
-        exercises_completed: exercisesCompleted || [],
-        journal_entry: journalEntry || null,
-      });
+      // Save workout log — MUST destructure { error } since Supabase doesn't throw on DB errors
+      const { data: insertData, error: insertError } = await supabase
+        .from('workout_logs')
+        .insert(payload)
+        .select();
+
+      if (insertError) {
+        console.error('[PostWorkoutRating] Supabase insert error:', insertError);
+        setError(`Save failed: ${insertError.message}`);
+        setSaving(false);
+        return;
+      }
+
+      console.log('[PostWorkoutRating] insert success:', insertData);
 
       // Auto-adjust intensity level based on recent ratings
-      const { data: recentLogs } = await supabase
+      const { data: recentLogs, error: fetchError } = await supabase
         .from('workout_logs')
         .select('intensity_rating')
         .eq('user_id', user.id)
         .order('date', { ascending: false })
         .limit(2);
 
-      if (recentLogs && recentLogs.length >= 2) {
+      if (fetchError) {
+        console.warn('[PostWorkoutRating] recent logs fetch failed:', fetchError);
+      } else if (recentLogs && recentLogs.length >= 2) {
         const currentLevel = profile?.intensity_level ?? 2;
         const lastTwo = recentLogs.map((l) => l.intensity_rating);
 
@@ -63,11 +83,12 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
       await refreshProfile();
       onClose();
     } catch (err) {
-      console.error('Failed to save workout log:', err);
+      console.error('[PostWorkoutRating] unexpected error:', err);
+      setError(`Unexpected error: ${err.message || err}`);
     } finally {
       setSaving(false);
     }
-  }, [canSubmit, user, profile, intensity, completion, feeling, sessionLength, refreshProfile, onClose]);
+  }, [canSubmit, user, profile, intensity, completion, feeling, sessionLength, isImpromptu, exercisesCompleted, journalEntry, refreshProfile, onClose]);
 
   const handleSkip = useCallback(() => {
     onClose();
@@ -84,6 +105,19 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
         </div>
 
         <div className={styles.body}>
+          {error && (
+            <p style={{
+              padding: '0.6rem 0.8rem',
+              background: 'rgba(201, 168, 76, 0.15)',
+              color: '#c9a84c',
+              fontSize: '0.78rem',
+              borderRadius: '2px',
+              marginBottom: '1rem',
+              fontWeight: 500,
+            }}>
+              {error}
+            </p>
+          )}
           <div className={styles.question}>
             <label className={styles.questionLabel}>
               How was the intensity?
