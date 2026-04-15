@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -37,6 +37,11 @@ export default function Settings({ onEditSchedule }) {
   const [saved, setSaved] = useState(false);
   const [retakeOpen, setRetakeOpen] = useState(false);
 
+  // Sync display name when profile loads after mount
+  useEffect(() => {
+    if (profile?.display_name) setDisplayName(profile.display_name);
+  }, [profile?.display_name]);
+
   const handleSaveName = useCallback(async () => {
     if (!user) return;
     setNameSaving(true);
@@ -44,7 +49,7 @@ export default function Settings({ onEditSchedule }) {
     const { error } = await supabase
       .from('profiles')
       .update({ display_name: displayName.trim() || null })
-      .eq('id', user.id);
+      .eq('user_id', user.id);
     if (error) {
       console.error('[Settings] name save failed:', error);
       setNameError(`Save failed: ${error.message}`);

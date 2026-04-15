@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import styles from './AuthModal.module.css';
 
 export default function AuthModal({ open, onClose, onSuccess, initialMode = 'login' }) {
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState(initialMode);
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,6 +14,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'log
   const [submitting, setSubmitting] = useState(false);
 
   const reset = useCallback(() => {
+    setFirstName('');
     setEmail('');
     setPassword('');
     setError('');
@@ -34,7 +37,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'log
     setError('');
     setSuccess('');
 
-    if (!email || !password) {
+    if (!email || !password || (mode === 'signup' && !firstName.trim())) {
       setError('Please fill in all fields.');
       return;
     }
@@ -52,6 +55,13 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'log
         onSuccess?.();
       } else {
         const data = await signUp(email, password);
+        // Save display name to profiles
+        if (data?.user && firstName.trim()) {
+          await supabase
+            .from('profiles')
+            .update({ display_name: firstName.trim() })
+            .eq('user_id', data.user.id);
+        }
         // If Supabase returns a session (email confirmation disabled), proceed immediately
         if (data?.session) {
           reset();
@@ -89,6 +99,20 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'log
         <div className={styles.body}>
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}
+
+          {mode === 'signup' && (
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>First Name</label>
+              <input
+                type="text"
+                className={styles.formInput}
+                placeholder="Your first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+              />
+            </div>
+          )}
 
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Email</label>
