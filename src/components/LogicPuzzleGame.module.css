@@ -1,0 +1,206 @@
+.wrap {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--charcoal);
+}
+
+.progress {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--stone);
+}
+
+.score {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--green-accent);
+  font-weight: 700;
+}
+
+/* ── Sequence display ───────────────────────── */
+.seqRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.seqNum {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  min-width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warm-white);
+  border-radius: 4px;
+  border: 1.5px solid var(--card-border);
+}
+
+.seqMissing {
+  composes: seqNum;
+  background: rgba(201, 168, 76, 0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+  font-size: 1.6rem;
+}
+
+/* ── Answer input ───────────────────────────── */
+.inputRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.answerInput {
+  width: 120px;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 2px;
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  background: var(--card-bg);
+  text-align: center;
+  outline: none;
+}
+
+.answerInput:focus {
+  border-color: var(--green-accent);
+}
+
+.btnSubmit {
+  padding: 0.6rem 1.2rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnSubmit:hover {
+  background: var(--green-mid);
+}
+
+.btnSubmit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Explanation ────────────────────────────── */
+.explanation {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.explanationCorrect {
+  composes: explanation;
+  background: rgba(74, 140, 92, 0.08);
+  color: var(--green-accent);
+}
+
+.explanationWrong {
+  composes: explanation;
+  background: rgba(201, 83, 76, 0.08);
+  color: #c9534c;
+}
+
+.explanationText {
+  font-size: 0.78rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-top: 0.25rem;
+}
+
+.btnNext {
+  display: block;
+  margin: 0 auto;
+  padding: 0.6rem 1.4rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnNext:hover {
+  background: var(--green-mid);
+}
+
+/* ── Attempt indicator ──────────────────────── */
+.attempts {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--stone);
+  margin-bottom: 0.75rem;
+}
+
+/* ── End state ──────────────────────────────── */
+.endState {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.endEmoji {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.endTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  color: var(--charcoal);
+  margin-bottom: 0.3rem;
+}
+
+.endSub {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--stone);
+  margin-bottom: 0.25rem;
+}
+
+.timer {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--stone);
+}
