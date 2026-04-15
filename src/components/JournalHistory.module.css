@@ -1,0 +1,372 @@
+.page {
+  min-height: 100vh;
+  background: var(--warm-white);
+  padding: 5.5rem 1.5rem 4rem;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.7rem;
+  color: var(--charcoal);
+  margin-bottom: 0.4rem;
+}
+
+.pageSub {
+  font-size: 0.9rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.velaRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.velaAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.velaText {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.countBadge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--green-accent);
+  margin-bottom: 1.5rem;
+}
+
+/* ── View toggle ────────────────────────────── */
+.toggleRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.toggleBtn {
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid var(--card-border);
+  background: var(--card-bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--stone);
+  cursor: pointer;
+  border-radius: 20px;
+  transition: all 0.15s;
+}
+
+.toggleBtnActive {
+  composes: toggleBtn;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+/* ── Entry card ─────────────────────────────── */
+.entryCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.entrySession {
+  composes: entryCard;
+  border-left: 4px solid var(--green-accent);
+}
+
+.entrySettle {
+  composes: entryCard;
+  border-left: 4px solid var(--gold);
+}
+
+.entryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.2rem 0;
+}
+
+.entryDate {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+}
+
+.entryActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  padding: 0.3rem 0.45rem;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  border-radius: 2px;
+}
+
+.iconBtn:hover {
+  opacity: 1;
+  background: rgba(74, 140, 92, 0.08);
+}
+
+.entryBody {
+  padding: 0.5rem 1.2rem 1rem;
+}
+
+.entryPrompt {
+  font-size: 0.78rem;
+  color: var(--stone);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+.entryText {
+  font-size: 0.88rem;
+  color: var(--charcoal);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.sourceBadge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.badgeSession {
+  composes: sourceBadge;
+  background: rgba(74, 140, 92, 0.12);
+  color: var(--green-accent);
+}
+
+.badgeSettle {
+  composes: sourceBadge;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold);
+}
+
+/* ── Inline edit ────────────────────────────── */
+.editArea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--green-accent);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  margin-bottom: 0.5rem;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.editSave {
+  padding: 0.45rem 1rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.editCancel {
+  padding: 0.45rem 1rem;
+  border: 1.5px solid var(--card-border);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--stone);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+/* ── Delete confirmation ────────────────────── */
+.deleteConfirm {
+  padding: 0.75rem 1.2rem;
+  background: rgba(201, 83, 76, 0.08);
+  border-top: 1px solid rgba(201, 83, 76, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.deleteMsg {
+  font-size: 0.78rem;
+  color: #c9534c;
+  font-weight: 500;
+}
+
+.deleteActions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.deleteYes {
+  padding: 0.35rem 0.85rem;
+  background: #c9534c;
+  color: white;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.deleteNo {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid rgba(201, 83, 76, 0.3);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: #c9534c;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+/* ── Calendar ───────────────────────────────── */
+.calHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.calMonth {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--charcoal);
+}
+
+.calNav {
+  padding: 0.3rem 0.7rem;
+  border: 1.5px solid var(--card-border);
+  background: none;
+  color: var(--stone);
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.calNav:hover {
+  border-color: var(--green-accent);
+  color: var(--charcoal);
+}
+
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+
+.calDayLabel {
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--stone);
+  text-transform: uppercase;
+  padding: 0.4rem 0;
+}
+
+.calCell {
+  text-align: center;
+  padding: 0.5rem 0.2rem;
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  border-radius: 4px;
+  cursor: default;
+  position: relative;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.calCellHasEntry {
+  composes: calCell;
+  cursor: pointer;
+}
+
+.calCellHasEntry:hover {
+  background: rgba(74, 140, 92, 0.08);
+}
+
+.calCellSelected {
+  composes: calCellHasEntry;
+  background: rgba(201, 168, 76, 0.2);
+  font-weight: 700;
+}
+
+.calCellEmpty {
+  composes: calCell;
+  color: rgba(138, 132, 120, 0.3);
+}
+
+.calDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-accent);
+  margin-top: 2px;
+}
+
+.calExpanded {
+  margin-bottom: 1rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--stone);
+  font-size: 0.88rem;
+  font-weight: 300;
+}
