@@ -32,6 +32,40 @@
   color: var(--green-deep);
 }
 
+.themeTag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--stone);
+  margin-bottom: 0.5rem;
+}
+
+.diffEasy {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  background: rgba(74, 140, 92, 0.15);
+  color: var(--green-accent);
+}
+
+.diffMedium {
+  composes: diffEasy;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold);
+}
+
+.diffHard {
+  composes: diffEasy;
+  background: rgba(201, 83, 76, 0.15);
+  color: #c9534c;
+}
+
 /* ── Grid ───────────────────────────────────── */
 .gridWrap {
   display: flex;
