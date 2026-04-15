@@ -22,6 +22,7 @@ import WorkoutHistory from './components/WorkoutHistory';
 import Dashboard from './components/Dashboard';
 import Settle from './components/Settle';
 import Sharpen from './components/Sharpen';
+import JournalHistory from './components/JournalHistory';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import EditScheduleModal from './components/EditScheduleModal';
@@ -165,6 +166,10 @@ function AppInner() {
           element={<Settings onEditSchedule={() => setEditScheduleOpen(true)} />}
         />
         <Route path="/history" element={<WorkoutHistory />} />
+        <Route
+          path="/journal"
+          element={user ? <JournalHistory /> : <Navigate to="/" replace />}
+        />
         {/* Marketing page accessible even when logged in via direct path */}
         <Route
           path="/home"

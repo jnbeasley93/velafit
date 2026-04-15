@@ -37,6 +37,7 @@ export default function Navbar({ onGetStarted, onLogin }) {
           <li><Link to="/dashboard">🏋️ Move</Link></li>
           <li><Link to="/sharpen">🧩 Sharpen</Link></li>
           <li><Link to="/settle">🧘 Settle</Link></li>
+          <li><Link to="/journal">📓 Journal</Link></li>
           <li><Link to="/history">History</Link></li>
           <li><Link to="/settings">Settings</Link></li>
           {!isPro && (

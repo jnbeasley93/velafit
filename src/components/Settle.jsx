@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
@@ -118,12 +119,14 @@ function JournalSection() {
 
   const [entry, setEntry] = useState('');
   const [savedEntry, setSavedEntry] = useState(null);
+  const [recentEntries, setRecentEntries] = useState([]);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const fetchToday = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
+    // Fetch today's entry
+    const { data: todayData } = await supabase
       .from('journal_entries')
       .select('*')
       .eq('user_id', user.id)
@@ -131,7 +134,17 @@ function JournalSection() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (data) setSavedEntry(data);
+    if (todayData) setSavedEntry(todayData);
+
+    // Fetch 2 most recent entries (excluding today) for previews
+    const { data: recent } = await supabase
+      .from('journal_entries')
+      .select('id, date, entry')
+      .eq('user_id', user.id)
+      .neq('date', todayStr())
+      .order('date', { ascending: false })
+      .limit(2);
+    setRecentEntries(recent || []);
   }, [user]);
 
   useEffect(() => { fetchToday(); }, [fetchToday]);
@@ -200,6 +213,51 @@ function JournalSection() {
           </button>
         </>
       )}
+
+      {recentEntries.length > 0 && (
+        <div style={{ marginTop: '1.2rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem' }}>
+          <p style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--stone)', marginBottom: '0.5rem' }}>
+            Recent entries
+          </p>
+          {recentEntries.map((re) => (
+            <Link
+              to="/journal"
+              key={re.id}
+              style={{
+                display: 'block',
+                padding: '0.55rem 0.75rem',
+                background: 'var(--warm-white)',
+                borderRadius: '2px',
+                marginBottom: '0.35rem',
+                textDecoration: 'none',
+                transition: 'background 0.15s',
+              }}
+            >
+              <span style={{ fontSize: '0.72rem', color: 'var(--stone)', fontWeight: 500 }}>
+                {new Date(re.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+              <span style={{ fontSize: '0.82rem', color: 'var(--charcoal)', fontWeight: 300, marginLeft: '0.5rem' }}>
+                {re.entry.length > 80 ? re.entry.slice(0, 80) + '...' : re.entry}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <Link
+        to="/journal"
+        style={{
+          display: 'block',
+          textAlign: 'center',
+          marginTop: '1rem',
+          fontSize: '0.82rem',
+          color: 'var(--green-accent)',
+          fontWeight: 600,
+          textDecoration: 'none',
+        }}
+      >
+        Your Journal →
+      </Link>
     </div>
   );
 }
