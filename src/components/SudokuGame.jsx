@@ -7,7 +7,6 @@ import {
   generateSolution,
   createPuzzle,
   isSolved,
-  isValidPlacement,
 } from '../lib/sudoku';
 import styles from './SudokuGame.module.css';
 
@@ -23,6 +22,16 @@ function cloneBoard(board) {
   return board.map((row) => [...row]);
 }
 
+function emptyNotes() {
+  return Array.from({ length: 9 }, () =>
+    Array.from({ length: 9 }, () => new Set()),
+  );
+}
+
+function cloneNotes(notes) {
+  return notes.map((row) => row.map((s) => new Set(s)));
+}
+
 export default function SudokuGame() {
   const { user } = useAuth();
 
@@ -31,7 +40,9 @@ export default function SudokuGame() {
   const [board, setBoard] = useState(() => cloneBoard(daily.puzzle));
   const [clues, setClues] = useState(() => cloneBoard(daily.puzzle));
   const [selected, setSelected] = useState(null); // { r, c }
-  const [errors, setErrors] = useState(new Set()); // Set of "r-c" keys
+  const [errors, setErrors] = useState(new Set());
+  const [notes, setNotes] = useState(emptyNotes);
+  const [notesMode, setNotesMode] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [savedToDb, setSavedToDb] = useState(false);
@@ -49,14 +60,33 @@ export default function SudokuGame() {
 
   const cellKey = (r, c) => `${r}-${c}`;
 
+  // Allow selecting clue cells for highlighting (but not editing)
   const handleCellClick = useCallback(
     (r, c) => {
       if (completed || paused) return;
-      if (clues[r][c] !== 0) return; // can't select clue cells
       setSelected({ r, c });
     },
-    [clues, completed, paused],
+    [completed, paused],
   );
+
+  // Clear notes for a number from related cells (same row, col, box)
+  const clearRelatedNotes = useCallback((r, c, num) => {
+    setNotes((prev) => {
+      const next = cloneNotes(prev);
+      const boxR = Math.floor(r / 3) * 3;
+      const boxC = Math.floor(c / 3) * 3;
+      for (let i = 0; i < 9; i++) {
+        next[r][i].delete(num); // row
+        next[i][c].delete(num); // col
+      }
+      for (let dr = 0; dr < 3; dr++) {
+        for (let dc = 0; dc < 3; dc++) {
+          next[boxR + dr][boxC + dc].delete(num); // box
+        }
+      }
+      return next;
+    });
+  }, []);
 
   const handleNumberInput = useCallback(
     (num) => {
@@ -64,20 +94,42 @@ export default function SudokuGame() {
       const { r, c } = selected;
       if (clues[r][c] !== 0) return;
 
-      setBoard((prev) => {
-        const next = cloneBoard(prev);
-        next[r][c] = num;
-        return next;
-      });
-
-      // Clear this cell's error if present
-      setErrors((prev) => {
-        const next = new Set(prev);
-        next.delete(cellKey(r, c));
-        return next;
-      });
+      if (notesMode) {
+        // Toggle note
+        setNotes((prev) => {
+          const next = cloneNotes(prev);
+          if (next[r][c].has(num)) next[r][c].delete(num);
+          else next[r][c].add(num);
+          return next;
+        });
+        // Clear the cell value if it had one
+        setBoard((prev) => {
+          if (prev[r][c] === 0) return prev;
+          const next = cloneBoard(prev);
+          next[r][c] = 0;
+          return next;
+        });
+      } else {
+        // Place number — clear notes for this cell and related cells
+        setBoard((prev) => {
+          const next = cloneBoard(prev);
+          next[r][c] = num;
+          return next;
+        });
+        setNotes((prev) => {
+          const next = cloneNotes(prev);
+          next[r][c].clear();
+          return next;
+        });
+        clearRelatedNotes(r, c, num);
+        setErrors((prev) => {
+          const next = new Set(prev);
+          next.delete(cellKey(r, c));
+          return next;
+        });
+      }
     },
-    [selected, clues, completed, paused],
+    [selected, clues, completed, paused, notesMode, clearRelatedNotes],
   );
 
   const handleErase = useCallback(() => {
@@ -87,6 +139,11 @@ export default function SudokuGame() {
     setBoard((prev) => {
       const next = cloneBoard(prev);
       next[r][c] = 0;
+      return next;
+    });
+    setNotes((prev) => {
+      const next = cloneNotes(prev);
+      next[r][c].clear();
       return next;
     });
     setErrors((prev) => {
@@ -113,7 +170,6 @@ export default function SudokuGame() {
 
   const handleHint = useCallback(() => {
     if (hintsUsed >= MAX_HINTS || completed) return;
-    // Find all empty/incorrect cells
     const candidates = [];
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
@@ -124,42 +180,88 @@ export default function SudokuGame() {
     }
     if (candidates.length === 0) return;
     const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    const num = daily.solution[pick.r][pick.c];
     setBoard((prev) => {
       const next = cloneBoard(prev);
-      next[pick.r][pick.c] = daily.solution[pick.r][pick.c];
+      next[pick.r][pick.c] = num;
       return next;
     });
+    setNotes((prev) => {
+      const next = cloneNotes(prev);
+      next[pick.r][pick.c].clear();
+      return next;
+    });
+    clearRelatedNotes(pick.r, pick.c, num);
     setErrors((prev) => {
       const next = new Set(prev);
       next.delete(cellKey(pick.r, pick.c));
       return next;
     });
     setHintsUsed((n) => n + 1);
-  }, [board, clues, daily.solution, hintsUsed, completed]);
+  }, [board, clues, daily.solution, hintsUsed, completed, clearRelatedNotes]);
 
   const handleNewPuzzle = useCallback(() => {
     if (!confirm('Generate a fresh puzzle? Your current progress will be lost.')) return;
-    // Use a random (non-daily) seed for a fresh puzzle
     const seed = Math.floor(Math.random() * 2 ** 32);
     const solution = generateSolution(seed);
     const puzzle = createPuzzle(solution, 'medium', seed);
-    const fresh = {
-      puzzle,
-      solution,
-      date: localDateStr(),
-      difficulty: 'medium',
-    };
-    setDaily(fresh);
+    setDaily({ puzzle, solution, date: localDateStr(), difficulty: 'medium' });
     setBoard(cloneBoard(puzzle));
     setClues(cloneBoard(puzzle));
     setSelected(null);
     setErrors(new Set());
+    setNotes(emptyNotes());
+    setNotesMode(false);
     setHintsUsed(0);
     setCompleted(false);
     setSavedToDb(false);
     setSeconds(0);
     setPaused(false);
   }, []);
+
+  // Keyboard input
+  useEffect(() => {
+    const onKey = (e) => {
+      if (completed || paused) return;
+
+      // Number keys
+      if (e.key >= '1' && e.key <= '9') {
+        e.preventDefault();
+        handleNumberInput(parseInt(e.key, 10));
+        return;
+      }
+
+      // Erase
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        handleErase();
+        return;
+      }
+
+      // Escape — deselect
+      if (e.key === 'Escape') {
+        setSelected(null);
+        return;
+      }
+
+      // Arrow keys — move selection
+      if (selected && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        setSelected((prev) => {
+          if (!prev) return prev;
+          let { r, c } = prev;
+          if (e.key === 'ArrowUp') r = Math.max(0, r - 1);
+          if (e.key === 'ArrowDown') r = Math.min(8, r + 1);
+          if (e.key === 'ArrowLeft') c = Math.max(0, c - 1);
+          if (e.key === 'ArrowRight') c = Math.min(8, c + 1);
+          return { r, c };
+        });
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [completed, paused, selected, handleNumberInput, handleErase]);
 
   // Detect completion
   useEffect(() => {
@@ -183,11 +285,8 @@ export default function SudokuGame() {
         duration_seconds: seconds,
         hints_used: hintsUsed,
       });
-      if (error) {
-        console.error('[SudokuGame] save failed:', error);
-      } else {
-        setSavedToDb(true);
-      }
+      if (error) console.error('[SudokuGame] save failed:', error);
+      else setSavedToDb(true);
     })();
   }, [completed, savedToDb, user, seconds, hintsUsed]);
 
@@ -196,7 +295,33 @@ export default function SudokuGame() {
     setPaused((p) => !p);
   }, [completed]);
 
-  const isClue = (r, c) => clues[r][c] !== 0;
+  // ── Cell highlight logic ─────────────────────
+  const selectedVal = selected
+    ? (board[selected.r][selected.c] || clues[selected.r][selected.c])
+    : 0;
+
+  function getCellHighlight(r, c) {
+    if (!selected) return null;
+    const sr = selected.r;
+    const sc = selected.c;
+    if (r === sr && c === sc) return 'selected';
+    // Same row or column
+    if (r === sr || c === sc) return 'rowcol';
+    // Same 3x3 box
+    if (Math.floor(r / 3) === Math.floor(sr / 3) &&
+        Math.floor(c / 3) === Math.floor(sc / 3)) return 'box';
+    // Same number
+    const cellVal = board[r][c] || clues[r][c];
+    if (selectedVal && cellVal === selectedVal) return 'samenum';
+    return null;
+  }
+
+  const HIGHLIGHT_COLORS = {
+    selected: 'rgba(201, 168, 76, 0.35)',
+    rowcol: 'rgba(100, 160, 220, 0.12)',
+    box: 'rgba(100, 160, 220, 0.07)',
+    samenum: 'rgba(100, 160, 220, 0.12)',
+  };
 
   return (
     <div className={styles.wrap}>
@@ -223,16 +348,23 @@ export default function SudokuGame() {
               const key = cellKey(r, c);
               const isErr = errors.has(key);
               const isSel = selected?.r === r && selected?.c === c;
+              const isClueCell = clues[r][c] !== 0;
+              const highlight = getCellHighlight(r, c);
+              const cellNotes = notes[r][c];
+
               let className;
-              if (isClue(r, c)) className = styles.cellClue;
-              else if (isSel && isErr) className = styles.cellSelectedError;
+              if (isSel && isErr) className = styles.cellSelectedError;
               else if (isSel) className = styles.cellSelected;
               else if (isErr) className = styles.cellError;
+              else if (isClueCell) className = styles.cellClue;
               else className = styles.cell;
 
-              // Add thicker bottom border for rows 2, 5
               const style = {};
               if (r === 2 || r === 5) style.borderBottom = '2px solid var(--charcoal)';
+              // Apply highlight background (unless selected — that has its own gold)
+              if (highlight && highlight !== 'selected') {
+                style.background = HIGHLIGHT_COLORS[highlight];
+              }
 
               return (
                 <div
@@ -241,7 +373,17 @@ export default function SudokuGame() {
                   style={style}
                   onClick={() => handleCellClick(r, c)}
                 >
-                  {val !== 0 ? val : ''}
+                  {val !== 0 ? (
+                    val
+                  ) : cellNotes.size > 0 ? (
+                    <div className={styles.notesGrid}>
+                      {[1,2,3,4,5,6,7,8,9].map((n) => (
+                        <span key={n} className={styles.noteNum}>
+                          {cellNotes.has(n) ? n : ''}
+                        </span>
+                      ))}
+                    </div>
+                  ) : ''}
                 </div>
               );
             }),
@@ -281,6 +423,12 @@ export default function SudokuGame() {
           disabled={hintsUsed >= MAX_HINTS}
         >
           Hint
+        </button>
+        <button
+          className={notesMode ? styles.ctrlBtnActive : styles.ctrlBtn}
+          onClick={() => setNotesMode((m) => !m)}
+        >
+          📝 {notesMode ? 'Notes ON' : 'Notes'}
         </button>
       </div>
       <p className={styles.hintsLeft}>
