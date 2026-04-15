@@ -60,7 +60,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'log
           await supabase
             .from('profiles')
             .update({ display_name: firstName.trim() })
-            .eq('user_id', data.user.id);
+            .eq('id', data.user.id);
         }
         // If Supabase returns a session (email confirmation disabled), proceed immediately
         if (data?.session) {

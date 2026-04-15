@@ -49,7 +49,7 @@ export default function Settings({ onEditSchedule }) {
     const { error } = await supabase
       .from('profiles')
       .update({ display_name: displayName.trim() || null })
-      .eq('user_id', user.id);
+      .eq('id', user.id);
     if (error) {
       console.error('[Settings] name save failed:', error);
       setNameError(`Save failed: ${error.message}`);
