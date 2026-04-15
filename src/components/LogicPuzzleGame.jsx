@@ -4,6 +4,91 @@ import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import styles from './LogicPuzzleGame.module.css';
 
+// ── Algorithmic puzzle generator ────────────────
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6d2b79f5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashDate(s) { return s.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0); }
+
+function genArithmetic(rng) {
+  const start = Math.floor(rng() * 20) + 1;
+  const diff = Math.floor(rng() * 10) + 2;
+  const len = Math.floor(rng() * 2) + 4;
+  const seq = Array.from({ length: len }, (_, i) => start + i * diff);
+  return { sequence: [...seq, '?'], answer: start + len * diff, explanation: `Add ${diff} each time.` };
+}
+function genGeometric(rng) {
+  const start = Math.floor(rng() * 5) + 1;
+  const ratio = Math.floor(rng() * 3) + 2;
+  const len = Math.floor(rng() * 2) + 3;
+  const seq = Array.from({ length: len }, (_, i) => start * Math.pow(ratio, i));
+  return { sequence: [...seq, '?'], answer: start * Math.pow(ratio, len), explanation: `Multiply by ${ratio} each time.` };
+}
+function genSquares(rng) {
+  const start = Math.floor(rng() * 4) + 1;
+  const len = Math.floor(rng() * 2) + 4;
+  const seq = Array.from({ length: len }, (_, i) => Math.pow(start + i, 2));
+  return { sequence: [...seq, '?'], answer: Math.pow(start + len, 2), explanation: `Perfect squares starting from ${start}\u00B2.` };
+}
+function genFibonacci(rng) {
+  const a = Math.floor(rng() * 5) + 1, b = Math.floor(rng() * 5) + 1;
+  const len = Math.floor(rng() * 2) + 5;
+  const seq = [a, b]; while (seq.length < len) seq.push(seq[seq.length - 1] + seq[seq.length - 2]);
+  return { sequence: [...seq, '?'], answer: seq[seq.length - 1] + seq[seq.length - 2], explanation: 'Each number is the sum of the two before it.' };
+}
+function genDoublePlusOne(rng) {
+  const start = Math.floor(rng() * 5) + 1;
+  const len = Math.floor(rng() * 2) + 4;
+  const seq = [start]; while (seq.length < len) seq.push(seq[seq.length - 1] * 2 + 1);
+  return { sequence: [...seq, '?'], answer: seq[seq.length - 1] * 2 + 1, explanation: 'Double the previous number then add 1.' };
+}
+function genSubtracting(rng) {
+  const start = Math.floor(rng() * 50) + 50;
+  const diff = Math.floor(rng() * 10) + 2;
+  const len = Math.floor(rng() * 2) + 4;
+  const seq = Array.from({ length: len }, (_, i) => start - i * diff);
+  return { sequence: [...seq, '?'], answer: start - len * diff, explanation: `Subtract ${diff} each time.` };
+}
+function genIncreasingDiff(rng) {
+  const start = Math.floor(rng() * 10) + 1;
+  const initDiff = Math.floor(rng() * 3) + 1;
+  const len = Math.floor(rng() * 2) + 4;
+  const seq = [start]; for (let i = 1; i < len; i++) seq.push(seq[i - 1] + initDiff + (i - 1));
+  return { sequence: [...seq, '?'], answer: seq[seq.length - 1] + initDiff + (len - 1), explanation: `Add increasing numbers: +${initDiff}, +${initDiff + 1}, +${initDiff + 2}...` };
+}
+function genPrimes(rng) {
+  const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+  const start = Math.floor(rng() * 8);
+  const len = Math.floor(rng() * 2) + 4;
+  return { sequence: [...primes.slice(start, start + len), '?'], answer: primes[start + len], explanation: 'Prime numbers in order.' };
+}
+const GENERATORS = [genArithmetic, genGeometric, genSquares, genFibonacci, genDoublePlusOne, genSubtracting, genIncreasingDiff, genPrimes];
+
+function generateDailyPuzzles(dateStr, count = 5) {
+  const seed = Math.abs(hashDate(dateStr + '-logic'));
+  const rng = mulberry32(seed);
+  const puzzles = [];
+  const used = new Set();
+  let attempts = 0;
+  while (puzzles.length < count && attempts < 50) {
+    attempts++;
+    const unused = GENERATORS.map((_, i) => i).filter((i) => !used.has(i));
+    const genIdx = unused.length > 0 ? unused[Math.floor(rng() * unused.length)] : Math.floor(rng() * GENERATORS.length);
+    used.add(genIdx);
+    try {
+      const p = GENERATORS[genIdx](rng);
+      if (typeof p.answer === 'number' && isFinite(p.answer) && p.answer >= -100 && p.answer < 100000) puzzles.push(p);
+    } catch { /* skip */ }
+  }
+  return puzzles;
+}
+
+// Keep a static fallback pool for edge cases where generators produce < 5 valid puzzles
 const PUZZLE_POOL = [
   { sequence: [2, 4, 8, 16, '?'], answer: 32, explanation: 'Each number doubles.' },
   { sequence: [1, 4, 9, 16, '?'], answer: 25, explanation: 'Perfect squares: 1\u00B2, 2\u00B2, 3\u00B2, 4\u00B2, 5\u00B2.' },
@@ -61,15 +146,19 @@ const PUZZLES_PER_SESSION = 5;
 
 function getDailyPuzzles(dateStr) {
   const d = dateStr || localDateStr();
+  // Try algorithmic generation first
+  const generated = generateDailyPuzzles(d, PUZZLES_PER_SESSION);
+  if (generated.length >= PUZZLES_PER_SESSION) return generated;
+  // Fallback: pad with static pool
   let seed = d.split('').reduce((a, c) => a * 31 + c.charCodeAt(0), 7);
-  // Seeded shuffle to pick 5
   const indices = Array.from({ length: PUZZLE_POOL.length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
     seed = (seed * 1103515245 + 12345) & 0x7fffffff;
     const j = seed % (i + 1);
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
-  return indices.slice(0, PUZZLES_PER_SESSION).map((i) => PUZZLE_POOL[i]);
+  const fallback = indices.map((i) => PUZZLE_POOL[i]);
+  return [...generated, ...fallback].slice(0, PUZZLES_PER_SESSION);
 }
 
 function formatTime(sec) {
