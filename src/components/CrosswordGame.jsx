@@ -40,6 +40,76 @@ const CROSSWORD_PUZZLES = [
       down: { 1: { clue: 'Life force', row: 0, col: 0, len: 4 }, 2: { clue: 'Stretch muscles', row: 0, col: 2, len: 5 }, 4: { clue: 'Speed up', row: 1, col: 4, len: 4 } },
     },
   },
+  {
+    grid: [['W','A','L','K','#'],['A','#','I','#','R'],['T','R','A','I','N'],['E','#','T','#','U'],['R','U','N','S','#']],
+    clues: {
+      across: { 1: { clue: 'Move on foot', row: 0, col: 0, len: 4 }, 3: { clue: 'Exercise with weights', row: 2, col: 0, len: 5 }, 5: { clue: 'Sprints (plural)', row: 4, col: 0, len: 4 } },
+      down: { 1: { clue: 'H2O', row: 0, col: 0, len: 5 }, 2: { clue: 'Thin (adjective)', row: 0, col: 2, len: 5 }, 4: { clue: 'Governing body', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['C','O','R','E','#'],['A','#','E','#','F'],['L','U','N','G','E'],['M','#','E','#','E'],['#','P','W','O','D']],
+    clues: {
+      across: { 1: { clue: 'Center muscles', row: 0, col: 0, len: 4 }, 3: { clue: 'Step forward exercise', row: 2, col: 0, len: 5 }, 5: { clue: 'Workout of the day (abbr.)', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Peaceful', row: 0, col: 0, len: 4 }, 2: { clue: 'Restore energy', row: 0, col: 2, len: 5 }, 4: { clue: 'Pay attention', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['P','L','A','N','#'],['U','#','I','#','G'],['S','T','R','E','S'],['H','#','E','#','O'],['#','G','A','I','N']],
+    clues: {
+      across: { 1: { clue: 'Schedule or strategy', row: 0, col: 0, len: 4 }, 3: { clue: 'Mental pressure', row: 2, col: 0, len: 5 }, 5: { clue: 'Progress made', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Upper body exercise', row: 0, col: 0, len: 4 }, 2: { clue: 'Breathe in', row: 0, col: 2, len: 5 }, 4: { clue: 'Musical notes (plural)', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['F','L','E','X','#'],['O','#','A','#','S'],['C','H','R','O','N'],['U','#','N','#','A'],['S','P','I','N','#']],
+    clues: {
+      across: { 1: { clue: 'Show muscles', row: 0, col: 0, len: 4 }, 3: { clue: 'Related to time', row: 2, col: 0, len: 5 }, 5: { clue: 'Cycle class move', row: 4, col: 0, len: 4 } },
+      down: { 1: { clue: 'Concentrate', row: 0, col: 0, len: 5 }, 2: { clue: 'Study', row: 0, col: 2, len: 5 }, 4: { clue: 'Breakfast food', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['M','I','N','D','#'],['E','#','O','#','B'],['D','I','E','T','S'],['I','#','S','#','E'],['#','Y','O','G','A']],
+    clues: {
+      across: { 1: { clue: 'Brain and thoughts', row: 0, col: 0, len: 4 }, 3: { clue: 'Eating plans', row: 2, col: 0, len: 5 }, 5: { clue: 'Ancient practice', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Substance, material', row: 0, col: 0, len: 4 }, 2: { clue: 'Foot digits', row: 0, col: 2, len: 5 }, 4: { clue: 'Wager', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['H','A','B','I','T'],['E','#','R','#','A'],['A','R','E','A','S'],['L','#','A','#','K'],['#','S','T','E','P']],
+    clues: {
+      across: { 1: { clue: 'Daily routine', row: 0, col: 0, len: 5 }, 3: { clue: 'Regions (plural)', row: 2, col: 0, len: 5 }, 5: { clue: 'One stair', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Cure or fix', row: 0, col: 0, len: 4 }, 2: { clue: 'Exhale hard', row: 0, col: 2, len: 5 }, 4: { clue: 'Job or duty', row: 0, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['S','L','E','E','P'],['T','#','N','#','O'],['R','E','S','E','T'],['E','#','T','#','E'],['#','F','U','E','L']],
+    clues: {
+      across: { 1: { clue: 'Rest at night', row: 0, col: 0, len: 5 }, 3: { clue: 'Start fresh', row: 2, col: 0, len: 5 }, 5: { clue: 'Energy source', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Extend muscles', row: 0, col: 0, len: 4 }, 2: { clue: 'Nervous system', row: 0, col: 2, len: 5 }, 4: { clue: 'Poem (plural)', row: 0, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['B','U','R','N','#'],['A','#','E','#','C'],['L','A','P','S','E'],['A','#','S','#','L'],['#','W','I','N','S']],
+    clues: {
+      across: { 1: { clue: 'Calories used', row: 0, col: 0, len: 4 }, 3: { clue: 'A slip or gap', row: 2, col: 0, len: 5 }, 5: { clue: 'Victories', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Equilibrium', row: 0, col: 0, len: 4 }, 2: { clue: 'Do again', row: 0, col: 2, len: 5 }, 4: { clue: 'Mobile phones', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['Z','O','N','E','#'],['E','#','U','#','P'],['S','T','R','I','D'],['T','#','S','#','E'],['#','B','E','A','T']],
+    clues: {
+      across: { 1: { clue: 'Heart rate zone', row: 0, col: 0, len: 4 }, 3: { clue: 'Big step forward', row: 2, col: 0, len: 5 }, 5: { clue: 'Rhythm or pulse', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Energetic enthusiasm', row: 0, col: 0, len: 4 }, 2: { clue: 'Feed', row: 0, col: 2, len: 5 }, 4: { clue: 'Earned points', row: 1, col: 4, len: 4 } },
+    },
+  },
+  {
+    grid: [['G','R','I','P','#'],['O','#','N','#','S'],['A','D','A','P','T'],['L','#','L','#','E'],['#','P','S','E','T']],
+    clues: {
+      across: { 1: { clue: 'Hold tightly', row: 0, col: 0, len: 4 }, 3: { clue: 'Adjust and evolve', row: 2, col: 0, len: 5 }, 5: { clue: 'Group of reps', row: 4, col: 1, len: 4 } },
+      down: { 1: { clue: 'Aim or target', row: 0, col: 0, len: 4 }, 2: { clue: 'Inner self', row: 0, col: 2, len: 5 }, 4: { clue: 'Rigid', row: 1, col: 4, len: 4 } },
+    },
+  },
 ];
 
 function getDailyPuzzle(dateStr) {
