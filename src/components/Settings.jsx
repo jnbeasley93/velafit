@@ -46,16 +46,23 @@ export default function Settings({ onEditSchedule }) {
     if (!user) return;
     setNameSaving(true);
     setNameError('');
-    const { error } = await supabase
+    console.log('[Settings] saving display_name:', displayName.trim(), 'for user.id:', user.id);
+    const { data, error } = await supabase
       .from('profiles')
       .update({ display_name: displayName.trim() || null })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select();
+    console.log('[Settings] update result:', { data, error });
     if (error) {
       console.error('[Settings] name save failed:', error);
       setNameError(`Save failed: ${error.message}`);
+    } else if (!data || data.length === 0) {
+      console.warn('[Settings] update returned no rows — .eq("id", user.id) may not match any row');
+      setNameError('No profile row found. The profiles table may use a different column name.');
     } else {
+      console.log('[Settings] saved successfully, refreshing profile...');
       setNameSaved(true);
-      refreshProfile();
+      await refreshProfile();
       setTimeout(() => setNameSaved(false), 2000);
     }
     setNameSaving(false);
