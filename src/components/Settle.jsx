@@ -115,17 +115,24 @@ function GratitudeSection() {
 function JournalSection() {
   const { user } = useAuth();
   const dayOfWeek = new Date().getDay();
-  const prompt = JOURNAL_PROMPTS[dayOfWeek];
+  const guidedPrompt = JOURNAL_PROMPTS[dayOfWeek];
 
+  const [mode, setMode] = useState(
+    () => localStorage.getItem('vela_journal_mode') || 'guided'
+  );
   const [entry, setEntry] = useState('');
   const [savedEntry, setSavedEntry] = useState(null);
   const [recentEntries, setRecentEntries] = useState([]);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const handleModeChange = useCallback((m) => {
+    setMode(m);
+    localStorage.setItem('vela_journal_mode', m);
+  }, []);
+
   const fetchToday = useCallback(async () => {
     if (!user) return;
-    // Fetch today's entry
     const { data: todayData } = await supabase
       .from('journal_entries')
       .select('*')
@@ -136,7 +143,6 @@ function JournalSection() {
       .maybeSingle();
     if (todayData) setSavedEntry(todayData);
 
-    // Fetch 2 most recent entries (excluding today) for previews
     const { data: recent } = await supabase
       .from('journal_entries')
       .select('id, date, entry')
@@ -149,6 +155,8 @@ function JournalSection() {
 
   useEffect(() => { fetchToday(); }, [fetchToday]);
 
+  const activePrompt = mode === 'guided' ? guidedPrompt : 'free-write';
+
   const handleSave = useCallback(async () => {
     if (!entry.trim() || !user) return;
     setSaving(true);
@@ -158,7 +166,7 @@ function JournalSection() {
         .insert({
           user_id: user.id,
           date: todayStr(),
-          prompt,
+          prompt: activePrompt,
           entry: entry.trim(),
           created_at: new Date().toISOString(),
         })
@@ -172,12 +180,30 @@ function JournalSection() {
     } finally {
       setSaving(false);
     }
-  }, [entry, user, prompt]);
+  }, [entry, user, activePrompt]);
 
   return (
     <div className={styles.cardJournal}>
       <h2 className={styles.sectionTitle}>Reflect.</h2>
-      <p className={styles.promptBox}>{prompt}</p>
+
+      <div className={styles.modeToggle}>
+        <button
+          className={mode === 'guided' ? styles.modeActive : styles.modeInactive}
+          onClick={() => handleModeChange('guided')}
+        >
+          Guided Reflection
+        </button>
+        <button
+          className={mode === 'free' ? styles.modeActive : styles.modeInactive}
+          onClick={() => handleModeChange('free')}
+        >
+          Free Write
+        </button>
+      </div>
+
+      {mode === 'guided' && (
+        <p className={styles.promptBox}>{guidedPrompt}</p>
+      )}
 
       {savedEntry && !editing ? (
         <div className={styles.savedState}>
@@ -200,7 +226,9 @@ function JournalSection() {
         <>
           <textarea
             className={styles.textarea}
-            placeholder="Write freely. No one's grading this."
+            placeholder={mode === 'free'
+              ? 'Write freely. No structure, no rules. Just you.'
+              : 'Write freely. No one\'s grading this.'}
             value={entry}
             onChange={(e) => setEntry(e.target.value)}
           />

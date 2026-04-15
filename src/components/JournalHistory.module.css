@@ -103,6 +103,11 @@
   border-left: 4px solid var(--gold);
 }
 
+.entryFreeWrite {
+  composes: entryCard;
+  border-left: 4px solid var(--stone);
+}
+
 .entryHeader {
   display: flex;
   justify-content: space-between;
@@ -173,10 +178,16 @@
   color: var(--green-accent);
 }
 
-.badgeSettle {
+.badgeGuided {
   composes: sourceBadge;
   background: rgba(201, 168, 76, 0.15);
   color: var(--gold);
+}
+
+.badgeFreeWrite {
+  composes: sourceBadge;
+  background: rgba(138, 132, 120, 0.15);
+  color: var(--stone);
 }
 
 /* ── Inline edit ────────────────────────────── */

@@ -105,6 +105,46 @@
   font-family: 'DM Sans', sans-serif;
 }
 
+/* ── Journal mode toggle ────────────────────── */
+.modeToggle {
+  display: flex;
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.modeActive {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modeInactive {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: var(--stone);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modeInactive:hover {
+  color: var(--charcoal);
+  background: rgba(74, 140, 92, 0.05);
+}
+
 .btnSave {
   padding: 0.65rem 1.4rem;
   background: var(--green-deep);

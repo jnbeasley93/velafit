@@ -13,11 +13,10 @@ function formatDate(dateStr) {
 }
 
 function detectSource(entry) {
-  // Entries from SessionPlayer have prompt "What's one thing that felt different..."
-  // Entries from Settle have the rotating day-of-week prompts
   const sessionPrompt = "What's one thing that felt different";
   if (entry.prompt?.startsWith(sessionPrompt)) return 'session';
-  return 'settle';
+  if (entry.prompt === 'free-write') return 'freewrite';
+  return 'guided';
 }
 
 // ─────────────────────────────────────────────
@@ -31,7 +30,10 @@ function EntryCard({ entry, onUpdate, onDelete }) {
   const [saving, setSaving] = useState(false);
 
   const source = detectSource(entry);
-  const cardClass = source === 'session' ? styles.entrySession : styles.entrySettle;
+  const cardClass =
+    source === 'session' ? styles.entrySession
+    : source === 'freewrite' ? styles.entryFreeWrite
+    : styles.entrySettle;
 
   const handleEdit = useCallback(() => {
     setEditText(entry.entry);
@@ -75,8 +77,14 @@ function EntryCard({ entry, onUpdate, onDelete }) {
       <div className={styles.entryHeader}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className={styles.entryDate}>{formatDate(entry.date)}</span>
-          <span className={source === 'session' ? styles.badgeSession : styles.badgeSettle}>
-            {source === 'session' ? 'Session' : 'Settle'}
+          <span className={
+            source === 'session' ? styles.badgeSession
+            : source === 'freewrite' ? styles.badgeFreeWrite
+            : styles.badgeGuided
+          }>
+            {source === 'session' ? 'Post Session'
+            : source === 'freewrite' ? 'Free Write'
+            : 'Guided'}
           </span>
         </div>
         <div className={styles.entryActions}>
