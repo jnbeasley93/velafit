@@ -148,7 +148,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   }, [userPlan, logs, loading]);
 
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
-  const userName = user?.email?.split('@')[0] || 'there';
+  const userName = profile?.display_name || user?.email?.split('@')[0] || 'there';
   const stats = computeStats(logs, activityLogs, userPlan);
 
   // Today's schedule

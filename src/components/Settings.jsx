@@ -26,12 +26,35 @@ const PROFILE_LABELS = {
 
 export default function Settings({ onEditSchedule }) {
   const { user, profile, fitnessProfile, refreshProfile } = useAuth();
+  const [displayName, setDisplayName] = useState(profile?.display_name || '');
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameSaved, setNameSaved] = useState(false);
+  const [nameError, setNameError] = useState('');
   const [mindGames, setMindGames] = useState(
     fitnessProfile?.mind_games || [],
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [retakeOpen, setRetakeOpen] = useState(false);
+
+  const handleSaveName = useCallback(async () => {
+    if (!user) return;
+    setNameSaving(true);
+    setNameError('');
+    const { error } = await supabase
+      .from('profiles')
+      .update({ display_name: displayName.trim() || null })
+      .eq('id', user.id);
+    if (error) {
+      console.error('[Settings] name save failed:', error);
+      setNameError(`Save failed: ${error.message}`);
+    } else {
+      setNameSaved(true);
+      refreshProfile();
+      setTimeout(() => setNameSaved(false), 2000);
+    }
+    setNameSaving(false);
+  }, [user, displayName, refreshProfile]);
 
   const handleToggle = useCallback((value) => {
     setMindGames((prev) => {
@@ -94,6 +117,49 @@ export default function Settings({ onEditSchedule }) {
         <p className={styles.subtitle}>
           Manage your preferences and fitness profile.
         </p>
+
+        {/* Display Name */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Your Name</h3>
+          <p className={styles.sectionDesc}>
+            How should Vela address you?
+          </p>
+          {nameError && (
+            <p style={{ fontSize: '0.78rem', color: '#c9534c', marginBottom: '0.5rem' }}>
+              {nameError}
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <input
+              type="text"
+              className={styles.chipGrid ? undefined : undefined}
+              style={{
+                flex: 1,
+                padding: '0.6rem 0.85rem',
+                border: '1.5px solid var(--card-border)',
+                borderRadius: '2px',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '0.9rem',
+                color: 'var(--charcoal)',
+                background: 'var(--warm-white)',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              placeholder="How should Vela call you?"
+              value={displayName}
+              onChange={(e) => { setDisplayName(e.target.value); setNameSaved(false); }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+            />
+            <button
+              className={styles.btnSave}
+              onClick={handleSaveName}
+              disabled={nameSaving}
+            >
+              {nameSaving ? 'Saving...' : 'Save'}
+            </button>
+            {nameSaved && <span className={styles.saved}>Saved! 🐸</span>}
+          </div>
+        </div>
 
         {/* Appearance */}
         <AppearanceSection />

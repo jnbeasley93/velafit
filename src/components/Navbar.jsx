@@ -15,7 +15,7 @@ function scrollToHash(hash, navigate, pathname) {
 }
 
 export default function Navbar({ onGetStarted, onLogin }) {
-  const { user, isPro, signOut } = useAuth();
+  const { user, isPro, displayName, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ export default function Navbar({ onGetStarted, onLogin }) {
           <>
             <span className={styles.userInfo}>
               {isPro && <span className={styles.proBadge}>PRO</span>}
-              {user.email.split('@')[0]}
+              {displayName || user.email.split('@')[0]}
             </span>
             <button
               className={styles.themeBtn}
