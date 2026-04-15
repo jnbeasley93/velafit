@@ -2,12 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import SudokuGame from './SudokuGame';
+import WordPuzzleGame from './WordPuzzleGame';
+import MemoryGame from './MemoryGame';
+import LogicPuzzleGame from './LogicPuzzleGame';
+import CrosswordGame from './CrosswordGame';
 import styles from './Settle.module.css';
 
-const LOCKED_GAMES = [
-  { emoji: '🔤', name: 'Crossword', desc: 'Daily themed crossword puzzles.' },
-  { emoji: '📝', name: 'Word Puzzles', desc: 'Anagrams, word ladders, and more.' },
-  { emoji: '🧠', name: 'Memory Games', desc: 'Pattern matching and recall drills.' },
+const GAMES = [
+  { id: 'sudoku', label: 'Sudoku', Component: SudokuGame },
+  { id: 'words', label: 'Words', Component: WordPuzzleGame },
+  { id: 'memory', label: 'Memory', Component: MemoryGame },
+  { id: 'logic', label: 'Logic', Component: LogicPuzzleGame },
+  { id: 'crossword', label: 'Crossword', Component: CrosswordGame },
 ];
 
 function computeMindStreak(logs) {
@@ -22,12 +28,8 @@ function computeMindStreak(logs) {
     const y = target.getFullYear();
     const m = String(target.getMonth() + 1).padStart(2, '0');
     const d = String(target.getDate()).padStart(2, '0');
-    const ds = `${y}-${m}-${d}`;
-    if (dates.has(ds)) {
-      streak++;
-    } else if (i > 0) {
-      break;
-    }
+    if (dates.has(`${y}-${m}-${d}`)) streak++;
+    else if (i > 0) break;
   }
   return streak;
 }
@@ -35,6 +37,14 @@ function computeMindStreak(logs) {
 export default function Sharpen() {
   const { user } = useAuth();
   const [mindLogs, setMindLogs] = useState([]);
+  const [activeGame, setActiveGame] = useState(
+    () => localStorage.getItem('vela_sharpen_game') || 'sudoku',
+  );
+
+  const handleGameChange = useCallback((id) => {
+    setActiveGame(id);
+    localStorage.setItem('vela_sharpen_game', id);
+  }, []);
 
   const fetchMindLogs = useCallback(async () => {
     if (!user) return;
@@ -62,6 +72,8 @@ export default function Sharpen() {
       </div>
     );
   }
+
+  const ActiveComponent = GAMES.find((g) => g.id === activeGame)?.Component || SudokuGame;
 
   return (
     <div className={styles.page}>
@@ -122,66 +134,21 @@ export default function Sharpen() {
           </div>
         </div>
 
-        <SudokuGame />
+        {/* ── Game selector tabs ── */}
+        <div className={styles.modeToggle} style={{ marginBottom: '1.2rem' }}>
+          {GAMES.map((g) => (
+            <button
+              key={g.id}
+              className={activeGame === g.id ? styles.modeActive : styles.modeInactive}
+              onClick={() => handleGameChange(g.id)}
+              style={{ fontSize: '0.72rem', padding: '0.45rem 0.5rem' }}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
 
-        <h2 style={{
-          fontFamily: 'DM Serif Display, serif',
-          fontSize: '1.1rem',
-          color: 'var(--charcoal)',
-          marginBottom: '0.75rem',
-          marginTop: '0.5rem',
-        }}>
-          Coming Soon
-        </h2>
-
-        {LOCKED_GAMES.map((g) => (
-          <div
-            key={g.name}
-            style={{
-              background: 'var(--card-bg)',
-              border: '1.5px dashed var(--card-border)',
-              borderRadius: '4px',
-              padding: '1rem 1.2rem',
-              marginBottom: '0.6rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.9rem',
-              opacity: 0.7,
-            }}
-          >
-            <span style={{ fontSize: '1.5rem' }}>{g.emoji}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{
-                fontFamily: 'DM Serif Display, serif',
-                fontSize: '1rem',
-                color: 'var(--charcoal)',
-              }}>
-                {g.name}
-              </div>
-              <div style={{
-                fontSize: '0.78rem',
-                color: 'var(--stone)',
-                fontWeight: 300,
-                marginTop: '0.15rem',
-              }}>
-                {g.desc}
-              </div>
-            </div>
-            <span style={{
-              fontFamily: 'Space Mono, monospace',
-              fontSize: '0.6rem',
-              background: 'var(--gold)',
-              color: 'var(--green-deep)',
-              padding: '0.2rem 0.5rem',
-              borderRadius: '2px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              fontWeight: 700,
-            }}>
-              PRO
-            </span>
-          </div>
-        ))}
+        <ActiveComponent />
       </div>
     </div>
   );
