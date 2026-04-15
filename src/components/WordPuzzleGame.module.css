@@ -1,0 +1,224 @@
+.wrap {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--charcoal);
+}
+
+.dateLine {
+  font-size: 0.72rem;
+  color: var(--stone);
+  margin-top: 0.2rem;
+}
+
+.lives {
+  font-size: 1.1rem;
+  letter-spacing: 0.2rem;
+}
+
+.category {
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--stone);
+  margin-bottom: 1.2rem;
+}
+
+/* ── Answer slots ───────────────────────────── */
+.answerArea {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+  min-height: 48px;
+  flex-wrap: wrap;
+}
+
+.answerSlot {
+  width: 40px;
+  height: 44px;
+  border: 2px dashed var(--card-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+.answerSlotFilled {
+  composes: answerSlot;
+  border: 2px solid var(--green-accent);
+  background: rgba(74, 140, 92, 0.08);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.answerSlotFilled:hover {
+  background: rgba(74, 140, 92, 0.15);
+}
+
+/* ── Letter pool ────────────────────────────── */
+.letterPool {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  min-height: 48px;
+}
+
+.letterTile {
+  width: 40px;
+  height: 44px;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.letterTile:hover {
+  background: var(--green-mid);
+  transform: translateY(-2px);
+}
+
+.letterTileUsed {
+  composes: letterTile;
+  opacity: 0.2;
+  cursor: default;
+  transform: none;
+}
+
+.letterTileUsed:hover {
+  background: var(--green-deep);
+  transform: none;
+}
+
+/* ── Controls ───────────────────────────────── */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.6rem 1.4rem;
+  border: 1.5px solid var(--card-border);
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--stone);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  border-color: var(--green-accent);
+  color: var(--green-deep);
+}
+
+.btnSubmit {
+  composes: btn;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--cream);
+}
+
+.btnSubmit:hover {
+  background: var(--green-mid);
+}
+
+.btnSubmit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Feedback ───────────────────────────────── */
+.feedback {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem;
+  border-radius: 2px;
+}
+
+.feedbackWrong {
+  composes: feedback;
+  color: #c9534c;
+  background: rgba(201, 83, 76, 0.08);
+}
+
+.feedbackCorrect {
+  composes: feedback;
+  color: var(--green-accent);
+  background: rgba(74, 140, 92, 0.08);
+}
+
+/* ── Completion / Game Over ─────────────────── */
+.endState {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.endEmoji {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.endTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  color: var(--charcoal);
+  margin-bottom: 0.3rem;
+}
+
+.endSub {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.endAnswer {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--green-accent);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: 0.15em;
+}
+
+.timer {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--stone);
+}
