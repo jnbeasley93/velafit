@@ -349,13 +349,23 @@ function BreatheSection({ onLaunch }) {
 
         <button
           className={styles.modeCard}
-          style={{ gridColumn: '1 / -1' }}
           onClick={() => onLaunch({ mode: 'bodyscan' })}
         >
           <span className={styles.modeEmoji}>🧘</span>
           <p className={styles.modeTitle}>Guided Body Scan</p>
           <p className={styles.modeDesc}>
             Progressive relaxation from head to toe. 8–10 minutes.
+          </p>
+        </button>
+
+        <button
+          className={styles.modeCard}
+          onClick={() => onLaunch({ mode: 'yoga' })}
+        >
+          <span className={styles.modeEmoji}>🧘</span>
+          <p className={styles.modeTitle}>Yoga Breathing</p>
+          <p className={styles.modeDesc}>
+            Three calming poses with guided breath. About 6 minutes.
           </p>
         </button>
       </div>

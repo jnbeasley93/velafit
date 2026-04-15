@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
+import { requestWakeLock, releaseWakeLock } from '../lib/wakeLock';
 import styles from './SessionPlayer.module.css';
 
 const CIRCLE_R = 70;
@@ -259,13 +260,15 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
   const [exIndex, setExIndex] = useState(0);
   const [journalText, setJournalText] = useState('');
 
-  // Reset on open
+  // Reset on open + wake lock
   useEffect(() => {
     if (open) {
       setPhase('workout');
       setExIndex(0);
       setJournalText('');
+      requestWakeLock();
     }
+    return () => { releaseWakeLock(); };
   }, [open]);
 
   const currentEx = allExercises[exIndex] || null;
@@ -323,6 +326,7 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
         journalEntry: journalText.trim() || null,
       };
       console.log('[SessionPlayer] done phase, triggering rating with:', ratingPayload);
+      releaseWakeLock();
       onClose();
       onRequestRating?.(ratingPayload);
     }

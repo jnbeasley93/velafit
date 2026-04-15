@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import velaImg from '../assets/vela.jpg';
+import { requestWakeLock, releaseWakeLock } from '../lib/wakeLock';
 import styles from './BreathingPlayer.module.css';
 
 // ─────────────────────────────────────────────
@@ -181,6 +182,136 @@ function BodyScan({ onComplete, skipRef }) {
 }
 
 // ─────────────────────────────────────────────
+// Yoga Breathing
+// ─────────────────────────────────────────────
+
+const YOGA_POSES = [
+  {
+    name: 'Easy Pose',
+    sanskrit: 'Sukhasana',
+    duration: 120,
+    instruction: 'Sit comfortably cross-legged. Rest your hands on your knees, palms up. Close your eyes.',
+    breathCue: 'Breathe in slowly for 4 counts... hold for 2... breathe out for 6 counts.',
+    transition: 'Gently prepare to move into Child\'s Pose.',
+  },
+  {
+    name: 'Child\'s Pose',
+    sanskrit: 'Balasana',
+    duration: 120,
+    instruction: 'Kneel and fold forward, arms extended in front of you or resting at your sides. Let your forehead rest on the floor.',
+    breathCue: 'Breathe into your lower back. Feel your ribcage expand with each inhale.',
+    transition: 'Slowly roll onto your back for the final pose.',
+  },
+  {
+    name: 'Legs Up the Wall',
+    sanskrit: 'Viparita Karani',
+    duration: 120,
+    instruction: 'Lie on your back with your legs resting up against a wall. Arms at your sides, palms facing up.',
+    breathCue: 'Slow natural breath. Inhale 4 counts, exhale 4 counts. Let everything release.',
+    transition: null,
+  },
+];
+
+function YogaBreathing({ onComplete, skipRef }) {
+  const [poseIdx, setPoseIdx] = useState(0);
+  const [secLeft, setSecLeft] = useState(YOGA_POSES[0].duration);
+  const [transitioning, setTransitioning] = useState(false);
+
+  useEffect(() => {
+    if (transitioning) {
+      const t = setTimeout(() => {
+        setTransitioning(false);
+        setPoseIdx((i) => i + 1);
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+
+    if (poseIdx >= YOGA_POSES.length) {
+      onComplete();
+      return;
+    }
+
+    const pose = YOGA_POSES[poseIdx];
+    setSecLeft(pose.duration);
+
+    const interval = setInterval(() => {
+      setSecLeft((s) => {
+        if (s <= 1) {
+          clearInterval(interval);
+          if (pose.transition) {
+            setTransitioning(true);
+          } else {
+            onComplete();
+          }
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [poseIdx, transitioning, onComplete]);
+
+  useEffect(() => {
+    if (skipRef) {
+      skipRef.current = () => {
+        setPoseIdx(YOGA_POSES.length);
+        onComplete();
+      };
+    }
+  }, [skipRef, onComplete]);
+
+  if (poseIdx >= YOGA_POSES.length) return null;
+  const pose = YOGA_POSES[poseIdx];
+  const progress = ((pose.duration - secLeft) / pose.duration) * 100;
+
+  if (transitioning) {
+    return (
+      <div className={styles.scanWrap}>
+        <p className={styles.scanText} key={`trans-${poseIdx}`}>
+          {pose.transition}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.scanWrap}>
+      <p className={styles.roundCounter}>
+        Pose {poseIdx + 1} of {YOGA_POSES.length}
+      </p>
+      <p className={styles.completeTitle} style={{ marginBottom: '0.15rem' }}>
+        {pose.name}
+      </p>
+      <p style={{
+        fontFamily: 'DM Serif Display, serif',
+        fontSize: '0.9rem',
+        color: 'rgba(245, 240, 232, 0.55)',
+        fontStyle: 'italic',
+        marginBottom: '1.5rem',
+      }}>
+        {pose.sanskrit}
+      </p>
+      <p className={styles.scanText} key={`pose-${poseIdx}`} style={{ fontSize: '1.1rem', minHeight: 'auto' }}>
+        {pose.instruction}
+      </p>
+      <p style={{
+        fontSize: '0.9rem',
+        color: 'rgba(245, 240, 232, 0.6)',
+        fontStyle: 'italic',
+        marginTop: '1rem',
+        lineHeight: 1.6,
+      }}>
+        {pose.breathCue}
+      </p>
+      <div className={styles.scanProgress} style={{ marginTop: '1.5rem' }}>
+        <div className={styles.scanProgressFill} style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // Completion
 // ─────────────────────────────────────────────
 
@@ -204,21 +335,27 @@ const MODE_LABELS = {
   box: 'Box Breathing',
   free: 'Free Timer',
   bodyscan: 'Guided Body Scan',
+  yoga: 'Yoga Breathing',
 };
 
 const COMPLETION_MESSAGES = {
   box: 'Well done. Your nervous system thanks you. 🐸',
   free: 'You took the time. That matters. 🐸',
   bodyscan: 'You gave yourself stillness. That matters. 🐸',
+  yoga: 'Still and steady. That\'s the practice. 🐸',
 };
 
 export default function BreathingPlayer({ open, session, onClose }) {
   const [completed, setCompleted] = useState(false);
   const skipRef = useRef(null);
 
-  // Reset on open
+  // Reset on open + wake lock
   useEffect(() => {
-    if (open) setCompleted(false);
+    if (open) {
+      setCompleted(false);
+      requestWakeLock();
+    }
+    return () => { releaseWakeLock(); };
   }, [open, session]);
 
   const handleComplete = useCallback(() => {
@@ -241,9 +378,9 @@ export default function BreathingPlayer({ open, session, onClose }) {
         <span className={styles.modeLabel}>{MODE_LABELS[mode]}</span>
         <button
           className={styles.btnExit}
-          onClick={completed ? onClose : (mode === 'bodyscan' ? () => skipRef.current?.() : handleEnd)}
+          onClick={completed ? onClose : ((mode === 'bodyscan' || mode === 'yoga') ? () => skipRef.current?.() : handleEnd)}
         >
-          {completed ? 'Close' : (mode === 'bodyscan' ? 'Skip to end' : 'End session')}
+          {completed ? 'Close' : ((mode === 'bodyscan' || mode === 'yoga') ? 'Skip to end' : 'End session')}
         </button>
       </div>
 
@@ -256,6 +393,8 @@ export default function BreathingPlayer({ open, session, onClose }) {
           <FreeTimer minutes={minutes || 5} onComplete={handleComplete} />
         ) : mode === 'bodyscan' ? (
           <BodyScan onComplete={handleComplete} skipRef={skipRef} />
+        ) : mode === 'yoga' ? (
+          <YogaBreathing onComplete={handleComplete} skipRef={skipRef} />
         ) : null}
       </div>
     </div>
