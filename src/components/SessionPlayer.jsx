@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import { requestWakeLock, releaseWakeLock } from '../lib/wakeLock';
+import ExerciseLogModal from './ExerciseLogModal';
 import styles from './SessionPlayer.module.css';
 
 const CIRCLE_R = 70;
@@ -232,7 +233,7 @@ function MindGamePhase({ preferences, onDone }) {
 // ─────────────────────────────────────────────
 
 export default function SessionPlayer({ open, session, sessionMins, isImpromptu, onClose, onRequestRating }) {
-  const { profile, fitnessProfile } = useAuth();
+  const { user, profile, fitnessProfile } = useAuth();
   const intensityLevel = profile?.intensity_level ?? 2;
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
   const mindGamePrefs = fitnessProfile?.mind_games || [];
@@ -259,6 +260,8 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
   const [phase, setPhase] = useState('workout'); // workout | rest | journal | mind | done
   const [exIndex, setExIndex] = useState(0);
   const [journalText, setJournalText] = useState('');
+  const [showExerciseLog, setShowExerciseLog] = useState(false);
+  const sessionIdRef = useRef(localDateStr() + '-' + Date.now());
 
   // Reset on open + wake lock
   useEffect(() => {
@@ -266,6 +269,8 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
       setPhase('workout');
       setExIndex(0);
       setJournalText('');
+      setShowExerciseLog(false);
+      sessionIdRef.current = localDateStr() + '-' + Date.now();
       requestWakeLock();
     }
     return () => { releaseWakeLock(); };
@@ -280,8 +285,10 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
     if (exIndex < total - 1) {
       // Show rest timer between exercises
       setPhase('rest');
+      setShowExerciseLog(true);
     } else {
-      // Last exercise done → journal
+      // Last exercise done — offer log for last exercise, then journal
+      setShowExerciseLog(true);
       setPhase('journal');
     }
   }, [exIndex, total]);
@@ -438,6 +445,16 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
           </button>
         </div>
       )}
+
+      {/* ── Exercise log modal (overlays rest timer) ── */}
+      <ExerciseLogModal
+        open={showExerciseLog}
+        onClose={() => setShowExerciseLog(false)}
+        exercise={currentEx}
+        userId={user?.id}
+        sessionId={sessionIdRef.current}
+        onSaved={() => setShowExerciseLog(false)}
+      />
     </div>
   );
 }
