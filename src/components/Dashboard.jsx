@@ -142,7 +142,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   // Update OneSignal tags whenever plan or logs change so notification
   // triggers stay accurate
   useEffect(() => {
-    if (userPlan && !loading) {
+    if (userPlan && logs !== null && !loading) {
       updateDailyNotificationTags(userPlan, logs);
     }
   }, [userPlan, logs, loading]);

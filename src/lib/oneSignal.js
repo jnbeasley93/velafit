@@ -50,7 +50,6 @@ export async function setOneSignalUserId(userId) {
 
 export async function sendTag(key, value) {
   try {
-    console.log('[OneSignal] sendTag:', key, value);
     await OneSignal.User.addTag(key, value);
   } catch (err) {
     console.warn('OneSignal tag failed:', err);
