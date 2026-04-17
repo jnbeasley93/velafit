@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
 import { updateDailyNotificationTags } from '../lib/notifications';
+import ProgressionCard from './ProgressionCard';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -285,6 +286,9 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
             </button>
           </div>
         )}
+
+        {/* ── Progression suggestions ── */}
+        {user && <ProgressionCard userId={user.id} />}
 
         {/* ── Today's Session ── */}
         {hasPlan ? (
