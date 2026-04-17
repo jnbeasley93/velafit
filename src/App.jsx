@@ -38,7 +38,7 @@ function AppInner() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pendingPlanBuilder, setPendingPlanBuilder] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
-  const [ratingData, setRatingData] = useState({ sessionMins: 30, isImpromptu: false, exercisesCompleted: [], journalEntry: null });
+  const [ratingData, setRatingData] = useState({ sessionMins: 30, isImpromptu: false, exercisesCompleted: [], exerciseObjects: [], sessionId: null, journalEntry: null });
   const [sessionOpen, setSessionOpen] = useState(false);
   const [sessionData, setSessionData] = useState(null);
   const [sessionMins, setSessionMins] = useState(30);
@@ -227,6 +227,8 @@ function AppInner() {
         sessionLength={ratingData.sessionMins}
         isImpromptu={ratingData.isImpromptu}
         exercisesCompleted={ratingData.exercisesCompleted}
+        exerciseObjects={ratingData.exerciseObjects}
+        sessionId={ratingData.sessionId}
         journalEntry={ratingData.journalEntry}
       />
       <OnboardingSurvey

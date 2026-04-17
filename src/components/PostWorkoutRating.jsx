@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
@@ -9,13 +9,60 @@ const INTENSITY_OPTIONS = ['Too easy', 'Just right', 'Too hard'];
 const COMPLETION_OPTIONS = ['Yes', 'Mostly', 'No — ran out of time'];
 const FEELING_OPTIONS = ['Great', 'Good', 'Tired', 'Drained'];
 
-export default function PostWorkoutRating({ open, onClose, sessionLength, isImpromptu, exercisesCompleted, journalEntry }) {
+export default function PostWorkoutRating({ open, onClose, sessionLength, isImpromptu, exercisesCompleted, exerciseObjects, sessionId, journalEntry }) {
   const { user, profile, refreshProfile } = useAuth();
   const [intensity, setIntensity] = useState('');
   const [completion, setCompletion] = useState('');
   const [feeling, setFeeling] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Exercise logging section
+  const [exLogOpen, setExLogOpen] = useState(false);
+  const [exLogData, setExLogData] = useState({}); // { [exerciseId]: { reps, weight, feel } }
+  const [alreadyLogged, setAlreadyLogged] = useState(new Set());
+  const [exLogSaving, setExLogSaving] = useState(false);
+  const [exLogSaved, setExLogSaved] = useState(false);
+
+  // Check which exercises were already logged during the session
+  useEffect(() => {
+    if (!open || !user || !sessionId || !exerciseObjects?.length) return;
+    (async () => {
+      const { data } = await supabase
+        .from('exercise_logs')
+        .select('exercise_id')
+        .eq('user_id', user.id)
+        .eq('session_id', sessionId);
+      if (data) setAlreadyLogged(new Set(data.map((d) => d.exercise_id)));
+    })();
+  }, [open, user, sessionId, exerciseObjects]);
+
+  const handleSaveExerciseLogs = useCallback(async () => {
+    if (!user) return;
+    setExLogSaving(true);
+    const rows = [];
+    for (const [exId, vals] of Object.entries(exLogData)) {
+      if (!vals.reps && !vals.weight) continue;
+      const ex = exerciseObjects?.find((e) => e.id === exId);
+      rows.push({
+        user_id: user.id,
+        exercise_id: exId,
+        exercise_name: ex?.name || exId,
+        session_id: sessionId || null,
+        date: localDateStr(),
+        sets: 1,
+        reps: parseInt(vals.reps) || 0,
+        weight_lbs: parseFloat(vals.weight) || 0,
+        intensity_feel: vals.feel || null,
+      });
+    }
+    if (rows.length > 0) {
+      const { error: err } = await supabase.from('exercise_logs').insert(rows);
+      if (err) console.error('[PostWorkoutRating] exercise log save failed:', err);
+    }
+    setExLogSaving(false);
+    setExLogSaved(true);
+  }, [user, exLogData, exerciseObjects, sessionId]);
 
   const canSubmit = intensity && completion && feeling;
 
@@ -180,6 +227,105 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
             </div>
           </div>
         </div>
+
+        {exerciseObjects?.length > 0 && (
+          <div style={{ padding: '0 2rem 1rem' }}>
+            <button
+              onClick={() => setExLogOpen((v) => !v)}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: 'var(--green-accent)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              {exLogOpen ? '▾ Hide exercise details' : '▸ Log exercise details (optional)'}
+            </button>
+
+            {exLogOpen && (
+              <div style={{ marginTop: '0.75rem' }}>
+                {exerciseObjects.map((ex) => {
+                  const logged = alreadyLogged.has(ex.id);
+                  const vals = exLogData[ex.id] || {};
+                  return (
+                    <div
+                      key={ex.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.6rem',
+                        opacity: logged ? 0.5 : 1,
+                      }}
+                    >
+                      <span style={{ flex: 1, fontSize: '0.78rem', color: 'var(--charcoal)', fontWeight: 500, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {logged ? `${ex.name} ✓` : ex.name}
+                      </span>
+                      {!logged && (
+                        <>
+                          <input
+                            type="number"
+                            placeholder="reps"
+                            min={0}
+                            value={vals.reps || ''}
+                            onChange={(e) => setExLogData((d) => ({ ...d, [ex.id]: { ...d[ex.id], reps: e.target.value } }))}
+                            style={{ width: 52, padding: '0.3rem 0.4rem', border: '1px solid rgba(74,140,92,0.15)', borderRadius: 2, fontSize: '0.78rem', fontFamily: "'DM Sans',sans-serif" }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="lbs"
+                            min={0}
+                            value={vals.weight || ''}
+                            onChange={(e) => setExLogData((d) => ({ ...d, [ex.id]: { ...d[ex.id], weight: e.target.value } }))}
+                            style={{ width: 52, padding: '0.3rem 0.4rem', border: '1px solid rgba(74,140,92,0.15)', borderRadius: 2, fontSize: '0.78rem', fontFamily: "'DM Sans',sans-serif" }}
+                          />
+                          <select
+                            value={vals.feel || ''}
+                            onChange={(e) => setExLogData((d) => ({ ...d, [ex.id]: { ...d[ex.id], feel: e.target.value ? parseInt(e.target.value) : null } }))}
+                            style={{ width: 48, padding: '0.3rem 0.2rem', border: '1px solid rgba(74,140,92,0.15)', borderRadius: 2, fontSize: '0.72rem', fontFamily: "'DM Sans',sans-serif" }}
+                          >
+                            <option value="">feel</option>
+                            {[1,2,3,4,5].map((n) => (
+                              <option key={n} value={n}>{n}/5</option>
+                            ))}
+                          </select>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+                {!exLogSaved ? (
+                  <button
+                    onClick={handleSaveExerciseLogs}
+                    disabled={exLogSaving}
+                    style={{
+                      marginTop: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      background: 'var(--green-deep)',
+                      color: 'var(--cream)',
+                      border: 'none',
+                      borderRadius: 2,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {exLogSaving ? 'Saving...' : 'Save exercise logs \u2192'}
+                  </button>
+                ) : (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--green-accent)', fontWeight: 600, marginTop: '0.5rem' }}>
+                    Exercise logs saved &#10003;
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.footer}>
           <button className={styles.btnSkip} onClick={handleSkip}>

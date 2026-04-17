@@ -330,6 +330,8 @@ export default function SessionPlayer({ open, session, sessionMins, isImpromptu,
         sessionMins,
         isImpromptu: isImpromptu || false,
         exercisesCompleted: exerciseNames,
+        exerciseObjects: allExercises,
+        sessionId: sessionIdRef.current,
         journalEntry: journalText.trim() || null,
       };
       console.log('[SessionPlayer] done phase, triggering rating with:', ratingPayload);
