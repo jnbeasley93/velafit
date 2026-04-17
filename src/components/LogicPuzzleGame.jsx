@@ -171,6 +171,26 @@ export default function LogicPuzzleGame() {
   const { user } = useAuth();
   const today = localDateStr();
   const [puzzles] = useState(() => getDailyPuzzles(today));
+
+  // Already-completed check
+  const [loadingCheck, setLoadingCheck] = useState(true);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setLoadingCheck(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('mind_game_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', localDateStr())
+        .eq('game_type', 'logic-puzzle')
+        .eq('completed', true)
+        .limit(1);
+      if (data && data.length > 0) setAlreadyCompleted(data[0]);
+      setLoadingCheck(false);
+    })();
+  }, [user]);
   const [current, setCurrent] = useState(0);
   const [input, setInput] = useState('');
   const [attempt, setAttempt] = useState(1); // 1 or 2
@@ -237,6 +257,32 @@ export default function LogicPuzzleGame() {
       else setSavedToDb(true);
     })();
   }, [finished, savedToDb, user, seconds]);
+
+  if (loadingCheck) {
+    return (
+      <div className={styles.wrap}>
+        <p style={{ textAlign: 'center', color: 'var(--stone)', padding: '2rem 0' }}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (alreadyCompleted) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.endState}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>&#10003;</div>
+          <h3 className={styles.endTitle}>You already completed today's puzzle!</h3>
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.9rem', color: 'var(--stone)', marginBottom: '0.25rem' }}>
+            Time: {formatTime(alreadyCompleted.duration_seconds)}
+          </p>
+          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1rem', color: 'var(--green-accent)', margin: '1rem 0', lineHeight: 1.5 }}>
+            Logic is a muscle. You just trained it.
+          </p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--stone)' }}>Come back tomorrow for a new puzzle &#x1F438;</p>
+        </div>
+      </div>
+    );
+  }
 
   if (finished) {
     const maxScore = PUZZLES_PER_SESSION * 10;

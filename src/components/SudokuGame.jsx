@@ -35,6 +35,26 @@ function cloneNotes(notes) {
 export default function SudokuGame() {
   const { user } = useAuth();
 
+  // Already-completed check
+  const [loadingCheck, setLoadingCheck] = useState(true);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setLoadingCheck(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('mind_game_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', localDateStr())
+        .eq('game_type', 'sudoku')
+        .eq('completed', true)
+        .limit(1);
+      if (data && data.length > 0) setAlreadyCompleted(data[0]);
+      setLoadingCheck(false);
+    })();
+  }, [user]);
+
   // Puzzle state
   const [daily, setDaily] = useState(() => getDailyPuzzle());
   const [board, setBoard] = useState(() => cloneBoard(daily.puzzle));
@@ -322,6 +342,32 @@ export default function SudokuGame() {
     box: 'rgba(100, 160, 220, 0.07)',
     samenum: 'rgba(100, 160, 220, 0.12)',
   };
+
+  if (loadingCheck) {
+    return (
+      <div className={styles.wrap}>
+        <p style={{ textAlign: 'center', color: 'var(--stone)', padding: '2rem 0' }}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (alreadyCompleted) {
+    return (
+      <div className={styles.wrap}>
+        <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>&#10003;</div>
+          <h3 className={styles.title} style={{ marginBottom: '0.5rem' }}>You already completed today's puzzle!</h3>
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.9rem', color: 'var(--stone)', marginBottom: '0.25rem' }}>
+            Time: {formatTime(alreadyCompleted.duration_seconds)} &middot; Hints: {alreadyCompleted.hints_used ?? 0}
+          </p>
+          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1rem', color: 'var(--green-accent)', margin: '1rem 0', lineHeight: 1.5 }}>
+            Sharp mind. Consistency compounds &mdash; for your body and your mind.
+          </p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--stone)' }}>Come back tomorrow for a new puzzle &#x1F438;</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrap}>

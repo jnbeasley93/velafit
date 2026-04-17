@@ -56,6 +56,28 @@ export default function CrosswordGame() {
   const [revealed, setRevealed] = useState(false);
   const [savedToDb, setSavedToDb] = useState(false);
 
+  const hiddenInputRef = useRef(null);
+
+  // Already-completed check
+  const [loadingCheck, setLoadingCheck] = useState(true);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setLoadingCheck(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('mind_game_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', localDateStr())
+        .eq('game_type', 'crossword')
+        .eq('completed', true)
+        .limit(1);
+      if (data && data.length > 0) setAlreadyCompleted(data[0]);
+      setLoadingCheck(false);
+    })();
+  }, [user]);
+
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     if (completed) return;
@@ -88,6 +110,7 @@ export default function CrosswordGame() {
       setSelected({ r, c });
     }
     setErrors(new Set());
+    hiddenInputRef.current?.focus();
   }, [selected, puzzle.grid, completed]);
 
   const handleClueClick = useCallback((dir, num) => {
@@ -186,9 +209,9 @@ export default function CrosswordGame() {
   }, [board, puzzle.grid]);
 
   const handleReveal = useCallback(() => {
-    setBoard(puzzle.grid.map((row) => [...row]));
+    const revealedBoard = puzzle.grid.map((row) => row.map((c) => (c === '#' ? '#' : c)));
+    setBoard(revealedBoard);
     setRevealed(true);
-    setCompleted(true);
   }, [puzzle.grid]);
 
   // Save
@@ -208,17 +231,39 @@ export default function CrosswordGame() {
     })();
   }, [completed, savedToDb, user, seconds, revealed]);
 
-  if (completed) {
+  if (loadingCheck) {
+    return (
+      <div className={styles.wrap}>
+        <p style={{ textAlign: 'center', color: 'var(--stone)', padding: '2rem 0' }}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (alreadyCompleted) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.endState}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>&#10003;</div>
+          <h3 className={styles.endTitle}>You already completed today's puzzle!</h3>
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.9rem', color: 'var(--stone)', marginBottom: '0.25rem' }}>
+            Time: {formatTime(alreadyCompleted.duration_seconds)}
+          </p>
+          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1rem', color: 'var(--green-accent)', margin: '1rem 0', lineHeight: 1.5 }}>
+            Words crossed, mind sharpened. See you tomorrow.
+          </p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--stone)' }}>Come back tomorrow for a new puzzle &#x1F438;</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (completed && !revealed) {
     return (
       <div className={styles.wrap}>
         <div className={styles.endState}>
           <div className={styles.endEmoji}>🐸</div>
-          <h3 className={styles.endTitle}>
-            {revealed ? 'Revealed.' : 'Solved.'}
-          </h3>
-          <p className={styles.endSub}>
-            {revealed ? 'No shame in peeking.' : formatTime(seconds)}
-          </p>
+          <h3 className={styles.endTitle}>Solved.</h3>
+          <p className={styles.endSub}>{formatTime(seconds)}</p>
         </div>
       </div>
     );
@@ -226,6 +271,31 @@ export default function CrosswordGame() {
 
   return (
     <div className={styles.wrap}>
+      <input
+        ref={hiddenInputRef}
+        style={{ position: 'absolute', opacity: 0, width: 1, height: 1, pointerEvents: 'none' }}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        onKeyDown={(e) => {
+          if (completed) return;
+          if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+            e.preventDefault();
+            handleKeyInput(e.key);
+            return;
+          }
+          if (e.key === 'Backspace') { e.preventDefault(); handleBackspace(); return; }
+        }}
+        onInput={(e) => {
+          if (completed) return;
+          const ch = e.data;
+          if (ch && ch.length === 1 && /[a-zA-Z]/.test(ch)) {
+            handleKeyInput(ch);
+          }
+          e.target.value = '';
+        }}
+      />
       <div className={styles.header}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -318,10 +388,16 @@ export default function CrosswordGame() {
         </div>
       </div>
 
-      <div className={styles.controls}>
-        <button className={styles.btn} onClick={handleCheck}>Check</button>
-        <button className={styles.btn} onClick={handleReveal}>Reveal</button>
-      </div>
+      {revealed ? (
+        <div className={styles.endState}>
+          <p className={styles.endSub}>Revealed. No shame in peeking.</p>
+        </div>
+      ) : (
+        <div className={styles.controls}>
+          <button className={styles.btn} onClick={handleCheck}>Check</button>
+          <button className={styles.btn} onClick={handleReveal}>Reveal</button>
+        </div>
+      )}
     </div>
   );
 }

@@ -21,6 +21,8 @@ export async function updateDailyNotificationTags(userPlan, workoutLogs = []) {
     const todayStr = localDateStr();
     const completedToday = workoutLogs.some((l) => l.date === todayStr);
 
+    console.log('[Notifications] updateDailyNotificationTags called', { userPlan, isTrainingDay, completedToday });
+
     await sendTag('is_training_day', isTrainingDay ? 'true' : 'false');
     await sendTag('session_completed_today', completedToday ? 'true' : 'false');
 
