@@ -1,0 +1,51 @@
+.card {
+  background: var(--card-bg);
+  border: 1.5px solid rgba(74, 140, 92, 0.12);
+  border-radius: 4px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  color: var(--green-deep);
+  margin-bottom: 0.75rem;
+}
+
+.exerciseRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.exerciseName {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.exerciseSuggestion {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 300;
+  color: var(--green-accent);
+}
+
+.dismiss {
+  display: block;
+  margin-top: 0.75rem;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--stone);
+  cursor: pointer;
+  padding: 0;
+}
+
+.dismiss:hover {
+  color: var(--charcoal);
+}
