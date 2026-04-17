@@ -1,0 +1,264 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 58, 42, 0.85);
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  background: var(--warm-white);
+  max-width: 420px;
+  width: 92%;
+  border-radius: 4px;
+  overflow: hidden;
+  animation: fadeInUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  background: var(--green-deep);
+  padding: 1.4rem 1.6rem;
+  color: var(--cream);
+}
+
+.headerTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.prevSession {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+
+.body {
+  padding: 1.4rem 1.6rem;
+}
+
+.loading {
+  text-align: center;
+  color: var(--stone);
+  padding: 2rem 0;
+  font-size: 0.85rem;
+}
+
+/* ── Progression suggestion ─────────────────── */
+.suggestionCard {
+  background: rgba(74, 140, 92, 0.08);
+  border: 1px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.suggestionMsg {
+  font-size: 0.82rem;
+  color: var(--green-deep);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.suggestionDetail {
+  font-size: 0.78rem;
+  color: var(--green-accent);
+  font-weight: 300;
+}
+
+/* ── Form fields ────────────────────────────── */
+.fieldRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.field {
+  flex: 1;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+  margin-bottom: 0.35rem;
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: var(--card-bg);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.fieldInput:focus {
+  border-color: var(--green-accent);
+}
+
+/* ── Intensity feel rating ──────────────────── */
+.feelRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1.2rem;
+}
+
+.feelBtn {
+  flex: 1;
+  padding: 0.5rem 0.2rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  background: var(--card-bg);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.feelBtn:hover {
+  border-color: var(--green-accent);
+}
+
+.feelBtnSelected {
+  composes: feelBtn;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--green-deep);
+  font-weight: 700;
+}
+
+/* ── Not doable section ─────────────────────── */
+.notDoableLink {
+  display: block;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--stone);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 1rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notDoableLink:hover {
+  color: var(--charcoal);
+}
+
+.notDoableConfirm {
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 2px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.notDoableText {
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.notDoableActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.notDoableBtn {
+  padding: 0.5rem 1rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.2);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--card-bg);
+  color: var(--charcoal);
+  transition: all 0.15s;
+}
+
+.notDoableBtn:hover {
+  border-color: var(--green-accent);
+}
+
+.buildUpNote {
+  font-size: 0.78rem;
+  color: var(--green-accent);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+/* ── Footer actions ─────────────────────────── */
+.footer {
+  padding: 0 1.6rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btnLog {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.btnLog:hover {
+  background: var(--green-mid);
+}
+
+.btnLog:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSkip {
+  width: 100%;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--stone);
+  cursor: pointer;
+  text-align: center;
+}
+
+.btnSkip:hover {
+  color: var(--charcoal);
+}
