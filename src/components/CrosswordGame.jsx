@@ -278,15 +278,6 @@ export default function CrosswordGame() {
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        onKeyDown={(e) => {
-          if (completed) return;
-          if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
-            e.preventDefault();
-            handleKeyInput(e.key);
-            return;
-          }
-          if (e.key === 'Backspace') { e.preventDefault(); handleBackspace(); return; }
-        }}
         onInput={(e) => {
           if (completed) return;
           const ch = e.data;
