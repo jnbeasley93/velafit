@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         fetchProfile(session.user.id);
         fetchPlan(session.user.id);
+        setOneSignalUserId(session.user.id);
       }
       setLoading(false);
     });
