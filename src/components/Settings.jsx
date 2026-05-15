@@ -300,8 +300,9 @@ function AppearanceSection() {
 }
 
 function NotificationsSection() {
-  const [status, setStatus] = useState(
-    () => localStorage.getItem('vela_notif_prompted') === 'true' ? 'prompted' : 'not_prompted'
+  const supported = typeof window !== 'undefined' && 'Notification' in window;
+  const [permission, setPermission] = useState(
+    () => (supported ? Notification.permission : 'unsupported'),
   );
   const [enabling, setEnabling] = useState(false);
 
@@ -309,33 +310,41 @@ function NotificationsSection() {
     setEnabling(true);
     try {
       await promptNotificationPermission();
-      localStorage.setItem('vela_notif_prompted', 'true');
-      setStatus('enabled');
-    } catch {
-      setStatus('prompted');
     } finally {
+      if (supported) setPermission(Notification.permission);
       setEnabling(false);
     }
-  }, []);
+  }, [supported]);
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>Notifications</h3>
+      <h3 className={styles.sectionTitle}>Training Reminders</h3>
       <p className={styles.sectionDesc}>
-        Get reminders on your training days so you never miss a session.
-        Streak alerts help you stay consistent.
+        Get a reminder on your training days so you never miss a session.
       </p>
-      {status === 'enabled' ? (
-        <p style={{ fontSize: '0.85rem', color: 'var(--green-accent)', fontWeight: 500 }}>
-          Notifications enabled. You'll receive session reminders.
+      {!supported && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--stone)' }}>
+          Notifications aren't supported in this browser.
         </p>
-      ) : (
+      )}
+      {supported && permission === 'granted' && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--green-accent)', fontWeight: 500 }}>
+          ✓ Reminders enabled
+        </p>
+      )}
+      {supported && permission === 'denied' && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--stone)', lineHeight: 1.5 }}>
+          Notifications blocked. Enable them in your browser settings
+          (site settings → Notifications → Allow), then reload this page.
+        </p>
+      )}
+      {supported && permission === 'default' && (
         <button
           className={styles.btnSave}
           onClick={handleEnable}
           disabled={enabling}
         >
-          {enabling ? 'Enabling...' : 'Enable Push Notifications'}
+          {enabling ? 'Requesting...' : 'Enable Reminders →'}
         </button>
       )}
     </div>

@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { promptNotificationPermission } from '../lib/oneSignal';
 import styles from './OnboardingSurvey.module.css';
+
+const NOTIF_SUPPORTED = typeof window !== 'undefined' && 'Notification' in window;
 
 const STEPS = [
   {
@@ -67,6 +70,17 @@ const STEPS = [
       'No mind games',
     ],
   },
+  {
+    key: 'notifications',
+    title: 'Stay on track.',
+    vela: "The biggest predictor of success is showing up consistently. VelaFit will send you a gentle reminder on your training days — nothing spammy, just Vela checking in.",
+    type: 'notifications',
+    perks: [
+      '🏋️ Training day reminders at 8 AM',
+      "⚡ Evening nudge if you haven't trained yet",
+      '📅 Weekly schedule check-in on Sundays',
+    ],
+  },
 ];
 
 export default function OnboardingSurvey({ open, onComplete }) {
@@ -74,6 +88,7 @@ export default function OnboardingSurvey({ open, onComplete }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [saving, setSaving] = useState(false);
+  const [requestingPerm, setRequestingPerm] = useState(false);
 
   const current = STEPS[step];
   const totalSteps = STEPS.length;
@@ -109,9 +124,11 @@ export default function OnboardingSurvey({ open, onComplete }) {
   );
 
   const canProceed =
-    current.type === 'single'
-      ? !!answers[current.key]
-      : (answers[current.key] || []).length > 0;
+    current.type === 'notifications'
+      ? true
+      : current.type === 'single'
+        ? !!answers[current.key]
+        : (answers[current.key] || []).length > 0;
 
   const handleNext = useCallback(async () => {
     if (step < totalSteps - 1) {
@@ -124,6 +141,7 @@ export default function OnboardingSurvey({ open, onComplete }) {
     try {
       const fitnessProfile = {};
       for (const s of STEPS) {
+        if (s.type === 'notifications') continue;
         fitnessProfile[s.key] = answers[s.key];
       }
 
@@ -148,6 +166,16 @@ export default function OnboardingSurvey({ open, onComplete }) {
   const handleBack = useCallback(() => {
     if (step > 0) setStep((s) => s - 1);
   }, [step]);
+
+  const handleEnableNotifs = useCallback(async () => {
+    setRequestingPerm(true);
+    try {
+      await promptNotificationPermission();
+    } finally {
+      setRequestingPerm(false);
+    }
+    handleNext();
+  }, [handleNext]);
 
   if (!open) return null;
 
@@ -209,6 +237,50 @@ export default function OnboardingSurvey({ open, onComplete }) {
               ))}
             </div>
           )}
+
+          {current.type === 'notifications' && (
+            <div>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: '0 0 1rem 0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                }}
+              >
+                {current.perks.map((perk) => (
+                  <li
+                    key={perk}
+                    style={{
+                      fontSize: '0.88rem',
+                      color: 'var(--charcoal)',
+                      padding: '0.7rem 1rem',
+                      background: 'var(--card-bg)',
+                      border: '1.5px solid rgba(74, 140, 92, 0.15)',
+                      borderRadius: '2px',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+              {!NOTIF_SUPPORTED && (
+                <p
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--stone)',
+                    lineHeight: 1.5,
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  Notifications aren't supported in this browser. You can enable them later from Settings.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className={styles.footer}>
@@ -217,17 +289,63 @@ export default function OnboardingSurvey({ open, onComplete }) {
               Back
             </button>
           )}
-          <button
-            className={styles.btnNext}
-            onClick={handleNext}
-            disabled={!canProceed || saving}
-          >
-            {saving
-              ? 'Saving...'
-              : step === totalSteps - 1
-                ? 'Finish Setup →'
-                : 'Continue →'}
-          </button>
+          {current.type === 'notifications' ? (
+            <div
+              style={{
+                flex: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+              }}
+            >
+              {NOTIF_SUPPORTED && (
+                <button
+                  className={styles.btnNext}
+                  onClick={handleEnableNotifs}
+                  disabled={requestingPerm || saving}
+                >
+                  {requestingPerm
+                    ? 'Requesting...'
+                    : saving
+                      ? 'Saving...'
+                      : 'Enable Reminders →'}
+                </button>
+              )}
+              <button
+                onClick={handleNext}
+                disabled={saving || requestingPerm}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--stone)',
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: '0.3rem',
+                  textAlign: 'center',
+                }}
+              >
+                {NOTIF_SUPPORTED
+                  ? 'Skip for now'
+                  : saving
+                    ? 'Saving...'
+                    : 'Continue →'}
+              </button>
+            </div>
+          ) : (
+            <button
+              className={styles.btnNext}
+              onClick={handleNext}
+              disabled={!canProceed || saving}
+            >
+              {saving
+                ? 'Saving...'
+                : step === totalSteps - 1
+                  ? 'Finish Setup →'
+                  : 'Continue →'}
+            </button>
+          )}
         </div>
       </div>
     </div>
