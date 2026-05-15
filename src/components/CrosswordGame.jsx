@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import { CROSSWORD_PUZZLES } from '../data/crosswordPuzzles';
 import styles from './CrosswordGame.module.css';
 
+const SIZE = 5;
 
 function getDailyPuzzle(dateStr) {
   const d = dateStr || localDateStr();
@@ -12,22 +13,21 @@ function getDailyPuzzle(dateStr) {
   return CROSSWORD_PUZZLES[hash % CROSSWORD_PUZZLES.length];
 }
 
-// Build a map of cell → clue numbers
 function buildNumberMap(clues) {
   const map = {};
-  for (const dir of ['across', 'down']) {
-    for (const [num, c] of Object.entries(clues[dir])) {
-      const key = `${c.row}-${c.col}`;
-      if (!map[key]) map[key] = parseInt(num, 10);
-      else map[key] = Math.min(map[key], parseInt(num, 10));
-    }
+  for (const [num, c] of Object.entries(clues.across || {})) {
+    const key = `${c.row}-${c.col}`;
+    map[key] = map[key] ? `${map[key]} ${num}A` : `${num}A`;
+  }
+  for (const [num, c] of Object.entries(clues.down || {})) {
+    const key = `${c.row}-${c.col}`;
+    map[key] = map[key] ? `${map[key]} ${num}D` : `${num}D`;
   }
   return map;
 }
 
-// Find which word (direction + number) a cell belongs to
 function findWordForCell(r, c, dir, clues) {
-  for (const [num, cl] of Object.entries(clues[dir])) {
+  for (const [num, cl] of Object.entries(clues[dir] || {})) {
     if (dir === 'across' && r === cl.row && c >= cl.col && c < cl.col + cl.len) return num;
     if (dir === 'down' && c === cl.col && r >= cl.row && r < cl.row + cl.len) return num;
   }
@@ -44,23 +44,24 @@ export default function CrosswordGame() {
   const { user } = useAuth();
   const today = localDateStr();
   const puzzle = getDailyPuzzle(today);
-  const numberMap = buildNumberMap(puzzle.clues);
+  const numberMap = useMemo(() => buildNumberMap(puzzle.clues), [puzzle.clues]);
 
   const [board, setBoard] = useState(() =>
     puzzle.grid.map((row) => row.map((c) => (c === '#' ? '#' : ''))),
   );
-  const [selected, setSelected] = useState({ r: 0, c: 0 });
+
+  const a1Start = puzzle.clues.across[1];
+  const [selected, setSelected] = useState({ r: a1Start.row, c: a1Start.col });
   const [direction, setDirection] = useState('across');
-  const [errors, setErrors] = useState(new Set());
   const [completed, setCompleted] = useState(false);
-  const [revealed, setRevealed] = useState(false);
   const [savedToDb, setSavedToDb] = useState(false);
+  const [answerStatus, setAnswerStatus] = useState({});
 
   const hiddenInputRef = useRef(null);
 
-  // Already-completed check
   const [loadingCheck, setLoadingCheck] = useState(true);
   const [alreadyCompleted, setAlreadyCompleted] = useState(null);
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     if (!user) { setLoadingCheck(false); return; }
@@ -78,57 +79,53 @@ export default function CrosswordGame() {
     })();
   }, [user]);
 
-  const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     if (completed) return;
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
   }, [completed]);
 
-  // Current active word info
   const activeClueNum = findWordForCell(selected.r, selected.c, direction, puzzle.clues);
   const activeClue = activeClueNum ? puzzle.clues[direction][activeClueNum] : null;
 
-  // Get cells belonging to the active word
-  function getWordCells() {
-    if (!activeClue) return new Set();
-    const cells = new Set();
+  const wordCells = useMemo(() => {
+    const set = new Set();
+    if (!activeClue) return set;
     for (let i = 0; i < activeClue.len; i++) {
-      if (direction === 'across') cells.add(`${activeClue.row}-${activeClue.col + i}`);
-      else cells.add(`${activeClue.row + i}-${activeClue.col}`);
+      if (direction === 'across') set.add(`${activeClue.row}-${activeClue.col + i}`);
+      else set.add(`${activeClue.row + i}-${activeClue.col}`);
     }
-    return cells;
-  }
-  const wordCells = getWordCells();
+    return set;
+  }, [activeClue, direction]);
 
   const handleCellClick = useCallback((r, c) => {
     if (puzzle.grid[r][c] === '#' || completed) return;
-    if (selected.r === r && selected.c === c) {
-      // Toggle direction
+    const inAcross = findWordForCell(r, c, 'across', puzzle.clues) !== null;
+    const inDown = findWordForCell(r, c, 'down', puzzle.clues) !== null;
+    if (selected.r === r && selected.c === c && inAcross && inDown) {
       setDirection((d) => (d === 'across' ? 'down' : 'across'));
     } else {
       setSelected({ r, c });
+      if (!inAcross && inDown) setDirection('down');
+      else if (inAcross && !inDown) setDirection('across');
     }
-    setErrors(new Set());
     hiddenInputRef.current?.focus();
-  }, [selected, puzzle.grid, completed]);
+  }, [selected, puzzle, completed]);
 
   const handleClueClick = useCallback((dir, num) => {
     const cl = puzzle.clues[dir][num];
     setDirection(dir);
     setSelected({ r: cl.row, c: cl.col });
-    setErrors(new Set());
   }, [puzzle.clues]);
 
-  // Advance to next cell in the active word
   const advanceCursor = useCallback(() => {
     setSelected((prev) => {
       if (direction === 'across') {
         const nc = prev.c + 1;
-        if (nc < 5 && puzzle.grid[prev.r][nc] !== '#') return { r: prev.r, c: nc };
+        if (nc < SIZE && puzzle.grid[prev.r][nc] !== '#') return { r: prev.r, c: nc };
       } else {
         const nr = prev.r + 1;
-        if (nr < 5 && puzzle.grid[nr][prev.c] !== '#') return { r: nr, c: prev.c };
+        if (nr < SIZE && puzzle.grid[nr][prev.c] !== '#') return { r: nr, c: prev.c };
       }
       return prev;
     });
@@ -142,12 +139,14 @@ export default function CrosswordGame() {
       next[r][c] = letter.toUpperCase();
       return next;
     });
+    setAnswerStatus({});
     advanceCursor();
   }, [selected, puzzle.grid, advanceCursor]);
 
   const handleBackspace = useCallback(() => {
     const { r, c } = selected;
     if (puzzle.grid[r][c] === '#') return;
+    setAnswerStatus({});
     if (board[r][c] !== '') {
       setBoard((prev) => {
         const next = prev.map((row) => [...row]);
@@ -155,7 +154,6 @@ export default function CrosswordGame() {
         return next;
       });
     } else {
-      // Move back
       setSelected((prev) => {
         if (direction === 'across' && prev.c > 0 && puzzle.grid[prev.r][prev.c - 1] !== '#') return { r: prev.r, c: prev.c - 1 };
         if (direction === 'down' && prev.r > 0 && puzzle.grid[prev.r - 1][prev.c] !== '#') return { r: prev.r - 1, c: prev.c };
@@ -164,7 +162,6 @@ export default function CrosswordGame() {
     }
   }, [selected, board, direction, puzzle.grid]);
 
-  // Keyboard
   useEffect(() => {
     const onKey = (e) => {
       if (completed) return;
@@ -174,49 +171,54 @@ export default function CrosswordGame() {
         return;
       }
       if (e.key === 'Backspace') { e.preventDefault(); handleBackspace(); return; }
-      if (e.key === 'ArrowUp') { e.preventDefault(); setSelected((p) => ({ r: Math.max(0, p.r - 1), c: p.c })); }
-      if (e.key === 'ArrowDown') { e.preventDefault(); setSelected((p) => ({ r: Math.min(4, p.r + 1), c: p.c })); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); setSelected((p) => ({ r: p.r, c: Math.max(0, p.c - 1) })); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); setSelected((p) => ({ r: p.r, c: Math.min(4, p.c + 1) })); }
+      const move = (dr, dc) => {
+        setSelected((p) => {
+          let r = p.r + dr;
+          let c = p.c + dc;
+          while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && puzzle.grid[r][c] === '#') {
+            r += dr;
+            c += dc;
+          }
+          if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return p;
+          return { r, c };
+        });
+      };
+      if (e.key === 'ArrowUp') { e.preventDefault(); move(-1, 0); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); move(1, 0); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); move(0, -1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); move(0, 1); }
       if (e.key === 'Tab') { e.preventDefault(); setDirection((d) => d === 'across' ? 'down' : 'across'); }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [completed, handleKeyInput, handleBackspace]);
+  }, [completed, handleKeyInput, handleBackspace, puzzle.grid]);
 
-  // Check completion
-  useEffect(() => {
-    if (completed) return;
-    let allFilled = true;
-    for (let r = 0; r < 5; r++) {
-      for (let c = 0; c < 5; c++) {
-        if (puzzle.grid[r][c] !== '#' && board[r][c] !== puzzle.grid[r][c]) allFilled = false;
+  const handleSubmit = useCallback(() => {
+    const status = {};
+    for (const [num, c] of Object.entries(puzzle.clues.across)) {
+      let actual = '';
+      let expected = '';
+      for (let i = 0; i < c.len; i++) {
+        actual += board[c.row][c.col + i] || ' ';
+        expected += puzzle.grid[c.row][c.col + i];
       }
+      status[`across-${num}`] = actual === expected;
     }
-    if (allFilled) setCompleted(true);
-  }, [board, puzzle.grid, completed]);
-
-  const handleCheck = useCallback(() => {
-    const errs = new Set();
-    for (let r = 0; r < 5; r++) {
-      for (let c = 0; c < 5; c++) {
-        if (board[r][c] !== '' && board[r][c] !== '#' && board[r][c] !== puzzle.grid[r][c]) {
-          errs.add(`${r}-${c}`);
-        }
+    for (const [num, c] of Object.entries(puzzle.clues.down)) {
+      let actual = '';
+      let expected = '';
+      for (let i = 0; i < c.len; i++) {
+        actual += board[c.row + i][c.col] || ' ';
+        expected += puzzle.grid[c.row + i][c.col];
       }
+      status[`down-${num}`] = actual === expected;
     }
-    setErrors(errs);
-  }, [board, puzzle.grid]);
+    setAnswerStatus(status);
+    if (Object.values(status).every(Boolean)) setCompleted(true);
+  }, [board, puzzle]);
 
-  const handleReveal = useCallback(() => {
-    const revealedBoard = puzzle.grid.map((row) => row.map((c) => (c === '#' ? '#' : c)));
-    setBoard(revealedBoard);
-    setRevealed(true);
-  }, [puzzle.grid]);
-
-  // Save
   useEffect(() => {
-    if (!completed || savedToDb || !user || revealed) return;
+    if (!completed || savedToDb || !user) return;
     (async () => {
       const { error } = await supabase.from('mind_game_logs').insert({
         user_id: user.id,
@@ -229,7 +231,24 @@ export default function CrosswordGame() {
       if (error) console.error('[Crossword] save failed:', error);
       else setSavedToDb(true);
     })();
-  }, [completed, savedToDb, user, seconds, revealed]);
+  }, [completed, savedToDb, user, seconds]);
+
+  const submitted = Object.keys(answerStatus).length > 0;
+
+  // Per-cell feedback: only after submit, based on whether the filled
+  // letter matches the puzzle answer
+  const cellFeedback = useMemo(() => {
+    const map = {};
+    if (!submitted) return map;
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (puzzle.grid[r][c] === '#') continue;
+        if (board[r][c] === '') continue;
+        map[`${r}-${c}`] = board[r][c] === puzzle.grid[r][c] ? 'correct' : 'wrong';
+      }
+    }
+    return map;
+  }, [board, puzzle.grid, submitted]);
 
   if (loadingCheck) {
     return (
@@ -257,7 +276,7 @@ export default function CrosswordGame() {
     );
   }
 
-  if (completed && !revealed) {
+  if (completed) {
     return (
       <div className={styles.wrap}>
         <div className={styles.endState}>
@@ -319,7 +338,7 @@ export default function CrosswordGame() {
               const isBlack = puzzle.grid[r][c] === '#';
               const isSel = selected.r === r && selected.c === c;
               const isWord = wordCells.has(`${r}-${c}`);
-              const isErr = errors.has(`${r}-${c}`);
+              const fb = cellFeedback[`${r}-${c}`];
               const num = numberMap[`${r}-${c}`];
 
               let className;
@@ -328,11 +347,16 @@ export default function CrosswordGame() {
               else if (isWord) className = styles.cellHighlighted;
               else className = styles.cell;
 
+              const cellStyle = fb === 'correct'
+                ? { color: 'var(--green-accent)' }
+                : undefined;
+
               return (
                 <div
                   key={`${r}-${c}`}
-                  className={`${className} ${isErr ? styles.cellError : ''}`}
+                  className={`${className} ${fb === 'wrong' ? styles.cellError : ''}`}
                   onClick={() => handleCellClick(r, c)}
+                  style={cellStyle}
                 >
                   {num && <span className={styles.cellNumber}>{num}</span>}
                   {!isBlack && board[r][c]}
@@ -346,7 +370,7 @@ export default function CrosswordGame() {
       {activeClue && (
         <div className={styles.currentClue}>
           <p className={styles.currentClueDir}>
-            {activeClueNum} {direction}
+            {activeClueNum} {direction === 'across' ? 'Across' : 'Down'}
           </p>
           <p className={styles.currentClueText}>{activeClue.clue}</p>
         </div>
@@ -355,40 +379,51 @@ export default function CrosswordGame() {
       <div className={styles.cluePanel}>
         <div className={styles.clueSection}>
           <p className={styles.clueSectionTitle}>Across</p>
-          {Object.entries(puzzle.clues.across).map(([num, cl]) => (
-            <p
-              key={`a-${num}`}
-              className={direction === 'across' && activeClueNum === num ? styles.clueItemActive : styles.clueItem}
-              onClick={() => handleClueClick('across', num)}
-            >
-              {num}. {cl.clue}
-            </p>
-          ))}
+          {Object.entries(puzzle.clues.across).map(([num, cl]) => {
+            const fb = answerStatus[`across-${num}`];
+            const isActive = direction === 'across' && activeClueNum === num;
+            const mark = fb === true ? ' ✓' : fb === false ? ' ✗' : '';
+            const color = fb === true
+              ? { color: 'var(--green-accent)' }
+              : fb === false ? { color: '#c9534c' } : undefined;
+            return (
+              <p
+                key={`a-${num}`}
+                className={isActive ? styles.clueItemActive : styles.clueItem}
+                onClick={() => handleClueClick('across', num)}
+                style={color}
+              >
+                {num}. {cl.clue}{mark}
+              </p>
+            );
+          })}
         </div>
         <div className={styles.clueSection}>
           <p className={styles.clueSectionTitle}>Down</p>
-          {Object.entries(puzzle.clues.down).map(([num, cl]) => (
-            <p
-              key={`d-${num}`}
-              className={direction === 'down' && activeClueNum === num ? styles.clueItemActive : styles.clueItem}
-              onClick={() => handleClueClick('down', num)}
-            >
-              {num}. {cl.clue}
-            </p>
-          ))}
+          {Object.entries(puzzle.clues.down).map(([num, cl]) => {
+            const fb = answerStatus[`down-${num}`];
+            const isActive = direction === 'down' && activeClueNum === num;
+            const mark = fb === true ? ' ✓' : fb === false ? ' ✗' : '';
+            const color = fb === true
+              ? { color: 'var(--green-accent)' }
+              : fb === false ? { color: '#c9534c' } : undefined;
+            return (
+              <p
+                key={`d-${num}`}
+                className={isActive ? styles.clueItemActive : styles.clueItem}
+                onClick={() => handleClueClick('down', num)}
+                style={color}
+              >
+                {num}. {cl.clue}{mark}
+              </p>
+            );
+          })}
         </div>
       </div>
 
-      {revealed ? (
-        <div className={styles.endState}>
-          <p className={styles.endSub}>Revealed. No shame in peeking.</p>
-        </div>
-      ) : (
-        <div className={styles.controls}>
-          <button className={styles.btn} onClick={handleCheck}>Check</button>
-          <button className={styles.btn} onClick={handleReveal}>Reveal</button>
-        </div>
-      )}
+      <div className={styles.controls}>
+        <button className={styles.btn} onClick={handleSubmit}>Submit</button>
+      </div>
     </div>
   );
 }
