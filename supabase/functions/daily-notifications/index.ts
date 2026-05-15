@@ -8,32 +8,39 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 Deno.serve(async () => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
-  // Get today's day name
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
   const todayName = days[new Date().getDay()]
 
-  // Get all users who have a plan with today as a training day
-  const { data: plans } = await supabase
+  console.log('Running for day:', todayName)
+
+  const { data: plans, error: plansError } = await supabase
     .from('user_plans')
     .select('user_id, plan')
 
-  if (!plans?.length) {
-    return new Response('No plans found', { status: 200 })
+  if (plansError) {
+    console.error('Error fetching plans:', plansError)
+    return new Response('Error fetching plans', { status: 500 })
   }
 
-  // Filter users who have today as a training day
-  const trainingUserIds = plans
-    .filter(p => p.plan?.days && todayName in p.plan.days)
-    .map(p => p.user_id)
+  console.log('Total plans found:', plans?.length ?? 0)
 
-  if (!trainingUserIds.length) {
-    return new Response('No training users today', { status: 200 })
+  const trainingUsers = plans?.filter(p => {
+    const days = p.plan?.days
+    return days && todayName in days
+  }) ?? []
+
+  console.log('Training users today:', trainingUsers.map(u => u.user_id))
+
+  if (!trainingUsers.length) {
+    return new Response(
+      JSON.stringify({ message: 'No training users today', day: todayName }),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
   }
 
-  // Get OneSignal subscription IDs for these users
-  // We use external_id (which we set to user.id) to target users
-  const notifications = await Promise.allSettled(
-    trainingUserIds.map(async (userId) => {
+  const results = await Promise.allSettled(
+    trainingUsers.map(async ({ user_id, plan }) => {
+      const sessionMins = plan?.days?.[todayName] ?? 30
       const res = await fetch('https://api.onesignal.com/notifications', {
         method: 'POST',
         headers: {
@@ -42,21 +49,30 @@ Deno.serve(async () => {
         },
         body: JSON.stringify({
           app_id: ONESIGNAL_APP_ID,
-          include_aliases: { external_id: [userId] },
+          include_aliases: { external_id: [user_id] },
           target_channel: 'push',
           headings: { en: "Your session is ready. 🐸" },
-          contents: { en: "VelaFit · Today is a training day. Tap to start your session." },
+          contents: { en: `VelaFit · You have a ${sessionMins}-minute session today. Tap to start.` },
           url: 'https://vela-fitness.vercel.app/dashboard',
         }),
       })
-      return res.json()
+      const json = await res.json()
+      console.log('Result for', user_id, ':', JSON.stringify(json))
+      return { user_id, ...json }
     })
   )
 
-  console.log('Notification results:', JSON.stringify(notifications))
+  const succeeded = results.filter(r => r.status === 'fulfilled' && r.value?.id).length
+  const failed = results.filter(r => r.status === 'rejected' || !r.value?.id).length
 
   return new Response(
-    JSON.stringify({ sent: trainingUserIds.length, results: notifications }),
+    JSON.stringify({
+      day: todayName,
+      total: trainingUsers.length,
+      succeeded,
+      failed,
+      results
+    }),
     { headers: { 'Content-Type': 'application/json' } }
   )
 })
