@@ -8,7 +8,7 @@ import HowItWorks from './components/HowItWorks';
 import FeaturesGrid from './components/FeaturesGrid';
 import DailyBriefing from './components/DailyBriefing';
 import MindJournal from './components/MindJournal';
-import Nutrition from './components/Nutrition';
+import NutritionPreview from './components/NutritionPreview';
 import Pricing from './components/Pricing';
 import WaitlistCTA from './components/WaitlistCTA';
 import Footer from './components/Footer';
@@ -131,7 +131,7 @@ function AppInner() {
                 <FeaturesGrid />
                 <DailyBriefing />
                 <MindJournal />
-                <Nutrition />
+                <NutritionPreview />
                 <Pricing onGetStarted={handleGetStarted} />
                 <WaitlistCTA onSignUp={handleGetStarted} />
                 <Footer />

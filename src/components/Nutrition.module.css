@@ -1,84 +1,354 @@
-.section {
+.page {
+  min-height: 100vh;
   background: var(--warm-white);
-  padding: 7rem 6rem;
+  padding: 6rem 1.5rem 4rem;
 }
 
-.tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--green-accent);
-  margin-bottom: 1rem;
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--stone);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--green-deep);
 }
 
 .title {
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-size: 1.7rem;
   color: var(--green-deep);
-  line-height: 1.15;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.4rem;
 }
 
-.body {
-  font-size: 1.05rem;
+.subtitle {
+  font-size: 0.9rem;
   color: var(--stone);
-  line-height: 1.75;
-  max-width: 520px;
   font-weight: 300;
+  margin-bottom: 2rem;
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 6rem;
-  align-items: center;
-  margin-top: 4rem;
-}
-
-.principles {
+/* ── Tabs ────────────────────────────────────── */
+.tabs {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  border-bottom: 1.5px solid var(--card-border);
+  padding-bottom: 0.1rem;
 }
 
-.principle {
-  display: flex;
-  gap: 1.2rem;
-  align-items: flex-start;
-  padding: 1.5rem;
-  background: var(--cream);
-  border-radius: 2px;
-  border-left: 3px solid var(--green-accent);
-}
-
-.principleIcon {
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-.principleTitle {
-  font-weight: 600;
-  color: var(--green-deep);
-  margin-bottom: 0.3rem;
-  font-size: 0.95rem;
-}
-
-.principleText {
+.tabBtn,
+.tabBtnActive {
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   color: var(--stone);
-  line-height: 1.6;
-  font-weight: 300;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  transition: color 0.2s, border-color 0.2s;
+  font-weight: 500;
 }
 
-@media (max-width: 900px) {
-  .section {
-    padding: 4rem 1.5rem;
-  }
+.tabBtn:hover {
+  color: var(--green-deep);
+}
 
-  .layout {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
+.tabBtnActive {
+  composes: tabBtn;
+  color: var(--green-deep);
+  border-bottom-color: var(--gold);
+  font-weight: 600;
+}
+
+.tabBody {
+  padding-top: 0.4rem;
+}
+
+.tabIntro {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+  line-height: 1.6;
+  font-weight: 300;
+  margin-bottom: 1.6rem;
+}
+
+.h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.35rem;
+  color: var(--green-deep);
+  margin-bottom: 0.8rem;
+}
+
+.h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1.8rem 0 0.6rem;
+}
+
+/* ── Grocery grid ────────────────────────────── */
+.groceryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.groceryCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-left-width: 4px;
+  border-radius: 4px;
+  padding: 1.1rem 1.2rem;
+}
+
+.accent_green { border-left-color: var(--green-deep); }
+.accent_gold { border-left-color: var(--gold); }
+.accent_greenAccent { border-left-color: var(--green-accent); }
+.accent_rust { border-left-color: #c08566; }
+.accent_stone { border-left-color: var(--stone); }
+
+.groceryTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--green-deep);
+  margin-bottom: 0.7rem;
+}
+
+.groceryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.groceryList li {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--charcoal);
+  font-weight: 300;
+  padding: 0.15rem 0;
+}
+
+/* ── Tables ──────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.2rem;
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  background: rgba(74, 140, 92, 0.08);
+  color: var(--green-deep);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--card-border);
+}
+
+.table td {
+  padding: 0.65rem 0.9rem;
+  color: var(--charcoal);
+  font-weight: 300;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.tipBox {
+  margin-top: 1.4rem;
+  padding: 1rem 1.1rem;
+  background: rgba(212, 165, 116, 0.12);
+  border-left: 4px solid var(--gold);
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  line-height: 1.55;
+}
+
+/* ── Avoid list ──────────────────────────────── */
+.avoidList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.avoidCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-left: 4px solid #c08566;
+  border-radius: 4px;
+  padding: 1.1rem 1.2rem;
+}
+
+.avoidTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  color: var(--green-deep);
+  margin-bottom: 0.3rem;
+}
+
+.avoidExamples {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--stone);
+  margin-bottom: 0.6rem;
+}
+
+.avoidWhy {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  font-weight: 300;
+  line-height: 1.55;
+}
+
+/* ── Habits list ─────────────────────────────── */
+.habitsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.habitItem {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+}
+
+.habitNum {
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--green-deep);
+  color: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.habitText {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--charcoal);
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+/* ── Updates ─────────────────────────────────── */
+.updatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.updateCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1.2rem 1.3rem;
+}
+
+.updateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.updateTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  line-height: 1.3;
+}
+
+.updateDate {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--stone);
+  margin-bottom: 0.8rem;
+}
+
+.updateBody {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--charcoal);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.badge {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: rgba(212, 165, 116, 0.18);
+  color: var(--green-deep);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.empty {
+  text-align: center;
+  color: var(--stone);
+  padding: 2.5rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+@media print {
+  .tabs, .backLink { display: none; }
+  .page { padding: 1rem; }
 }
