@@ -26,6 +26,7 @@ import JournalHistory from './components/JournalHistory';
 import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import EditScheduleModal from './components/EditScheduleModal';
+import InstallPrompt from './components/InstallPrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
 import './App.css';
@@ -43,6 +44,7 @@ function AppInner() {
   const [sessionData, setSessionData] = useState(null);
   const [sessionMins, setSessionMins] = useState(30);
   const [sessionIsImpromptu, setSessionIsImpromptu] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   const handleGetStarted = useCallback(() => {
     if (user) {
@@ -234,6 +236,11 @@ function AppInner() {
       <OnboardingSurvey
         open={onboardingOpen}
         onComplete={handleOnboardingComplete}
+        onShowInstallPrompt={() => setShowInstallPrompt(true)}
+      />
+      <InstallPrompt
+        open={showInstallPrompt}
+        onClose={() => setShowInstallPrompt(false)}
       />
       <AuthModal
         open={authOpen}

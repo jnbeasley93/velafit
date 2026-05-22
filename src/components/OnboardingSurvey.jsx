@@ -83,7 +83,7 @@ const STEPS = [
   },
 ];
 
-export default function OnboardingSurvey({ open, onComplete }) {
+export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt }) {
   const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -156,12 +156,13 @@ export default function OnboardingSurvey({ open, onComplete }) {
 
       await refreshProfile();
       onComplete();
+      onShowInstallPrompt?.();
     } catch (err) {
       console.error('Failed to save profile:', err);
     } finally {
       setSaving(false);
     }
-  }, [step, totalSteps, answers, user, refreshProfile, onComplete]);
+  }, [step, totalSteps, answers, user, refreshProfile, onComplete, onShowInstallPrompt]);
 
   const handleBack = useCallback(() => {
     if (step > 0) setStep((s) => s - 1);

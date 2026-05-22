@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import OnboardingSurvey from './OnboardingSurvey';
+import { detectPlatform, INSTALL_CONTENT } from './InstallPrompt';
 import styles from './Settings.module.css';
 
 const MIND_GAME_OPTIONS = [
@@ -261,6 +262,9 @@ export default function Settings({ onEditSchedule }) {
         </div>
         {/* Notifications */}
         <NotificationsSection />
+
+        {/* Add to Home Screen */}
+        <InstallInstructionsSection />
       </div>
 
       <OnboardingSurvey
@@ -295,6 +299,156 @@ function AppearanceSection() {
           </span>
         </button>
       </div>
+    </div>
+  );
+}
+
+function InstallInstructionsSection() {
+  const [expanded, setExpanded] = useState(false);
+  const platform = detectPlatform();
+  const config = INSTALL_CONTENT[platform];
+
+  return (
+    <div className={styles.section}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+        }}
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <div>
+          <h3 className={styles.sectionTitle} style={{ marginBottom: 0 }}>
+            Add to Home Screen
+          </h3>
+          <p
+            className={styles.sectionDesc}
+            style={{ marginBottom: 0, marginTop: '0.3rem' }}
+          >
+            Install VelaFit on your device for the full app experience.
+          </p>
+        </div>
+        <button
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '1.1rem',
+            color: 'var(--stone)',
+            padding: '0.2rem 0.4rem',
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+        >
+          {expanded ? '−' : '+'}
+        </button>
+      </div>
+
+      {expanded && (
+        <div style={{ marginTop: '1.2rem' }}>
+          <p
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--charcoal)',
+              fontStyle: 'italic',
+              fontWeight: 300,
+              lineHeight: 1.5,
+              marginBottom: '1rem',
+            }}
+          >
+            {config.vela}
+          </p>
+
+          {platform === 'desktop' ? (
+            <div
+              style={{
+                padding: '1rem',
+                border: '1.5px solid var(--gold)',
+                borderRadius: '4px',
+                textAlign: 'center',
+                background: 'rgba(212, 165, 116, 0.06)',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.7rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'var(--stone)',
+                  marginBottom: '0.4rem',
+                }}
+              >
+                Open on your phone
+              </div>
+              <div
+                style={{
+                  fontFamily: 'Space Mono, monospace',
+                  fontSize: '1rem',
+                  color: 'var(--green-deep)',
+                  fontWeight: 600,
+                }}
+              >
+                vela-fitness.vercel.app
+              </div>
+            </div>
+          ) : (
+            <ol
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.55rem',
+              }}
+            >
+              {config.steps.map((step, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.8rem 0.9rem',
+                    background: 'var(--warm-white)',
+                    border: '1.5px solid var(--card-border)',
+                    borderRadius: '4px',
+                    fontFamily: 'DM Sans, sans-serif',
+                    fontSize: '0.88rem',
+                    color: 'var(--charcoal)',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      width: '1.5rem',
+                      height: '1.5rem',
+                      borderRadius: '50%',
+                      background: 'var(--gold)',
+                      color: 'var(--green-deep)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'Space Mono, monospace',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
     </div>
   );
 }
