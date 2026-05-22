@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import velaImg from '../assets/vela.jpg';
 import styles from './Footer.module.css';
 
@@ -15,6 +16,7 @@ export default function Footer() {
         <li><a href="#how">How It Works</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="#pricing">Pricing</a></li>
+        <li><Link to="/about">About</Link></li>
         <li><a href="#">Privacy</a></li>
         <li><a href="#">Terms</a></li>
       </ul>
