@@ -26,6 +26,8 @@ const DURATIONS = [
 
 const FEELINGS = ['Great', 'Good', 'Tired', 'Tough'];
 
+const BACKDATE_DAYS = 10;
+
 export default function LogActivityModal({ open, onClose }) {
   const { user } = useAuth();
   const [selectedActivity, setSelectedActivity] = useState('');
@@ -33,8 +35,14 @@ export default function LogActivityModal({ open, onClose }) {
   const [duration, setDuration] = useState(null);
   const [feeling, setFeeling] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedDate, setSelectedDate] = useState(localDateStr());
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const today = localDateStr();
+  const minDate = localDateStr(
+    new Date(Date.now() - BACKDATE_DAYS * 24 * 60 * 60 * 1000),
+  );
 
   const activityType = customActivity.trim() || selectedActivity;
   const canSubmit = activityType && duration;
@@ -47,6 +55,7 @@ export default function LogActivityModal({ open, onClose }) {
       setDuration(null);
       setFeeling('');
       setNotes('');
+      setSelectedDate(localDateStr());
       setSaving(false);
       setSuccess(false);
     }
@@ -68,7 +77,7 @@ export default function LogActivityModal({ open, onClose }) {
     try {
       await supabase.from('activity_logs').insert({
         user_id: user.id,
-        date: localDateStr(),
+        date: selectedDate,
         activity_type: activityType,
         duration_mins: duration,
         feeling: feeling || null,
@@ -80,7 +89,7 @@ export default function LogActivityModal({ open, onClose }) {
       console.error('Failed to log activity:', err);
       setSaving(false);
     }
-  }, [canSubmit, user, activityType, duration, feeling, notes, onClose]);
+  }, [canSubmit, user, selectedDate, activityType, duration, feeling, notes, onClose]);
 
   if (!open) return null;
 
@@ -114,6 +123,19 @@ export default function LogActivityModal({ open, onClose }) {
         </div>
 
         <div className={styles.body}>
+          <label className={styles.label}>When did this happen?</label>
+          <input
+            type="date"
+            className={styles.dateInput}
+            value={selectedDate}
+            min={minDate}
+            max={today}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+          <p className={styles.dateHint}>
+            You can log activities up to {BACKDATE_DAYS} days back
+          </p>
+
           <label className={styles.label}>What did you do?</label>
           <div className={styles.activityGrid}>
             {ACTIVITIES.map(({ emoji, label }) => (

@@ -63,6 +63,33 @@
   letter-spacing: 0.06em;
 }
 
+/* ── Date input ─────────────────────────────── */
+.dateInput {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.dateInput:focus {
+  border-color: var(--green-accent);
+}
+
+.dateHint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--stone);
+  margin-top: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
 /* ── Activity type grid ─────────────────────── */
 .activityGrid {
   display: grid;
