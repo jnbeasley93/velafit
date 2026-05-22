@@ -27,6 +27,9 @@ import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import EditScheduleModal from './components/EditScheduleModal';
 import InstallPrompt from './components/InstallPrompt';
+import About from './components/About';
+import Nutrition from './components/Nutrition';
+import Research from './components/Research';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
 import './App.css';
@@ -171,6 +174,15 @@ function AppInner() {
         <Route
           path="/journal"
           element={user ? <JournalHistory /> : <Navigate to="/" replace />}
+        />
+        <Route path="/about" element={<About />} />
+        <Route
+          path="/nutrition"
+          element={user ? <Nutrition /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/research"
+          element={user ? <Research /> : <Navigate to="/" replace />}
         />
         {/* Marketing page accessible even when logged in via direct path */}
         <Route
