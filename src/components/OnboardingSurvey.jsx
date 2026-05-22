@@ -6,6 +6,21 @@ import styles from './OnboardingSurvey.module.css';
 
 const NOTIF_SUPPORTED = typeof window !== 'undefined' && 'Notification' in window;
 
+export const NOTIFICATION_TIME_MAP = {
+  '🌅 Early Bird — 5:30 AM': '05:30',
+  '☀️ Morning — 7:00 AM': '07:00',
+  '🏃 Midmorning — 9:00 AM': '09:00',
+  '🥗 Lunch — 12:00 PM': '12:00',
+  '🌇 After Work — 5:00 PM': '17:00',
+  '🌙 Night Owl — 7:30 PM': '19:30',
+};
+
+export const NOTIFICATION_TIME_OPTIONS = Object.keys(NOTIFICATION_TIME_MAP);
+
+export const TIME_TO_LABEL = Object.fromEntries(
+  Object.entries(NOTIFICATION_TIME_MAP).map(([label, time]) => [time, label]),
+);
+
 const STEPS = [
   {
     key: 'age_range',
@@ -69,6 +84,14 @@ const STEPS = [
       'Logic Games',
       'No mind games',
     ],
+  },
+  {
+    key: 'notification_time',
+    title: 'When should Vela check in?',
+    vela:
+      "When do you usually work out — or when would you like to be reminded it's a training day?",
+    type: 'single',
+    options: NOTIFICATION_TIME_OPTIONS,
   },
   {
     key: 'notifications',
@@ -142,13 +165,18 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
       const fitnessProfile = {};
       for (const s of STEPS) {
         if (s.type === 'notifications') continue;
+        if (s.key === 'notification_time') continue;
         fitnessProfile[s.key] = answers[s.key];
       }
+
+      const notificationTime =
+        NOTIFICATION_TIME_MAP[answers.notification_time] || '07:00';
 
       await supabase
         .from('profiles')
         .update({
           fitness_profile: fitnessProfile,
+          notification_time: notificationTime,
           onboarding_completed: true,
           intensity_level: 2,
         })

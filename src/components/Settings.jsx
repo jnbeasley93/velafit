@@ -4,7 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
-import OnboardingSurvey from './OnboardingSurvey';
+import OnboardingSurvey, {
+  NOTIFICATION_TIME_MAP,
+  NOTIFICATION_TIME_OPTIONS,
+  TIME_TO_LABEL,
+} from './OnboardingSurvey';
 import { detectPlatform, INSTALL_CONTENT } from './InstallPrompt';
 import styles from './Settings.module.css';
 
@@ -455,10 +459,23 @@ function InstallInstructionsSection() {
 
 function NotificationsSection() {
   const supported = typeof window !== 'undefined' && 'Notification' in window;
+  const { user, profile, refreshProfile } = useAuth();
   const [permission, setPermission] = useState(
     () => (supported ? Notification.permission : 'unsupported'),
   );
   const [enabling, setEnabling] = useState(false);
+  const currentLabel =
+    TIME_TO_LABEL[profile?.notification_time] ||
+    TIME_TO_LABEL['07:00'];
+  const [selectedLabel, setSelectedLabel] = useState(currentLabel);
+  const [timeSaving, setTimeSaving] = useState(false);
+  const [timeSaved, setTimeSaved] = useState(false);
+
+  useEffect(() => {
+    if (profile?.notification_time && TIME_TO_LABEL[profile.notification_time]) {
+      setSelectedLabel(TIME_TO_LABEL[profile.notification_time]);
+    }
+  }, [profile?.notification_time]);
 
   const handleEnable = useCallback(async () => {
     setEnabling(true);
@@ -469,6 +486,30 @@ function NotificationsSection() {
       setEnabling(false);
     }
   }, [supported]);
+
+  const handlePickTime = useCallback(
+    async (label) => {
+      if (!user) return;
+      const time = NOTIFICATION_TIME_MAP[label];
+      if (!time) return;
+      setSelectedLabel(label);
+      setTimeSaving(true);
+      setTimeSaved(false);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notification_time: time })
+        .eq('id', user.id);
+      if (!error) {
+        await refreshProfile();
+        setTimeSaved(true);
+        setTimeout(() => setTimeSaved(false), 2000);
+      } else {
+        console.error('Failed to save notification_time:', error);
+      }
+      setTimeSaving(false);
+    },
+    [user, refreshProfile],
+  );
 
   return (
     <div className={styles.section}>
@@ -501,6 +542,36 @@ function NotificationsSection() {
           {enabling ? 'Requesting...' : 'Enable Reminders →'}
         </button>
       )}
+
+      <div style={{ marginTop: '1.4rem' }}>
+        <p
+          style={{
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'var(--green-deep)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: '0.6rem',
+          }}
+        >
+          Reminder time
+        </p>
+        <div className={styles.chipGrid}>
+          {NOTIFICATION_TIME_OPTIONS.map((label) => (
+            <button
+              key={label}
+              className={
+                selectedLabel === label ? styles.chipSelected : styles.chip
+              }
+              onClick={() => handlePickTime(label)}
+              disabled={timeSaving}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {timeSaved && <span className={styles.saved}>Saved! 🐸</span>}
+      </div>
     </div>
   );
 }
