@@ -65,8 +65,8 @@ function AboutBody() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>A note on the mind.</h2>
         <p className={styles.body}>
-          I've watched Alzheimer's and dementia take people I care about.
-          It changed how I think about health. The brain needs training
+          I have seen firsthand what Alzheimer's and Dementia does to people
+          and their families — and it changed how I think about health. The brain needs training
           just as much as the body does. That's why Sharpen exists — not
           as a gimmick, but as a genuine daily practice. Five minutes of
           focused cognitive work every day compounds over time, just like
