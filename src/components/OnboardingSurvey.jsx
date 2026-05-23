@@ -199,7 +199,12 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const handleEnableNotifs = useCallback(async () => {
     setRequestingPerm(true);
     try {
-      await promptNotificationPermission();
+      await Promise.race([
+        promptNotificationPermission(),
+        new Promise((resolve) => setTimeout(resolve, 5000)),
+      ]);
+    } catch {
+      // Permission flow errored — proceed anyway, user is not blocked.
     } finally {
       setRequestingPerm(false);
     }
@@ -342,7 +347,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
               )}
               <button
                 onClick={handleNext}
-                disabled={saving || requestingPerm}
+                disabled={saving}
                 style={{
                   background: 'none',
                   border: 'none',
