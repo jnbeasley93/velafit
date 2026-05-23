@@ -38,8 +38,7 @@ export default function Navbar({ onGetStarted, onLogin }) {
           <li><Link to="/sharpen">🧩 Sharpen</Link></li>
           <li><Link to="/settle">🧘 Settle</Link></li>
           <li><Link to="/journal">📓 Journal</Link></li>
-          <li><Link to="/nutrition">🥗 Nutrition</Link></li>
-          <li><Link to="/research">🔬 Research</Link></li>
+          <li><Link to="/learn">📚 Learn</Link></li>
           <li><Link to="/history">History</Link></li>
           <li><Link to="/settings">Settings</Link></li>
           {!isPro && (
@@ -65,6 +64,9 @@ export default function Navbar({ onGetStarted, onLogin }) {
       )}
 
       <div className={styles.right}>
+        <Link to="/about" className={styles.aboutLink}>
+          About
+        </Link>
         {user ? (
           <>
             <span className={styles.userInfo}>

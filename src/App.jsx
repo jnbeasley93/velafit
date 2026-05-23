@@ -27,9 +27,10 @@ import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import EditScheduleModal from './components/EditScheduleModal';
 import InstallPrompt from './components/InstallPrompt';
-import About from './components/About';
+import About, { AboutSections } from './components/About';
 import Nutrition from './components/Nutrition';
 import Research from './components/Research';
+import Learn from './components/Learn';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
 import './App.css';
@@ -135,6 +136,7 @@ function AppInner() {
                 <DailyBriefing />
                 <MindJournal />
                 <NutritionPreview />
+                <AboutSections />
                 <Pricing onGetStarted={handleGetStarted} />
                 <WaitlistCTA onSignUp={handleGetStarted} />
                 <Footer />
@@ -183,6 +185,10 @@ function AppInner() {
         <Route
           path="/research"
           element={user ? <Research /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/learn"
+          element={user ? <Learn /> : <Navigate to="/" replace />}
         />
         {/* Marketing page accessible even when logged in via direct path */}
         <Route

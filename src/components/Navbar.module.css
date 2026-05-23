@@ -88,6 +88,20 @@
   opacity: 1;
 }
 
+.aboutLink {
+  text-decoration: none;
+  color: var(--green-deep);
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.aboutLink:hover {
+  opacity: 1;
+}
+
 .userInfo {
   font-size: 0.82rem;
   color: var(--green-deep);

@@ -14,7 +14,7 @@ function formatDate(iso) {
 
 const ALL = 'All';
 
-export default function Research() {
+export default function Research({ embedded = false }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(ALL);
@@ -45,18 +45,21 @@ export default function Research() {
     return articles.filter((a) => a.category === activeCategory);
   }, [articles, activeCategory]);
 
-  return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <Link to="/dashboard" className={styles.backLink}>
-          ← Back to dashboard
-        </Link>
-        <h1 className={styles.title}>Research</h1>
-        <p className={styles.subtitle}>
-          Curated reading on exercise, mind, nutrition, and longevity.
-        </p>
+  const body = (
+    <>
+      {!embedded && (
+        <>
+          <Link to="/dashboard" className={styles.backLink}>
+            ← Back to dashboard
+          </Link>
+          <h1 className={styles.title}>Research</h1>
+          <p className={styles.subtitle}>
+            Curated reading on exercise, mind, nutrition, and longevity.
+          </p>
+        </>
+      )}
 
-        {!loading && articles.length > 0 && categories.length > 2 && (
+      {!loading && articles.length > 0 && categories.length > 2 && (
           <div className={styles.filterRow}>
             {categories.map((cat) => (
               <button
@@ -111,7 +114,14 @@ export default function Research() {
             ))}
           </div>
         )}
-      </div>
+    </>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.container}>{body}</div>
     </div>
   );
 }

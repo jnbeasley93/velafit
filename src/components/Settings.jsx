@@ -269,6 +269,25 @@ export default function Settings({ onEditSchedule }) {
 
         {/* Add to Home Screen */}
         <InstallInstructionsSection />
+
+        {/* About VelaFit */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>About VelaFit</h3>
+          <p className={styles.sectionDesc} style={{ marginBottom: '0.4rem' }}>
+            <Link
+              to="/about"
+              style={{
+                color: 'var(--green-deep)',
+                textDecoration: 'none',
+                fontWeight: 500,
+                borderBottom: '1.5px solid var(--gold)',
+                paddingBottom: '0.1rem',
+              }}
+            >
+              Learn the story behind VelaFit and why we chose a frog. →
+            </Link>
+          </p>
+        </div>
       </div>
 
       <OnboardingSurvey

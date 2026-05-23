@@ -331,42 +331,52 @@ function UpdatesTab() {
   );
 }
 
-export default function Nutrition() {
+export default function Nutrition({ embedded = false }) {
   const [activeTab, setActiveTab] = useState('grocery');
+
+  const body = (
+    <>
+      {!embedded && (
+        <>
+          <Link to="/dashboard" className={styles.backLink}>
+            ← Back to dashboard
+          </Link>
+          <h1 className={styles.title}>Nutrition</h1>
+          <p className={styles.subtitle}>
+            Simple principles. Real food. Built around how you actually eat.
+          </p>
+        </>
+      )}
+
+      <div className={styles.tabs} role="tablist">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            role="tab"
+            aria-selected={activeTab === t.key}
+            className={
+              activeTab === t.key ? styles.tabBtnActive : styles.tabBtn
+            }
+            onClick={() => setActiveTab(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'grocery' && <GroceryTab />}
+      {activeTab === 'protein' && <ProteinTab />}
+      {activeTab === 'avoid' && <AvoidTab />}
+      {activeTab === 'habits' && <HabitsTab />}
+      {activeTab === 'updates' && <UpdatesTab />}
+    </>
+  );
+
+  if (embedded) return body;
 
   return (
     <div className={styles.page}>
-      <div className={styles.container}>
-        <Link to="/dashboard" className={styles.backLink}>
-          ← Back to dashboard
-        </Link>
-        <h1 className={styles.title}>Nutrition</h1>
-        <p className={styles.subtitle}>
-          Simple principles. Real food. Built around how you actually eat.
-        </p>
-
-        <div className={styles.tabs} role="tablist">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              role="tab"
-              aria-selected={activeTab === t.key}
-              className={
-                activeTab === t.key ? styles.tabBtnActive : styles.tabBtn
-              }
-              onClick={() => setActiveTab(t.key)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 'grocery' && <GroceryTab />}
-        {activeTab === 'protein' && <ProteinTab />}
-        {activeTab === 'avoid' && <AvoidTab />}
-        {activeTab === 'habits' && <HabitsTab />}
-        {activeTab === 'updates' && <UpdatesTab />}
-      </div>
+      <div className={styles.container}>{body}</div>
     </div>
   );
 }
