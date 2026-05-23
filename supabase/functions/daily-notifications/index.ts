@@ -5,14 +5,18 @@ const ONESIGNAL_API_KEY = Deno.env.get('ONESIGNAL_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-// Convert HH:MM Central time to UTC hour
-// Central is UTC-6 (CST) or UTC-5 (CDT)
-// Using UTC-5 (CDT) as default for summer months
-const CENTRAL_OFFSET = 5
+// Compute actual Central → UTC offset right now (handles CST vs CDT automatically)
+function getCentralUTCOffset(): number {
+  const now = new Date()
+  const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }))
+  const diff = (now.getTime() - centralTime.getTime()) / (1000 * 60 * 60)
+  return Math.round(diff)
+}
 
 function centralToUTCHour(timeStr: string): number {
   const [hours] = timeStr.split(':').map(Number)
-  return (hours + CENTRAL_OFFSET) % 24
+  const offset = getCentralUTCOffset()
+  return (hours + offset + 24) % 24
 }
 
 Deno.serve(async () => {
@@ -23,14 +27,20 @@ Deno.serve(async () => {
   const currentUTCMinute = now.getUTCMinutes()
 
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-  // Convert current UTC time back to Central to get today's day name
-  const centralHour = (currentUTCHour - CENTRAL_OFFSET + 24) % 24
-  const centralDate = new Date(now)
-  centralDate.setUTCHours(now.getUTCHours() - CENTRAL_OFFSET)
-  const todayName = days[centralDate.getUTCDay()]
+  // Use Intl API to get the actual current weekday in US Central — avoids
+  // date-rollback bugs when manually subtracting an hour offset from UTC.
+  const centralFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'short',
+    hour: 'numeric',
+    hour12: false,
+  })
+  const centralParts = centralFormatter.formatToParts(now)
+  const todayName = centralParts.find(p => p.type === 'weekday')?.value ?? days[now.getUTCDay()]
+  const centralHourStr = centralParts.find(p => p.type === 'hour')?.value ?? '?'
   const isSunday = todayName === 'Sun'
 
-  console.log(`Running at UTC ${currentUTCHour}:${currentUTCMinute}, Central ~${centralHour}:00, day: ${todayName}, isSunday: ${isSunday}`)
+  console.log(`Running at UTC ${currentUTCHour}:${currentUTCMinute}, Central ${centralHourStr}:00, day: ${todayName}, isSunday: ${isSunday}, offset: ${getCentralUTCOffset()}`)
 
   // Get all profiles with notification times
   const { data: profiles, error: profilesError } = await supabase
@@ -92,7 +102,15 @@ Deno.serve(async () => {
               }),
             })
             const json = await res.json()
-            console.log('Training result for', user_id, ':', JSON.stringify(json))
+            if (json?.errors?.invalid_aliases?.external_ids?.length) {
+              console.warn(
+                `[invalid_aliases] training push could not reach user_id=${user_id} — ` +
+                `external_id not linked to a OneSignal subscription. Response:`,
+                JSON.stringify(json),
+              )
+            } else {
+              console.log('Training result for', user_id, ':', JSON.stringify(json))
+            }
             return { user_id, ...json }
           })
         )
@@ -151,7 +169,15 @@ Deno.serve(async () => {
                   }),
                 })
                 const json = await res.json()
-                console.log('Weekly checkin result for', id, ':', JSON.stringify(json))
+                if (json?.errors?.invalid_aliases?.external_ids?.length) {
+                  console.warn(
+                    `[invalid_aliases] weekly check-in could not reach user_id=${id} — ` +
+                    `external_id not linked to a OneSignal subscription. Response:`,
+                    JSON.stringify(json),
+                  )
+                } else {
+                  console.log('Weekly checkin result for', id, ':', JSON.stringify(json))
+                }
                 return { user_id: id, ...json }
               })
             )
