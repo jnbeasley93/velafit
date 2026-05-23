@@ -639,3 +639,95 @@
 .checkinSkip:hover {
   color: var(--green-deep);
 }
+
+/* ── Returning from a break card ───────────── */
+.breakCard {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-left: 4px solid var(--green-accent);
+  border-radius: 4px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.breakHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.breakEmoji {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.breakHeader strong {
+  display: block;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  color: var(--charcoal);
+  margin-bottom: 0.2rem;
+}
+
+.breakHeader p {
+  font-size: 0.85rem;
+  color: var(--stone);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.breakSub {
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.breakActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.breakBtnPrimary {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: var(--green-deep);
+  color: var(--cream);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.breakBtnSecondary {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: none;
+  color: var(--charcoal);
+  border: 1.5px solid var(--card-border);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.breakDismiss {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0;
+  background: none;
+  border: none;
+  color: var(--stone);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: center;
+}

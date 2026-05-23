@@ -153,6 +153,33 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
 
   const breakdown = isTrainingDay ? getTimeBreakdown(todayMins, noMindGames) : null;
 
+  // Returning-from-break detection — any logged day (workout OR activity)
+  const lastWorkoutDate = logs.length > 0 ? logs[0].date : null;
+  const lastActivityLogDate = activityLogs.length > 0 ? activityLogs[0].date : null;
+  const lastActivityDate =
+    lastWorkoutDate && lastActivityLogDate
+      ? lastWorkoutDate > lastActivityLogDate
+        ? lastWorkoutDate
+        : lastActivityLogDate
+      : lastWorkoutDate || lastActivityLogDate;
+  const daysSinceActivity = lastActivityDate
+    ? Math.floor(
+        (new Date() - new Date(lastActivityDate + 'T00:00:00')) /
+          (1000 * 60 * 60 * 24),
+      )
+    : null;
+  const isReturningFromBreak =
+    daysSinceActivity !== null && daysSinceActivity >= 7;
+  const [breakCardDismissed, setBreakCardDismissed] = useState(
+    () => localStorage.getItem('vela_break_dismissed') === localDateStr(),
+  );
+  const showBreakCard = isReturningFromBreak && !breakCardDismissed && hasPlan;
+
+  const dismissBreakCard = useCallback(() => {
+    localStorage.setItem('vela_break_dismissed', localDateStr());
+    setBreakCardDismissed(true);
+  }, []);
+
   // Notification prompt — only show when permission hasn't been requested yet
   const [notifPermission, setNotifPermission] = useState(
     () => ('Notification' in window ? Notification.permission : 'granted')
@@ -229,6 +256,49 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
           <div className={styles.velaAvatar}>🐸</div>
           <p className={styles.velaMessage}>{getVelaMessage(stats.streak)}</p>
         </div>
+
+        {/* ── Returning from a break ── */}
+        {showBreakCard && (
+          <div className={styles.breakCard}>
+            <div className={styles.breakHeader}>
+              <span className={styles.breakEmoji}>🐸</span>
+              <div>
+                <strong>Welcome back!</strong>
+                <p>
+                  It's been {daysSinceActivity} days. No guilt — frogs can't
+                  jump backwards.
+                </p>
+              </div>
+            </div>
+            <p className={styles.breakSub}>How would you like to ease back in?</p>
+            <div className={styles.breakActions}>
+              <button
+                className={styles.breakBtnPrimary}
+                onClick={() => {
+                  dismissBreakCard();
+                  onStartSession?.(todayMins || 30);
+                }}
+              >
+                Pick up where I left off
+              </button>
+              <button
+                className={styles.breakBtnSecondary}
+                onClick={() => {
+                  dismissBreakCard();
+                  onEditSchedule?.();
+                }}
+              >
+                ✏️ Rebuild my plan
+              </button>
+            </div>
+            <button
+              className={styles.breakDismiss}
+              onClick={dismissBreakCard}
+            >
+              Keep same plan, just start today
+            </button>
+          </div>
+        )}
 
         {/* ── Weekly check-in ── */}
         {showCheckin && (
