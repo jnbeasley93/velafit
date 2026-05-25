@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { supabase } from '../lib/supabase';
 import { setOneSignalUserId, sendTag } from '../lib/oneSignal';
 
@@ -10,14 +18,18 @@ export function AuthProvider({ children }) {
   const [userPlan, setUserPlan] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Track the last user id we've fetched for, so getSession() and
+  // onAuthStateChange (which both fire on initial load) don't double-fetch.
+  // Using the user id (not a boolean) so sign-out → sign-in as a different
+  // user correctly triggers a fresh fetch.
+  const lastFetchedUserIdRef = useRef(null);
+
   const fetchProfile = useCallback(async (userId) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    console.log('[AuthContext] fetchProfile result:', { data, error, userId });
-    console.log('[AuthContext] display_name value:', data?.display_name);
     setProfile(data);
   }, []);
 
@@ -30,14 +42,21 @@ export function AuthProvider({ children }) {
     setUserPlan(data?.plan ?? null);
   }, []);
 
+  const hydrateUser = useCallback(
+    (userId) => {
+      if (lastFetchedUserIdRef.current === userId) return;
+      lastFetchedUserIdRef.current = userId;
+      fetchProfile(userId);
+      fetchPlan(userId);
+      setOneSignalUserId(userId);
+    },
+    [fetchProfile, fetchPlan],
+  );
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchPlan(session.user.id);
-        setOneSignalUserId(session.user.id);
-      }
+      if (session?.user) hydrateUser(session.user.id);
       setLoading(false);
     });
 
@@ -45,19 +64,17 @@ export function AuthProvider({ children }) {
       (_event, session) => {
         setSession(session);
         if (session?.user) {
-          fetchProfile(session.user.id);
-          fetchPlan(session.user.id).then(() => {
-            setOneSignalUserId(session.user.id);
-          });
+          hydrateUser(session.user.id);
         } else {
+          lastFetchedUserIdRef.current = null;
           setProfile(null);
           setUserPlan(null);
         }
-      }
+      },
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile, fetchPlan]);
+  }, [hydrateUser]);
 
   // Tag OneSignal user with plan status when it changes
   useEffect(() => {
@@ -86,22 +103,45 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   }, []);
 
-  const value = {
-    session,
-    user: session?.user ?? null,
-    profile,
-    isPro: profile?.is_pro ?? false,
-    displayName: profile?.display_name ?? null,
-    onboardingCompleted: profile?.onboarding_completed ?? false,
-    fitnessProfile: profile?.fitness_profile ?? null,
-    userPlan,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    refreshProfile: () => session?.user && fetchProfile(session.user.id),
-    refreshPlan: () => session?.user && fetchPlan(session.user.id),
-  };
+  const refreshProfile = useCallback(() => {
+    const userId = session?.user?.id;
+    if (userId) return fetchProfile(userId);
+  }, [session, fetchProfile]);
+
+  const refreshPlan = useCallback(() => {
+    const userId = session?.user?.id;
+    if (userId) return fetchPlan(userId);
+  }, [session, fetchPlan]);
+
+  const value = useMemo(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      profile,
+      isPro: profile?.is_pro ?? false,
+      displayName: profile?.display_name ?? null,
+      onboardingCompleted: profile?.onboarding_completed ?? false,
+      fitnessProfile: profile?.fitness_profile ?? null,
+      userPlan,
+      loading,
+      signUp,
+      signIn,
+      signOut,
+      refreshProfile,
+      refreshPlan,
+    }),
+    [
+      session,
+      profile,
+      userPlan,
+      loading,
+      signUp,
+      signIn,
+      signOut,
+      refreshProfile,
+      refreshPlan,
+    ],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
