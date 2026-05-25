@@ -52,6 +52,14 @@ Deno.serve(async () => {
     return new Response('Error fetching profiles', { status: 500 })
   }
 
+  console.log('All profiles notification times:', profiles?.map(p => ({
+    id: p.id,
+    notification_time: p.notification_time,
+    centralToUTC: centralToUTCHour(p.notification_time || '07:00'),
+    currentUTCHour,
+    matches: centralToUTCHour(p.notification_time || '07:00') === currentUTCHour,
+  })))
+
   // Filter profiles whose notification time matches current UTC hour
   const usersToNotify = profiles?.filter(p => {
     const prefTime = p.notification_time || '07:00'
