@@ -218,6 +218,136 @@
   color: var(--cream);
 }
 
+/* ── Exercise section ───────────────────────── */
+.exerciseSection {
+  background: var(--card-bg);
+  border: 1px solid rgba(74, 140, 92, 0.12);
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.exerciseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.exerciseHeader .label {
+  margin-bottom: 0;
+}
+
+.addExerciseBtn {
+  background: none;
+  border: 1.5px solid var(--green-accent);
+  color: var(--green-accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addExerciseBtn:hover {
+  background: var(--green-accent);
+  color: var(--cream);
+}
+
+.exerciseEmpty {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--stone);
+  font-style: italic;
+}
+
+.exerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.exerciseRow {
+  background: var(--warm-white);
+  border: 1px solid rgba(74, 140, 92, 0.1);
+  border-radius: 2px;
+  padding: 0.6rem 0.7rem;
+}
+
+.exerciseRowTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.exerciseName {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.exerciseName:focus {
+  border-color: var(--green-accent);
+}
+
+.exerciseRemove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(74, 140, 92, 0.08);
+  color: var(--stone);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.exerciseRemove:hover {
+  background: rgba(180, 60, 60, 0.12);
+  color: #b43c3c;
+}
+
+.exerciseFields {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.exerciseNum {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.55rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.exerciseNum:focus {
+  border-color: var(--green-accent);
+}
+
 /* ── Notes textarea ─────────────────────────── */
 .notesArea {
   width: 100%;

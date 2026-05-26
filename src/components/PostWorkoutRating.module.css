@@ -89,6 +89,141 @@
   color: var(--cream);
 }
 
+/* ── Extras (user-added exercises) ──────────── */
+.extrasSection {
+  padding: 0 2rem 1rem;
+}
+
+.extrasToggle {
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--green-accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.extrasBody {
+  margin-top: 0.8rem;
+  background: var(--card-bg);
+  border: 1px solid rgba(74, 140, 92, 0.12);
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+}
+
+.extrasSubtext {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--stone);
+  margin-bottom: 0.75rem;
+}
+
+.extrasList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.extraRow {
+  background: var(--warm-white);
+  border: 1px solid rgba(74, 140, 92, 0.1);
+  border-radius: 2px;
+  padding: 0.55rem 0.65rem;
+}
+
+.extraRowTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.extraName {
+  flex: 1;
+  padding: 0.4rem 0.55rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.extraName:focus {
+  border-color: var(--green-accent);
+}
+
+.extraRemove {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(74, 140, 92, 0.08);
+  color: var(--stone);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.extraRemove:hover {
+  background: rgba(180, 60, 60, 0.12);
+  color: #b43c3c;
+}
+
+.extraFields {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.extraNum {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem;
+  color: var(--charcoal);
+  background: var(--warm-white);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.extraNum:focus {
+  border-color: var(--green-accent);
+}
+
+.extrasAddBtn {
+  background: none;
+  border: 1.5px solid var(--green-accent);
+  color: var(--green-accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.extrasAddBtn:hover {
+  background: var(--green-accent);
+  color: var(--cream);
+}
+
 .footer {
   padding: 0 2rem 1.5rem;
   display: flex;

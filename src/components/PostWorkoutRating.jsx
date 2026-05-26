@@ -24,6 +24,24 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
   const [exLogSaving, setExLogSaving] = useState(false);
   const [exLogSaved, setExLogSaved] = useState(false);
 
+  // Extra exercises (free-form, user-added on top of the scripted session)
+  const [extrasOpen, setExtrasOpen] = useState(false);
+  const [extraExercises, setExtraExercises] = useState([]);
+
+  const addExtraExercise = useCallback(() => {
+    setExtraExercises((prev) => [...prev, { name: '', sets: '', reps: '', weight: '' }]);
+  }, []);
+
+  const updateExtraExercise = useCallback((index, field, value) => {
+    setExtraExercises((prev) =>
+      prev.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex)),
+    );
+  }, []);
+
+  const removeExtraExercise = useCallback((index) => {
+    setExtraExercises((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   // Check which exercises were already logged during the session
   useEffect(() => {
     if (!open || !user || !sessionId || !exerciseObjects?.length) return;
@@ -71,6 +89,15 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
     setSaving(true);
     setError('');
 
+    const cleanedExtras = extraExercises
+      .map((ex) => ({
+        name: (ex.name || '').trim(),
+        sets: ex.sets,
+        reps: ex.reps,
+        weight: ex.weight,
+      }))
+      .filter((ex) => ex.name);
+
     const payload = {
       user_id: user.id,
       date: localDateStr(),
@@ -79,7 +106,7 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
       completion_rating: completion,
       feeling_rating: feeling,
       is_impromptu: isImpromptu || false,
-      exercises_completed: exercisesCompleted || [],
+      exercises_completed: [...(exercisesCompleted || []), ...cleanedExtras],
       journal_entry: journalEntry || null,
     };
 
@@ -142,7 +169,7 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
     } finally {
       setSaving(false);
     }
-  }, [canSubmit, user, profile, intensity, completion, feeling, sessionLength, isImpromptu, exercisesCompleted, journalEntry, refreshProfile, onClose]);
+  }, [canSubmit, user, profile, intensity, completion, feeling, sessionLength, isImpromptu, exercisesCompleted, extraExercises, journalEntry, refreshProfile, onClose]);
 
   const handleSkip = useCallback(() => {
     onClose();
@@ -326,6 +353,86 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
             )}
           </div>
         )}
+
+        <div className={styles.extrasSection}>
+          <button
+            type="button"
+            className={styles.extrasToggle}
+            onClick={() => {
+              setExtrasOpen((v) => {
+                const next = !v;
+                if (next && extraExercises.length === 0) addExtraExercise();
+                return next;
+              });
+            }}
+          >
+            {extrasOpen ? '▾ Did you add anything extra today?' : '+ Add extra exercises'}
+          </button>
+
+          {extrasOpen && (
+            <div className={styles.extrasBody}>
+              <p className={styles.extrasSubtext}>
+                Any exercises you did on your own — log them here and we’ll factor them in.
+              </p>
+              <div className={styles.extrasList}>
+                {extraExercises.map((ex, i) => (
+                  <div key={i} className={styles.extraRow}>
+                    <div className={styles.extraRowTop}>
+                      <input
+                        type="text"
+                        className={styles.extraName}
+                        placeholder="e.g. Kettlebell Swings"
+                        value={ex.name}
+                        onChange={(e) => updateExtraExercise(i, 'name', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className={styles.extraRemove}
+                        onClick={() => removeExtraExercise(i)}
+                        aria-label="Remove exercise"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className={styles.extraFields}>
+                      <input
+                        type="number"
+                        className={styles.extraNum}
+                        placeholder="Sets"
+                        min={0}
+                        value={ex.sets}
+                        onChange={(e) => updateExtraExercise(i, 'sets', e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        className={styles.extraNum}
+                        placeholder="Reps"
+                        min={0}
+                        value={ex.reps}
+                        onChange={(e) => updateExtraExercise(i, 'reps', e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        className={styles.extraNum}
+                        placeholder="lbs (optional)"
+                        min={0}
+                        value={ex.weight}
+                        onChange={(e) => updateExtraExercise(i, 'weight', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                className={styles.extrasAddBtn}
+                onClick={addExtraExercise}
+              >
+                + Add Extra Exercise
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className={styles.footer}>
           <button className={styles.btnSkip} onClick={handleSkip}>

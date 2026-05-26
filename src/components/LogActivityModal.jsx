@@ -5,8 +5,8 @@ import { localDateStr } from '../lib/dates';
 import styles from './LogActivityModal.module.css';
 
 const ACTIVITIES = [
-  { emoji: '🚶', label: 'Walking' },
-  { emoji: '🏃', label: 'Running' },
+  { emoji: '🏃', label: 'Walking/Running' },
+  { emoji: '🏋️', label: 'Workout' },
   { emoji: '🚴', label: 'Cycling' },
   { emoji: '🏊', label: 'Swimming' },
   { emoji: '🌿', label: 'Yard Work' },
@@ -28,6 +28,13 @@ const FEELINGS = ['Great', 'Good', 'Tired', 'Tough'];
 
 const BACKDATE_DAYS = 10;
 
+const feelingToRating = (f) => {
+  if (f === 'Great') return 5;
+  if (f === 'Good') return 4;
+  if (f === 'Okay') return 3;
+  return 2;
+};
+
 export default function LogActivityModal({ open, onClose }) {
   const { user } = useAuth();
   const [selectedActivity, setSelectedActivity] = useState('');
@@ -36,6 +43,7 @@ export default function LogActivityModal({ open, onClose }) {
   const [feeling, setFeeling] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState(localDateStr());
+  const [exercises, setExercises] = useState([]);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -46,6 +54,7 @@ export default function LogActivityModal({ open, onClose }) {
 
   const activityType = customActivity.trim() || selectedActivity;
   const canSubmit = activityType && duration;
+  const showExercises = selectedActivity === 'Workout';
 
   // Reset on close
   useEffect(() => {
@@ -56,6 +65,7 @@ export default function LogActivityModal({ open, onClose }) {
       setFeeling('');
       setNotes('');
       setSelectedDate(localDateStr());
+      setExercises([]);
       setSaving(false);
       setSuccess(false);
     }
@@ -71,10 +81,27 @@ export default function LogActivityModal({ open, onClose }) {
     if (e.target.value.trim()) setSelectedActivity('');
   }, []);
 
+  const addExercise = useCallback(() => {
+    setExercises((prev) => [...prev, { name: '', sets: '', reps: '', weight: '' }]);
+  }, []);
+
+  const updateExercise = useCallback((index, field, value) => {
+    setExercises((prev) =>
+      prev.map((ex, i) => (i === index ? { ...ex, [field]: value } : ex)),
+    );
+  }, []);
+
+  const removeExercise = useCallback((index) => {
+    setExercises((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (!canSubmit || !user) return;
     setSaving(true);
     try {
+      const exercisesPayload = exercises.length > 0 ? exercises : null;
+      const rating = feelingToRating(feeling);
+
       await supabase.from('activity_logs').insert({
         user_id: user.id,
         date: selectedDate,
@@ -82,14 +109,28 @@ export default function LogActivityModal({ open, onClose }) {
         duration_mins: duration,
         feeling: feeling || null,
         notes: notes.trim() || null,
+        exercises_completed: exercisesPayload,
       });
+
+      await supabase.from('workout_logs').insert({
+        user_id: user.id,
+        date: selectedDate,
+        session_length: duration,
+        intensity_rating: rating,
+        completion_rating: 5,
+        feeling_rating: rating,
+        is_impromptu: true,
+        exercises_completed: exercisesPayload,
+        journal_entry: notes.trim() || null,
+      });
+
       setSuccess(true);
       setTimeout(() => onClose(), 1500);
     } catch (err) {
       console.error('Failed to log activity:', err);
       setSaving(false);
     }
-  }, [canSubmit, user, selectedDate, activityType, duration, feeling, notes, onClose]);
+  }, [canSubmit, user, selectedDate, activityType, duration, feeling, notes, exercises, onClose]);
 
   if (!open) return null;
 
@@ -192,7 +233,77 @@ export default function LogActivityModal({ open, onClose }) {
             ))}
           </div>
 
-          <label className={styles.label}>Notes</label>
+          {showExercises && (
+            <div className={styles.exerciseSection}>
+              <div className={styles.exerciseHeader}>
+                <label className={styles.label}>Exercises</label>
+                <button
+                  type="button"
+                  className={styles.addExerciseBtn}
+                  onClick={addExercise}
+                >
+                  + Add Exercise
+                </button>
+              </div>
+              {exercises.length === 0 ? (
+                <p className={styles.exerciseEmpty}>
+                  Tap “Add Exercise” to log what you did.
+                </p>
+              ) : (
+                <div className={styles.exerciseList}>
+                  {exercises.map((ex, i) => (
+                    <div key={i} className={styles.exerciseRow}>
+                      <div className={styles.exerciseRowTop}>
+                        <input
+                          type="text"
+                          className={styles.exerciseName}
+                          placeholder="e.g. Kettlebell Swings"
+                          value={ex.name}
+                          onChange={(e) => updateExercise(i, 'name', e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className={styles.exerciseRemove}
+                          onClick={() => removeExercise(i)}
+                          aria-label="Remove exercise"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className={styles.exerciseFields}>
+                        <input
+                          type="number"
+                          className={styles.exerciseNum}
+                          placeholder="Sets"
+                          min={0}
+                          value={ex.sets}
+                          onChange={(e) => updateExercise(i, 'sets', e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          className={styles.exerciseNum}
+                          placeholder="Reps"
+                          min={0}
+                          value={ex.reps}
+                          onChange={(e) => updateExercise(i, 'reps', e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          className={styles.exerciseNum}
+                          placeholder="lbs (optional)"
+                          min={0}
+                          value={ex.weight}
+                          onChange={(e) => updateExercise(i, 'weight', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <label className={styles.label}>Notes (optional)</label>
           <textarea
             className={styles.notesArea}
             placeholder="Any notes? (optional)"
