@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission } from '../lib/oneSignal';
+import { promptNotificationPermission, forceRelinkExternalId } from '../lib/oneSignal';
 import OnboardingSurvey, {
   NOTIFICATION_TIME_MAP,
   NOTIFICATION_TIME_OPTIONS,
@@ -483,6 +483,21 @@ function NotificationsSection() {
     () => (supported ? Notification.permission : 'unsupported'),
   );
   const [enabling, setEnabling] = useState(false);
+  const [relinking, setRelinking] = useState(false);
+  const [relinked, setRelinked] = useState(false);
+
+  const handleRelink = useCallback(async () => {
+    if (!user) return;
+    setRelinking(true);
+    setRelinked(false);
+    const success = await forceRelinkExternalId(user.id);
+    setRelinking(false);
+    if (success) {
+      setRelinked(true);
+      setTimeout(() => setRelinked(false), 3000);
+    }
+  }, [user]);
+
   const currentLabel =
     TIME_TO_LABEL[profile?.notification_time] ||
     TIME_TO_LABEL['07:00'];
@@ -542,9 +557,19 @@ function NotificationsSection() {
         </p>
       )}
       {supported && permission === 'granted' && (
-        <p style={{ fontSize: '0.85rem', color: 'var(--green-accent)', fontWeight: 500 }}>
-          ✓ Reminders enabled
-        </p>
+        <>
+          <p style={{ fontSize: '0.85rem', color: 'var(--green-accent)', fontWeight: 500 }}>
+            ✓ Reminders enabled
+          </p>
+          <button
+            className={styles.btnSave}
+            onClick={handleRelink}
+            disabled={relinking}
+            style={{ marginTop: '0.5rem', fontSize: '0.78rem' }}
+          >
+            {relinking ? 'Fixing...' : relinked ? 'Fixed! 🐸' : 'Fix notification link'}
+          </button>
+        </>
       )}
       {supported && permission === 'denied' && (
         <p style={{ fontSize: '0.85rem', color: 'var(--stone)', lineHeight: 1.5 }}>

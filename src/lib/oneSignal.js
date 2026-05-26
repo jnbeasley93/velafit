@@ -54,6 +54,24 @@ export async function sendTag(key, value) {
   }
 }
 
+export async function forceRelinkExternalId(userId) {
+  try {
+    await initOneSignal();
+    // First logout to clear any conflicting identity
+    await OneSignal.logout();
+    console.log('[OneSignal] logged out, re-linking...');
+    // Wait a moment for logout to propagate
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Now login fresh
+    await OneSignal.login(userId);
+    console.log('[OneSignal] re-linked external ID:', userId);
+    return true;
+  } catch (err) {
+    console.error('[OneSignal] relink failed:', err);
+    return false;
+  }
+}
+
 export async function promptNotificationPermission() {
   try {
     await initOneSignal();
