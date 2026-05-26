@@ -28,11 +28,25 @@ const FEELINGS = ['Great', 'Good', 'Tired', 'Tough'];
 
 const BACKDATE_DAYS = 10;
 
-const feelingToRating = (f) => {
-  if (f === 'Great') return 5;
-  if (f === 'Good') return 4;
-  if (f === 'Okay') return 3;
-  return 2;
+const feelingToIntensity = (f) => {
+  if (f === 'Great') return 'Just right';
+  if (f === 'Good') return 'Just right';
+  if (f === 'Okay') return 'Too easy';
+  return 'Too easy';
+};
+
+const feelingToCompletion = (f) => {
+  if (f === 'Great') return 'Yes';
+  if (f === 'Good') return 'Yes';
+  if (f === 'Okay') return 'Mostly';
+  return 'Mostly';
+};
+
+const feelingToFeeling = (f) => {
+  if (f === 'Great') return 'Great';
+  if (f === 'Good') return 'Good';
+  if (f === 'Okay') return 'Okay';
+  return 'Okay';
 };
 
 export default function LogActivityModal({ open, onClose }) {
@@ -100,7 +114,6 @@ export default function LogActivityModal({ open, onClose }) {
     setSaving(true);
     try {
       const exercisesPayload = exercises.length > 0 ? exercises : null;
-      const rating = feelingToRating(feeling);
 
       await supabase.from('activity_logs').insert({
         user_id: user.id,
@@ -116,9 +129,9 @@ export default function LogActivityModal({ open, onClose }) {
         user_id: user.id,
         date: selectedDate,
         session_length: duration,
-        intensity_rating: rating,
-        completion_rating: 5,
-        feeling_rating: rating,
+        intensity_rating: feelingToIntensity(feeling),
+        completion_rating: feelingToCompletion(feeling),
+        feeling_rating: feelingToFeeling(feeling),
         is_impromptu: true,
         exercises_completed: exercisesPayload,
         journal_entry: notes.trim() || null,
