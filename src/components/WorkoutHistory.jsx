@@ -299,8 +299,20 @@ export default function WorkoutHistory({ onRepeatLog }) {
         .eq('user_id', user.id)
         .order('date', { ascending: false }),
     ]);
+    // Dedupe: impromptu activities dual-write to both tables, so drop the
+    // activity_logs row when an impromptu workout_logs row exists for the
+    // same date. Keeps the workout_logs view, which carries exercise detail.
+    const workoutDates = new Set(
+      (workoutRes.data ?? [])
+        .filter((w) => w.is_impromptu)
+        .map((w) => w.date),
+    );
+    const dedupedActivityLogs = (activityRes.data ?? []).filter(
+      (a) => !workoutDates.has(a.date),
+    );
+
     setWorkoutLogs(workoutRes.data || []);
-    setActivityLogs(activityRes.data || []);
+    setActivityLogs(dedupedActivityLogs);
     setLoading(false);
   }, [user]);
 
