@@ -299,16 +299,17 @@ export default function WorkoutHistory({ onRepeatLog }) {
         .eq('user_id', user.id)
         .order('date', { ascending: false }),
     ]);
-    // Dedupe: impromptu activities dual-write to both tables, so drop the
-    // activity_logs row when an impromptu workout_logs row exists for the
-    // same date. Keeps the workout_logs view, which carries exercise detail.
+    // Dedupe: a Workout-type impromptu log dual-writes to both tables.
+    // Drop the activity_logs row only when its date matches an impromptu
+    // workout_logs row AND both are tagged activity_type === 'Workout',
+    // so unrelated same-day activities (e.g. Cycling) aren't dropped.
     const workoutDates = new Set(
       (workoutRes.data ?? [])
-        .filter((w) => w.is_impromptu)
+        .filter((w) => w.is_impromptu && w.activity_type === 'Workout')
         .map((w) => w.date),
     );
     const dedupedActivityLogs = (activityRes.data ?? []).filter(
-      (a) => !workoutDates.has(a.date),
+      (a) => !(workoutDates.has(a.date) && a.activity_type === 'Workout'),
     );
 
     setWorkoutLogs(workoutRes.data || []);
@@ -383,12 +384,9 @@ export default function WorkoutHistory({ onRepeatLog }) {
                   navigate('/dashboard');
                   return;
                 }
-                // Impromptu workout_logs row has session_length but no
-                // activity_type — try to find the paired activity_logs entry.
-                const match = activityLogs.find((a) => a.date === entry.date);
                 onRepeatLog?.({
-                  activity_type: match?.activity_type,
-                  duration: entry.session_length || match?.duration_mins,
+                  activity_type: entry.activity_type,
+                  duration: entry.session_length,
                 });
               };
               return (

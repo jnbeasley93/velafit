@@ -149,6 +149,7 @@ export default function LogActivityModal({ open, onClose, prefill }) {
         completion_rating: feelingToCompletion(feeling),
         feeling_rating: feelingToFeeling(feeling),
         is_impromptu: true,
+        activity_type: activityType,
         exercises_completed: exercisesPayload,
         journal_entry: notes.trim() || null,
       });
