@@ -53,6 +53,8 @@ function computeStats(workoutLogs, activityLogs) {
 const ACTIVITY_EMOJIS = {
   'Walking': '🚶',
   'Running': '🏃',
+  'Walking/Running': '🏃',
+  'Workout': '🏋️',
   'Cycling': '🚴',
   'Swimming': '🏊',
   'Yard Work': '🌿',
@@ -61,113 +63,180 @@ const ACTIVITY_EMOJIS = {
   'Yoga / Stretching': '🧘',
 };
 
-function JournalEntry({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > 100;
+function ExercisesBlock({ exercises }) {
+  if (!exercises || exercises.length === 0) {
+    return (
+      <div className={styles.exercisesList}>
+        <p className={styles.exercisesLabel}>Exercises</p>
+        <p className={styles.noExercises}>No exercises logged</p>
+      </div>
+    );
+  }
+
+  // Detect shape: array of strings (scripted) vs array of objects (logged workout)
+  const firstObj = exercises.find((e) => e && typeof e === 'object');
+  const isObjectShape = Boolean(firstObj);
+
+  if (!isObjectShape) {
+    return (
+      <div className={styles.exercisesList}>
+        <p className={styles.exercisesLabel}>Exercises</p>
+        <ul className={styles.exerciseBullets}>
+          {exercises.map((name, i) => (
+            <li key={i}>{String(name)}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.journalSection}>
-      <p className={styles.journalLabel}>Journal</p>
-      <p className={styles.journalText}>
-        {isLong && !expanded ? text.slice(0, 100) + '...' : text}
-      </p>
-      {isLong && (
-        <button
-          className={styles.journalToggle}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'Show less' : 'Read more'}
-        </button>
+    <div className={styles.exercisesList}>
+      <p className={styles.exercisesLabel}>Exercises</p>
+      <div className={styles.exerciseTableWrap}>
+        <table className={styles.exerciseTable}>
+          <thead>
+            <tr>
+              <th>Exercise</th>
+              <th>Sets</th>
+              <th>Reps</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {exercises.map((ex, i) => {
+              if (typeof ex === 'string') {
+                return (
+                  <tr key={i}>
+                    <td>{ex}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                  </tr>
+                );
+              }
+              return (
+                <tr key={i}>
+                  <td>{ex.name || '—'}</td>
+                  <td>{ex.sets || '—'}</td>
+                  <td>{ex.reps || '—'}</td>
+                  <td>{ex.weight ? `${ex.weight} lbs` : '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SessionCard({ log, expanded, onToggle }) {
+  const exercises = log.exercises_completed || [];
+  const sessionType = log.is_impromptu ? 'Logged Activity' : 'Scripted Session';
+  const badgeClass = log.is_impromptu
+    ? styles.badgeImpromptu
+    : styles.badgeScheduled;
+
+  return (
+    <div className={styles.card}>
+      <button
+        type="button"
+        className={styles.cardHeaderBtn}
+        onClick={onToggle}
+        aria-expanded={expanded}
+      >
+        <div className={styles.cardHeaderLeft}>
+          <p className={styles.cardDate}>{formatDate(log.date)}</p>
+          <p className={styles.cardLength}>
+            {log.session_length} min
+            {log.feeling_rating ? ` · ${log.feeling_rating}` : ''}
+          </p>
+        </div>
+        <div className={styles.cardHeaderRight}>
+          <span className={badgeClass}>{sessionType}</span>
+          <span className={styles.chevron}>
+            {expanded ? '▴ Hide details' : '▾ See details'}
+          </span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className={styles.cardBody}>
+          <ExercisesBlock exercises={exercises} />
+
+          <div className={styles.ratingsRow}>
+            {log.intensity_rating && (
+              <span className={styles.ratingChip}>
+                Intensity: {log.intensity_rating}
+              </span>
+            )}
+            {log.completion_rating && (
+              <span className={styles.ratingChip}>
+                Completed: {log.completion_rating}
+              </span>
+            )}
+            {log.feeling_rating && (
+              <span className={styles.ratingChip}>
+                Feeling: {log.feeling_rating}
+              </span>
+            )}
+          </div>
+
+          {log.journal_entry && (
+            <blockquote className={styles.journalQuote}>
+              {log.journal_entry}
+            </blockquote>
+          )}
+        </div>
       )}
     </div>
   );
 }
 
-function SessionCard({ log }) {
+function ActivityCard({ log, expanded, onToggle }) {
+  const emoji = ACTIVITY_EMOJIS[log.activity_type] || '🏃';
   const exercises = log.exercises_completed || [];
 
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
-        <div>
-          <p className={styles.cardDate}>{formatDate(log.date)}</p>
-          <p className={styles.cardLength}>{log.session_length} min session</p>
-        </div>
-        <span
-          className={
-            log.is_impromptu ? styles.badgeImpromptu : styles.badgeScheduled
-          }
-        >
-          {log.is_impromptu ? 'Impromptu' : 'Scheduled'}
-        </span>
-      </div>
-
-      <div className={styles.cardBody}>
-        <div className={styles.ratingsRow}>
-          {log.intensity_rating && (
-            <span className={styles.ratingChip}>
-              Intensity: {log.intensity_rating}
-            </span>
-          )}
-          {log.completion_rating && (
-            <span className={styles.ratingChip}>
-              Completed: {log.completion_rating}
-            </span>
-          )}
-          {log.feeling_rating && (
-            <span className={styles.ratingChip}>
-              Feeling: {log.feeling_rating}
-            </span>
-          )}
-        </div>
-
-        {exercises.length > 0 && (
-          <div className={styles.exercisesList}>
-            <p className={styles.exercisesLabel}>Exercises</p>
-            <div className={styles.exerciseChips}>
-              {exercises.map((name, i) => (
-                <span key={i} className={styles.exerciseChip}>
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {log.journal_entry && <JournalEntry text={log.journal_entry} />}
-      </div>
-    </div>
-  );
-}
-
-function ActivityCard({ log }) {
-  const emoji = ACTIVITY_EMOJIS[log.activity_type] || '🏃';
-
-  return (
     <div className={styles.activityCard}>
-      <div className={styles.cardHeader}>
-        <div>
+      <button
+        type="button"
+        className={styles.cardHeaderBtn}
+        onClick={onToggle}
+        aria-expanded={expanded}
+      >
+        <div className={styles.cardHeaderLeft}>
           <p className={styles.cardDate}>
             {emoji} {formatDate(log.date)}
           </p>
           <p className={styles.cardLength}>
             {log.activity_type}
             {log.duration_mins ? ` · ${log.duration_mins} min` : ''}
+            {log.feeling ? ` · ${log.feeling}` : ''}
           </p>
         </div>
-        <span className={styles.badgeActivity}>Life Movement</span>
-      </div>
+        <div className={styles.cardHeaderRight}>
+          <span className={styles.badgeActivity}>Life Movement</span>
+          <span className={styles.chevron}>
+            {expanded ? '▴ Hide details' : '▾ See details'}
+          </span>
+        </div>
+      </button>
 
-      <div className={styles.cardBody}>
-        <div className={styles.ratingsRow}>
-          {log.feeling && (
-            <span className={styles.ratingChip}>Feeling: {log.feeling}</span>
+      {expanded && (
+        <div className={styles.cardBody}>
+          {exercises.length > 0 && <ExercisesBlock exercises={exercises} />}
+          {log.notes && (
+            <blockquote className={styles.journalQuote}>
+              {log.notes}
+            </blockquote>
+          )}
+          {exercises.length === 0 && !log.notes && (
+            <p className={styles.noExercises}>No additional details logged</p>
           )}
         </div>
-        {log.notes && (
-          <p className={styles.activityNotes}>{log.notes}</p>
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -177,9 +246,25 @@ export default function WorkoutHistory() {
   const [workoutLogs, setWorkoutLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedIds, setExpandedIds] = useState(new Set());
+
+  const toggleExpand = useCallback((id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   const fetchLogs = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const [workoutRes, activityRes] = await Promise.all([
       supabase
@@ -251,17 +336,29 @@ export default function WorkoutHistory() {
             <div className={styles.emptyIcon}>🏋️</div>
             <p className={styles.emptyTitle}>No sessions yet</p>
             <p className={styles.emptySub}>
-              Complete your first workout and it will show up here.
+              Complete your first workout to see your history here.
             </p>
           </div>
         ) : (
-          allEntries.map((entry, i) =>
-            entry._type === 'workout' ? (
-              <SessionCard key={`w-${entry.id || i}`} log={entry} />
+          allEntries.map((entry, i) => {
+            const id = `${entry._type}-${entry.id || i}`;
+            const isExpanded = expandedIds.has(id);
+            return entry._type === 'workout' ? (
+              <SessionCard
+                key={id}
+                log={entry}
+                expanded={isExpanded}
+                onToggle={() => toggleExpand(id)}
+              />
             ) : (
-              <ActivityCard key={`a-${entry.id || i}`} log={entry} />
-            )
-          )
+              <ActivityCard
+                key={id}
+                log={entry}
+                expanded={isExpanded}
+                onToggle={() => toggleExpand(id)}
+              />
+            );
+          })
         )}
       </div>
     </div>

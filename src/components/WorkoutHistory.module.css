@@ -87,6 +87,47 @@
   border-bottom: 1px solid rgba(74, 140, 92, 0.06);
 }
 
+.cardHeaderBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 1.1rem 1.3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.cardHeaderBtn:hover {
+  background: rgba(74, 140, 92, 0.04);
+}
+
+.cardHeaderLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardHeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.chevron {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--green-accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .cardDate {
   font-family: 'DM Serif Display', serif;
   font-size: 1rem;
@@ -130,7 +171,8 @@
 
 /* ── Ratings row ────────────────────────────── */
 .cardBody {
-  padding: 1rem 1.4rem;
+  padding: 1rem 1.4rem 1.2rem;
+  border-top: 1px solid rgba(74, 140, 92, 0.06);
 }
 
 .ratingsRow {
@@ -174,6 +216,77 @@
   border-radius: 2px;
   background: rgba(74, 140, 92, 0.06);
   color: var(--green-deep);
+}
+
+.exerciseBullets {
+  list-style: disc;
+  padding-left: 1.2rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--charcoal);
+  font-weight: 400;
+}
+
+.exerciseBullets li::marker {
+  color: var(--green-accent);
+}
+
+.exerciseTableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(74, 140, 92, 0.1);
+  border-radius: 2px;
+}
+
+.exerciseTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.exerciseTable th {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  background: rgba(74, 140, 92, 0.06);
+  color: var(--green-deep);
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(74, 140, 92, 0.1);
+}
+
+.exerciseTable td {
+  padding: 0.4rem 0.6rem;
+  color: var(--charcoal);
+  border-bottom: 1px solid rgba(74, 140, 92, 0.05);
+}
+
+.exerciseTable tr:last-child td {
+  border-bottom: none;
+}
+
+.noExercises {
+  font-size: 0.78rem;
+  color: var(--stone);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.journalQuote {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.9rem;
+  background: var(--cream);
+  border-left: 3px solid var(--gold);
+  border-radius: 2px;
+  font-size: 0.85rem;
+  color: var(--charcoal);
+  line-height: 1.55;
+  font-weight: 300;
+  font-style: italic;
 }
 
 /* ── Journal ────────────────────────────────── */
