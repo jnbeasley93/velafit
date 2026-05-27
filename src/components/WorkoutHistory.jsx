@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
@@ -131,7 +131,7 @@ function ExercisesBlock({ exercises }) {
   );
 }
 
-function SessionCard({ log, expanded, onToggle }) {
+function SessionCard({ log, expanded, onToggle, onRepeat }) {
   const exercises = log.exercises_completed || [];
   const sessionType = log.is_impromptu ? 'Logged Activity' : 'Scripted Session';
   const badgeClass = log.is_impromptu
@@ -188,13 +188,23 @@ function SessionCard({ log, expanded, onToggle }) {
               {log.journal_entry}
             </blockquote>
           )}
+
+          <div className={styles.cardActions}>
+            <button
+              type="button"
+              className={styles.repeatBtn}
+              onClick={onRepeat}
+            >
+              Repeat this session →
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function ActivityCard({ log, expanded, onToggle }) {
+function ActivityCard({ log, expanded, onToggle, onRepeat }) {
   const emoji = ACTIVITY_EMOJIS[log.activity_type] || '🏃';
   const exercises = log.exercises_completed || [];
 
@@ -235,14 +245,25 @@ function ActivityCard({ log, expanded, onToggle }) {
           {exercises.length === 0 && !log.notes && (
             <p className={styles.noExercises}>No additional details logged</p>
           )}
+
+          <div className={styles.cardActions}>
+            <button
+              type="button"
+              className={styles.repeatBtn}
+              onClick={onRepeat}
+            >
+              Repeat this session →
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-export default function WorkoutHistory() {
+export default function WorkoutHistory({ onRepeatLog }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [workoutLogs, setWorkoutLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -343,19 +364,45 @@ export default function WorkoutHistory() {
           allEntries.map((entry, i) => {
             const id = `${entry._type}-${entry.id || i}`;
             const isExpanded = expandedIds.has(id);
-            return entry._type === 'workout' ? (
-              <SessionCard
-                key={id}
-                log={entry}
-                expanded={isExpanded}
-                onToggle={() => toggleExpand(id)}
-              />
-            ) : (
+
+            if (entry._type === 'workout') {
+              const handleRepeat = () => {
+                if (!entry.is_impromptu) {
+                  navigate('/dashboard');
+                  return;
+                }
+                // Impromptu workout_logs row has session_length but no
+                // activity_type — try to find the paired activity_logs entry.
+                const match = activityLogs.find((a) => a.date === entry.date);
+                onRepeatLog?.({
+                  activity_type: match?.activity_type,
+                  duration: entry.session_length || match?.duration_mins,
+                });
+              };
+              return (
+                <SessionCard
+                  key={id}
+                  log={entry}
+                  expanded={isExpanded}
+                  onToggle={() => toggleExpand(id)}
+                  onRepeat={handleRepeat}
+                />
+              );
+            }
+
+            const handleActivityRepeat = () => {
+              onRepeatLog?.({
+                activity_type: entry.activity_type,
+                duration: entry.duration_mins,
+              });
+            };
+            return (
               <ActivityCard
                 key={id}
                 log={entry}
                 expanded={isExpanded}
                 onToggle={() => toggleExpand(id)}
+                onRepeat={handleActivityRepeat}
               />
             );
           })

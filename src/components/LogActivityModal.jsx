@@ -49,7 +49,7 @@ const feelingToFeeling = (f) => {
   return 'Okay';
 };
 
-export default function LogActivityModal({ open, onClose }) {
+export default function LogActivityModal({ open, onClose, prefill }) {
   const { user } = useAuth();
   const [selectedActivity, setSelectedActivity] = useState('');
   const [customActivity, setCustomActivity] = useState('');
@@ -84,6 +84,22 @@ export default function LogActivityModal({ open, onClose }) {
       setSuccess(false);
     }
   }, [open]);
+
+  // Apply prefill when opening
+  useEffect(() => {
+    if (!open || !prefill) return;
+    if (prefill.activity_type) {
+      const known = ACTIVITIES.find((a) => a.label === prefill.activity_type);
+      if (known) {
+        setSelectedActivity(known.label);
+        setCustomActivity('');
+      } else {
+        setCustomActivity(prefill.activity_type);
+        setSelectedActivity('');
+      }
+    }
+    if (prefill.duration) setDuration(prefill.duration);
+  }, [open, prefill]);
 
   const handleSelectActivity = useCallback((label) => {
     setSelectedActivity(label);

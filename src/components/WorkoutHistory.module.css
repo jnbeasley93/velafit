@@ -276,6 +276,32 @@
   font-weight: 300;
 }
 
+.cardActions {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(74, 140, 92, 0.06);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.repeatBtn {
+  background: none;
+  border: 1.5px solid var(--green-accent);
+  color: var(--green-accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.5rem 0.95rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.repeatBtn:hover {
+  background: var(--green-accent);
+  color: var(--cream);
+}
+
 .journalQuote {
   margin: 0.9rem 0 0;
   padding: 0.7rem 0.9rem;

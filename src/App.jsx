@@ -93,7 +93,13 @@ function AppInner() {
 
   const [quickSessionOpen, setQuickSessionOpen] = useState(false);
   const [logActivityOpen, setLogActivityOpen] = useState(false);
+  const [logActivityPrefill, setLogActivityPrefill] = useState(null);
   const [editScheduleOpen, setEditScheduleOpen] = useState(false);
+
+  const openLogActivity = useCallback((prefill = null) => {
+    setLogActivityPrefill(prefill);
+    setLogActivityOpen(true);
+  }, []);
 
   const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
     console.log('[App] handleStartSession:', { mins, impromptu, bodyweightOnly });
@@ -152,7 +158,7 @@ function AppInner() {
                 onStartSession={handleStartSession}
                 onBuildPlan={() => setModalOpen(true)}
                 onQuickSession={() => setQuickSessionOpen(true)}
-                onLogActivity={() => setLogActivityOpen(true)}
+                onLogActivity={() => openLogActivity()}
                 onEditSchedule={() => setEditScheduleOpen(true)}
               />
             ) : (
@@ -172,7 +178,10 @@ function AppInner() {
           path="/settings"
           element={<Settings onEditSchedule={() => setEditScheduleOpen(true)} />}
         />
-        <Route path="/history" element={<WorkoutHistory />} />
+        <Route
+          path="/history"
+          element={<WorkoutHistory onRepeatLog={openLogActivity} />}
+        />
         <Route
           path="/journal"
           element={user ? <JournalHistory /> : <Navigate to="/" replace />}
@@ -214,6 +223,7 @@ function AppInner() {
       <LogActivityModal
         open={logActivityOpen}
         onClose={() => setLogActivityOpen(false)}
+        prefill={logActivityPrefill}
       />
       <EditScheduleModal
         open={editScheduleOpen}
