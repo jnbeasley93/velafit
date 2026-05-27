@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission, forceRelinkExternalId } from '../lib/oneSignal';
+import { promptNotificationPermission, forceRelinkViaAPI } from '../lib/oneSignal';
 import OnboardingSurvey, {
   NOTIFICATION_TIME_MAP,
   NOTIFICATION_TIME_OPTIONS,
@@ -490,7 +490,7 @@ function NotificationsSection() {
     if (!user) return;
     setRelinking(true);
     setRelinked(false);
-    const success = await forceRelinkExternalId(user.id);
+    const success = await forceRelinkViaAPI(user.id);
     setRelinking(false);
     if (success) {
       setRelinked(true);

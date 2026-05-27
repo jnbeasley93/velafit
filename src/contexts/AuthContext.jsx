@@ -8,7 +8,7 @@ import {
   useRef,
 } from 'react';
 import { supabase } from '../lib/supabase';
-import { setOneSignalUserId, sendTag } from '../lib/oneSignal';
+import { forceRelinkViaAPI, sendTag } from '../lib/oneSignal';
 
 const AuthContext = createContext(null);
 
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
       lastFetchedUserIdRef.current = userId;
       fetchProfile(userId);
       fetchPlan(userId);
-      setOneSignalUserId(userId);
+      forceRelinkViaAPI(userId);
     },
     [fetchProfile, fetchPlan],
   );

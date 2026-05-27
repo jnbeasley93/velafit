@@ -72,6 +72,36 @@ export async function forceRelinkExternalId(userId) {
   }
 }
 
+export async function forceRelinkViaAPI(userId) {
+  try {
+    await initOneSignal();
+
+    // Get the subscription ID from the OneSignal SDK
+    const subscriptionId = OneSignal.User.PushSubscription.id;
+    if (!subscriptionId) {
+      console.warn('[OneSignal] no subscription ID available');
+      return false;
+    }
+
+    console.log('[OneSignal] relinking subscription:', subscriptionId, 'to user:', userId);
+
+    const res = await fetch(
+      'https://nrlqgxsusnxarajofasd.supabase.co/functions/v1/link-onesignal-user',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription_id: subscriptionId, user_id: userId }),
+      },
+    );
+    const json = await res.json();
+    console.log('[OneSignal] relink result:', JSON.stringify(json));
+    return json.ok === true;
+  } catch (err) {
+    console.error('[OneSignal] relink failed:', err);
+    return false;
+  }
+}
+
 export async function promptNotificationPermission() {
   try {
     await initOneSignal();
