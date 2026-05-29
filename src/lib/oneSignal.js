@@ -1,5 +1,8 @@
 import OneSignal from 'react-onesignal';
 
+const LINK_FN_URL =
+  'https://nrlqgxsusnxarajofasd.supabase.co/functions/v1/link-onesignal-user';
+
 let initPromise = null;
 
 export function initOneSignal() {
@@ -35,16 +38,6 @@ export function initOneSignal() {
   return initPromise;
 }
 
-export async function setOneSignalUserId(userId) {
-  try {
-    await initOneSignal();
-    await OneSignal.login(userId);
-    console.log('[OneSignal] external ID set:', userId);
-  } catch (err) {
-    console.warn('[OneSignal] login failed:', err);
-  }
-}
-
 export async function sendTag(key, value) {
   try {
     await initOneSignal();
@@ -54,50 +47,40 @@ export async function sendTag(key, value) {
   }
 }
 
-export async function forceRelinkExternalId(userId) {
-  try {
-    await initOneSignal();
-    // First logout to clear any conflicting identity
-    await OneSignal.logout();
-    console.log('[OneSignal] logged out, re-linking...');
-    // Wait a moment for logout to propagate
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Now login fresh
-    await OneSignal.login(userId);
-    console.log('[OneSignal] re-linked external ID:', userId);
-    return true;
-  } catch (err) {
-    console.error('[OneSignal] relink failed:', err);
-    return false;
-  }
-}
-
-export async function forceRelinkViaAPI(userId) {
+export async function registerPushSubscription(userId) {
   try {
     await initOneSignal();
 
-    // Get the subscription ID from the OneSignal SDK
-    const subscriptionId = OneSignal.User.PushSubscription.id;
+    let subscriptionId = OneSignal.User.PushSubscription.id;
     if (!subscriptionId) {
-      console.warn('[OneSignal] no subscription ID available');
+      for (let i = 0; i < 10; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        subscriptionId = OneSignal.User.PushSubscription.id;
+        if (subscriptionId) break;
+      }
+    }
+
+    if (!subscriptionId) {
+      console.warn('[OneSignal] no subscription ID after waiting');
       return false;
     }
 
-    console.log('[OneSignal] relinking subscription:', subscriptionId, 'to user:', userId);
+    console.log('[OneSignal] registering subscription:', subscriptionId);
 
-    const res = await fetch(
-      'https://nrlqgxsusnxarajofasd.supabase.co/functions/v1/link-onesignal-user',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription_id: subscriptionId, user_id: userId }),
-      },
-    );
+    const res = await fetch(LINK_FN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription_id: subscriptionId, user_id: userId }),
+    });
     const json = await res.json();
-    console.log('[OneSignal] relink result:', JSON.stringify(json));
-    return json.ok === true;
+    if (!json.ok) {
+      console.error('[OneSignal] register failed:', json);
+      return false;
+    }
+    console.log('[OneSignal] subscription registered');
+    return true;
   } catch (err) {
-    console.error('[OneSignal] relink failed:', err);
+    console.error('[OneSignal] registerPushSubscription failed:', err);
     return false;
   }
 }

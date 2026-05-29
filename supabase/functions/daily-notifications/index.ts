@@ -52,14 +52,6 @@ Deno.serve(async () => {
     return new Response('Error fetching profiles', { status: 500 })
   }
 
-  console.log('All profiles notification times:', profiles?.map(p => ({
-    id: p.id,
-    notification_time: p.notification_time,
-    centralToUTC: centralToUTCHour(p.notification_time || '07:00'),
-    currentUTCHour,
-    matches: centralToUTCHour(p.notification_time || '07:00') === currentUTCHour,
-  })))
-
   // Filter profiles whose notification time matches current UTC hour
   const usersToNotify = profiles?.filter(p => {
     const prefTime = p.notification_time || '07:00'
@@ -68,6 +60,26 @@ Deno.serve(async () => {
   }) ?? []
 
   console.log(`Users with notifications due this hour: ${usersToNotify.length}`)
+
+  // Helper: load subscription IDs for a set of user IDs, return a Map of user_id → subscription_id[]
+  async function loadSubscriptionsFor(userIds: string[]): Promise<Map<string, string[]>> {
+    const result = new Map<string, string[]>()
+    if (userIds.length === 0) return result
+    const { data: subs, error } = await supabase
+      .from('user_push_subscriptions')
+      .select('user_id, subscription_id')
+      .in('user_id', userIds)
+    if (error) {
+      console.error('Error fetching subscriptions:', error)
+      return result
+    }
+    for (const row of subs ?? []) {
+      const existing = result.get(row.user_id)
+      if (existing) existing.push(row.subscription_id)
+      else result.set(row.user_id, [row.subscription_id])
+    }
+    return result
+  }
 
   let trainingResults: PromiseSettledResult<unknown>[] = []
   let trainingUsersCount = 0
@@ -87,13 +99,18 @@ Deno.serve(async () => {
         return p.plan?.days && todayName in p.plan.days
       }) ?? []
 
-      console.log(`Training users to notify: ${trainingUsers.map(u => u.user_id)}`)
-      trainingUsersCount = trainingUsers.length
+      const trainingUserIds = trainingUsers.map(u => u.user_id)
+      const subsByUser = await loadSubscriptionsFor(trainingUserIds)
 
-      if (trainingUsers.length > 0) {
+      const reachableTrainingUsers = trainingUsers.filter(u => subsByUser.has(u.user_id))
+      console.log(`Training users to notify: ${reachableTrainingUsers.map(u => u.user_id)} (skipped ${trainingUsers.length - reachableTrainingUsers.length} with no subscription)`)
+      trainingUsersCount = reachableTrainingUsers.length
+
+      if (reachableTrainingUsers.length > 0) {
         trainingResults = await Promise.allSettled(
-          trainingUsers.map(async ({ user_id, plan }) => {
+          reachableTrainingUsers.map(async ({ user_id, plan }) => {
             const sessionMins = plan?.days?.[todayName] ?? 30
+            const subIds = subsByUser.get(user_id)!
             const res = await fetch('https://api.onesignal.com/notifications', {
               method: 'POST',
               headers: {
@@ -102,7 +119,7 @@ Deno.serve(async () => {
               },
               body: JSON.stringify({
                 app_id: ONESIGNAL_APP_ID,
-                include_aliases: { external_id: [user_id] },
+                include_subscription_uids: subIds,
                 target_channel: 'push',
                 headings: { en: 'Your session is ready. 🐸' },
                 contents: { en: `VelaFit · You have a ${sessionMins}-minute session today. Tap to start.` },
@@ -110,15 +127,7 @@ Deno.serve(async () => {
               }),
             })
             const json = await res.json()
-            if (json?.errors?.invalid_aliases?.external_ids?.length) {
-              console.warn(
-                `[invalid_aliases] training push could not reach user_id=${user_id} — ` +
-                `external_id not linked to a OneSignal subscription. Response:`,
-                JSON.stringify(json),
-              )
-            } else {
-              console.log('Training result for', user_id, ':', JSON.stringify(json))
-            }
+            console.log('Training result for', user_id, ':', JSON.stringify(json))
             return { user_id, ...json }
           })
         )
@@ -149,18 +158,23 @@ Deno.serve(async () => {
         if (allProfilesError) {
           console.error('Error fetching profiles for check-in:', allProfilesError)
         } else {
-          const checkinUsers = allProfiles?.filter(p => {
+          const dueCheckinProfiles = allProfiles?.filter(p => {
             const prefTime = p.notification_time || '07:00'
             const prefUTCHour = centralToUTCHour(prefTime)
             return prefUTCHour === currentUTCHour
           }) ?? []
 
-          console.log(`Weekly check-in users this hour: ${checkinUsers.length}`)
-          checkinUsersCount = checkinUsers.length
+          const checkinUserIds = dueCheckinProfiles.map(p => p.id)
+          const checkinSubsByUser = await loadSubscriptionsFor(checkinUserIds)
 
-          if (checkinUsers.length > 0) {
+          const reachableCheckinUsers = dueCheckinProfiles.filter(p => checkinSubsByUser.has(p.id))
+          console.log(`Weekly check-in users this hour: ${reachableCheckinUsers.length} (skipped ${dueCheckinProfiles.length - reachableCheckinUsers.length} with no subscription)`)
+          checkinUsersCount = reachableCheckinUsers.length
+
+          if (reachableCheckinUsers.length > 0) {
             checkinResults = await Promise.allSettled(
-              checkinUsers.map(async ({ id }) => {
+              reachableCheckinUsers.map(async ({ id }) => {
+                const subIds = checkinSubsByUser.get(id)!
                 const res = await fetch('https://api.onesignal.com/notifications', {
                   method: 'POST',
                   headers: {
@@ -169,7 +183,7 @@ Deno.serve(async () => {
                   },
                   body: JSON.stringify({
                     app_id: ONESIGNAL_APP_ID,
-                    include_aliases: { external_id: [id] },
+                    include_subscription_uids: subIds,
                     target_channel: 'push',
                     headings: { en: 'New week ahead. 📅' },
                     contents: { en: 'VelaFit · Does your schedule still work for you? Tap to check in.' },
@@ -177,15 +191,7 @@ Deno.serve(async () => {
                   }),
                 })
                 const json = await res.json()
-                if (json?.errors?.invalid_aliases?.external_ids?.length) {
-                  console.warn(
-                    `[invalid_aliases] weekly check-in could not reach user_id=${id} — ` +
-                    `external_id not linked to a OneSignal subscription. Response:`,
-                    JSON.stringify(json),
-                  )
-                } else {
-                  console.log('Weekly checkin result for', id, ':', JSON.stringify(json))
-                }
+                console.log('Weekly checkin result for', id, ':', JSON.stringify(json))
                 return { user_id: id, ...json }
               })
             )
