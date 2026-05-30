@@ -3,13 +3,25 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
       console.error('[link-onesignal-user] missing env: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
       return new Response(
         JSON.stringify({ ok: false, error: 'server misconfigured: missing env vars' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
+        { status: 500, headers: jsonHeaders },
       )
     }
 
@@ -20,7 +32,7 @@ Deno.serve(async (req) => {
       console.error('[link-onesignal-user] body parse failed:', parseErr)
       return new Response(
         JSON.stringify({ ok: false, error: 'invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } },
+        { status: 400, headers: jsonHeaders },
       )
     }
 
@@ -28,7 +40,7 @@ Deno.serve(async (req) => {
     if (!subscription_id || !user_id) {
       return new Response(
         JSON.stringify({ ok: false, error: 'subscription_id and user_id required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } },
+        { status: 400, headers: jsonHeaders },
       )
     }
 
@@ -56,7 +68,7 @@ Deno.serve(async (req) => {
           details: selectErr.details,
           hint: selectErr.hint,
         }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
+        { status: 500, headers: jsonHeaders },
       )
     }
 
@@ -81,7 +93,7 @@ Deno.serve(async (req) => {
             details: updateErr.details,
             hint: updateErr.hint,
           }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } },
+          { status: 500, headers: jsonHeaders },
         )
       }
     } else {
@@ -99,20 +111,20 @@ Deno.serve(async (req) => {
             details: insertErr.details,
             hint: insertErr.hint,
           }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } },
+          { status: 500, headers: jsonHeaders },
         )
       }
     }
 
     return new Response(
       JSON.stringify({ ok: true }),
-      { headers: { 'Content-Type': 'application/json' } },
+      { headers: jsonHeaders },
     )
   } catch (err) {
     console.error('[link-onesignal-user] unexpected error:', err)
     return new Response(
       JSON.stringify({ ok: false, error: String(err) }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
+      { status: 500, headers: jsonHeaders },
     )
   }
 })
