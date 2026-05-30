@@ -51,36 +51,42 @@ export async function registerPushSubscription(userId) {
   try {
     await initOneSignal();
 
-    let subscriptionId = OneSignal.User.PushSubscription.id;
-    if (!subscriptionId) {
-      for (let i = 0; i < 10; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        subscriptionId = OneSignal.User.PushSubscription.id;
-        if (subscriptionId) break;
+    // Try immediately first
+    const subscriptionId = OneSignal.User.PushSubscription.id;
+    if (subscriptionId) {
+      console.log('[OneSignal] subscription ID found immediately:', subscriptionId);
+      await saveSubscriptionToSupabase(userId, subscriptionId);
+      return true;
+    }
+
+    // If not available yet, listen for when it becomes available
+    console.log('[OneSignal] no subscription yet, adding change listener...');
+    OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
+      const newId = event.current?.id;
+      if (newId) {
+        console.log('[OneSignal] subscription ID now available:', newId);
+        await saveSubscriptionToSupabase(userId, newId);
       }
-    }
+    });
+    return true;
+  } catch (err) {
+    console.error('[OneSignal] registerPushSubscription failed:', err);
+    return false;
+  }
+}
 
-    if (!subscriptionId) {
-      console.warn('[OneSignal] no subscription ID after waiting');
-      return false;
-    }
-
-    console.log('[OneSignal] registering subscription:', subscriptionId);
-
+async function saveSubscriptionToSupabase(userId, subscriptionId) {
+  try {
     const res = await fetch(LINK_FN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subscription_id: subscriptionId, user_id: userId }),
     });
     const json = await res.json();
-    if (!json.ok) {
-      console.error('[OneSignal] register failed:', json);
-      return false;
-    }
-    console.log('[OneSignal] subscription registered');
-    return true;
+    console.log('[OneSignal] subscription saved:', JSON.stringify(json));
+    return json.ok === true;
   } catch (err) {
-    console.error('[OneSignal] registerPushSubscription failed:', err);
+    console.error('[OneSignal] saveSubscriptionToSupabase failed:', err);
     return false;
   }
 }
