@@ -70,7 +70,7 @@
 
 .sub {
   font-size: 1.1rem;
-  color: rgba(245, 240, 232, 0.65);
+  color: rgba(245, 240, 232, 0.85);
   line-height: 1.7;
   max-width: 440px;
   margin-bottom: 2.5rem;
@@ -136,7 +136,7 @@
 
 .statLabel {
   font-size: 0.75rem;
-  color: rgba(245, 240, 232, 0.45);
+  color: rgba(245, 240, 232, 0.72);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-top: 0.2rem;
@@ -202,7 +202,7 @@
 
 .velaMessage {
   font-size: 0.95rem;
-  color: rgba(245, 240, 232, 0.8);
+  color: rgba(245, 240, 232, 0.92);
   line-height: 1.75;
   font-weight: 300;
 }

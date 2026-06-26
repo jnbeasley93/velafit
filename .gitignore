@@ -24,3 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
+
+# Supabase CLI local cache
+supabase/.temp/
+
+# Scratch notes
+OPEN_CC.md

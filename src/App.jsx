@@ -135,7 +135,11 @@ function AppInner() {
             user ? (
               <Navigate to="/dashboard" replace />
             ) : (
-              <>
+              // Marketing page is a fixed dark-green brand aesthetic — pin it to
+              // the light theme so its cream-on-green text stays readable even
+              // when the user has dark mode enabled (otherwise --green-deep
+              // inverts to light and washes out the cream body text).
+              <div data-theme="light">
                 <Hero onBuildPlan={handleGetStarted} />
                 <HowItWorks />
                 <FeaturesGrid />
@@ -146,7 +150,7 @@ function AppInner() {
                 <Pricing onGetStarted={handleGetStarted} />
                 <WaitlistCTA onSignUp={handleGetStarted} />
                 <Footer />
-              </>
+              </div>
             )
           }
         />
@@ -203,7 +207,7 @@ function AppInner() {
         <Route
           path="/home"
           element={
-            <>
+            <div data-theme="light">
               <Hero onBuildPlan={handleGetStarted} />
               <HowItWorks />
               <FeaturesGrid />
@@ -213,7 +217,7 @@ function AppInner() {
               <Pricing onGetStarted={handleGetStarted} />
               <WaitlistCTA onSignUp={handleGetStarted} />
               <Footer />
-            </>
+            </div>
           }
         />
       </Routes>

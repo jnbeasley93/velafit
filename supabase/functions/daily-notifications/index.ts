@@ -119,7 +119,7 @@ Deno.serve(async () => {
               },
               body: JSON.stringify({
                 app_id: ONESIGNAL_APP_ID,
-                include_subscription_uids: subIds,
+                include_subscription_ids: subIds,
                 target_channel: 'push',
                 headings: { en: 'Your session is ready. 🐸' },
                 contents: { en: `VelaFit · You have a ${sessionMins}-minute session today. Tap to start.` },
@@ -183,7 +183,7 @@ Deno.serve(async () => {
                   },
                   body: JSON.stringify({
                     app_id: ONESIGNAL_APP_ID,
-                    include_subscription_uids: subIds,
+                    include_subscription_ids: subIds,
                     target_channel: 'push',
                     headings: { en: 'New week ahead. 📅' },
                     contents: { en: 'VelaFit · Does your schedule still work for you? Tap to check in.' },
