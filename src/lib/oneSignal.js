@@ -47,32 +47,96 @@ export async function sendTag(key, value) {
   }
 }
 
+// Snapshot of the most recent registration attempt, surfaced in the Settings
+// "Notification debug" readout so it can be inspected on-device (iOS PWA has no
+// reachable console).
+let lastDiag = null;
+
+// Read the full push-subscription state at this instant.
+function readPushState() {
+  let permission = 'unknown';
+  try {
+    if (typeof Notification !== 'undefined') permission = Notification.permission;
+  } catch {
+    /* Notification may be unavailable in some contexts */
+  }
+  const sub = (OneSignal.User && OneSignal.User.PushSubscription) || {};
+  return {
+    id: sub.id ?? null,
+    token: sub.token ?? null,
+    optedIn: sub.optedIn ?? null,
+    permission,
+  };
+}
+
+// Capture + log the subscription state, then save to Supabase ONLY when the
+// device is genuinely push-enabled (optedIn === true AND a token is present).
+// Saving an `id` without those is exactly how stale/invalid_player_ids get
+// written, so we skip and record why instead.
+async function evaluateAndSave(userId, stage) {
+  const state = readPushState();
+  console.log(`[OneSignal DIAG] (${stage}) PushSubscription.id:`, state.id);
+  console.log(`[OneSignal DIAG] (${stage}) PushSubscription.token:`, state.token);
+  console.log(`[OneSignal DIAG] (${stage}) PushSubscription.optedIn:`, state.optedIn);
+  console.log(`[OneSignal DIAG] (${stage}) Notification.permission:`, state.permission);
+
+  const pushEnabled = state.optedIn === true && !!state.token && !!state.id;
+  let decision = 'skipped';
+  let reason;
+
+  if (pushEnabled) {
+    decision = 'saved';
+    reason = 'optedIn === true and token present';
+    console.log('[OneSignal DIAG] push-enabled — saving subscription id:', state.id);
+    await saveSubscriptionToSupabase(userId, state.id);
+  } else if (!state.id) {
+    reason = 'no subscription id yet';
+  } else if (state.optedIn !== true) {
+    reason = `id present but optedIn === ${state.optedIn} (not opted in)`;
+  } else if (!state.token) {
+    reason = 'id present but token is null (no valid push token)';
+  } else {
+    reason = 'not push-enabled';
+  }
+
+  if (!pushEnabled) {
+    console.warn(`[OneSignal DIAG] NOT saving subscription — ${reason}`, state);
+  }
+
+  lastDiag = { ...state, pushEnabled, decision, reason, stage, at: new Date().toISOString() };
+  return pushEnabled;
+}
+
 export async function registerPushSubscription(userId) {
   try {
     await initOneSignal();
 
-    // Try immediately first
-    const subscriptionId = OneSignal.User.PushSubscription.id;
-    if (subscriptionId) {
-      console.log('[OneSignal] subscription ID found immediately:', subscriptionId);
-      await saveSubscriptionToSupabase(userId, subscriptionId);
-      return true;
-    }
+    // Evaluate the current state immediately.
+    const saved = await evaluateAndSave(userId, 'immediate');
+    if (saved) return true;
 
-    // If not available yet, listen for when it becomes available
-    console.log('[OneSignal] no subscription yet, adding change listener...');
-    OneSignal.User.PushSubscription.addEventListener('change', async (event) => {
-      const newId = event.current?.id;
-      if (newId) {
-        console.log('[OneSignal] subscription ID now available:', newId);
-        await saveSubscriptionToSupabase(userId, newId);
-      }
+    // Not push-enabled yet — the id/token/optedIn often arrive a beat later on
+    // iOS. Re-evaluate (and gate the save the same way) on each change.
+    console.log('[OneSignal DIAG] not push-enabled yet, adding change listener...');
+    OneSignal.User.PushSubscription.addEventListener('change', async () => {
+      await evaluateAndSave(userId, 'change-event');
     });
     return true;
   } catch (err) {
     console.error('[OneSignal] registerPushSubscription failed:', err);
     return false;
   }
+}
+
+// Live push-subscription state plus the last registration attempt, for the
+// on-device debug readout in Settings.
+export async function getPushDiagnostics() {
+  try {
+    await initOneSignal();
+  } catch {
+    /* fall through and report whatever state we can read */
+  }
+  return { ...readPushState(), lastAttempt: lastDiag };
 }
 
 async function saveSubscriptionToSupabase(userId, subscriptionId) {

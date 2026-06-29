@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission, registerPushSubscription } from '../lib/oneSignal';
+import { promptNotificationPermission, registerPushSubscription, getPushDiagnostics } from '../lib/oneSignal';
 import OnboardingSurvey, {
   NOTIFICATION_TIME_MAP,
   NOTIFICATION_TIME_OPTIONS,
@@ -266,6 +266,9 @@ export default function Settings({ onEditSchedule }) {
         </div>
         {/* Notifications */}
         <NotificationsSection />
+
+        {/* TEMPORARY: push subscription diagnostics */}
+        <NotificationDebugSection />
 
         {/* Add to Home Screen */}
         <InstallInstructionsSection />
@@ -616,6 +619,108 @@ function NotificationsSection() {
         </div>
         {timeSaved && <span className={styles.saved}>Saved! 🐸</span>}
       </div>
+    </div>
+  );
+}
+
+// TEMPORARY diagnostic section — on-device readout of the live push
+// subscription state so we can debug stale OneSignal IDs from an iPhone (no
+// reachable console in the iOS PWA). Safe to delete once the issue is resolved.
+function DebugRow({ label, value }) {
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <span style={{ color: 'var(--stone)', minWidth: '6rem', flexShrink: 0 }}>
+        {label}:
+      </span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function NotificationDebugSection() {
+  const [diag, setDiag] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      setDiag(await getPushDiagnostics());
+    } catch (err) {
+      setDiag({ error: String(err) });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const fmt = (v) => (v === null || v === undefined ? 'null' : String(v));
+  const pushEnabled =
+    !!diag && diag.optedIn === true && !!diag.token && !!diag.id;
+  const last = diag?.lastAttempt;
+
+  return (
+    <div className={styles.section} style={{ border: '1.5px dashed var(--gold)' }}>
+      <h3 className={styles.sectionTitle}>🐞 Notification debug (temporary)</h3>
+      <p className={styles.sectionDesc}>
+        Live state of this device's push subscription. Used to diagnose stale
+        notification IDs — this section is temporary.
+      </p>
+      <button
+        className={styles.btnSave}
+        onClick={refresh}
+        disabled={loading}
+        style={{ fontSize: '0.78rem', marginBottom: '0.9rem' }}
+      >
+        {loading ? 'Reading…' : 'Refresh'}
+      </button>
+
+      {diag?.error ? (
+        <p style={{ fontSize: '0.8rem', color: '#c9534c' }}>{diag.error}</p>
+      ) : diag ? (
+        <div
+          style={{
+            fontFamily: 'Space Mono, monospace',
+            fontSize: '0.72rem',
+            color: 'var(--charcoal)',
+            background: 'var(--warm-white)',
+            border: '1.5px solid var(--card-border)',
+            borderRadius: '4px',
+            padding: '0.85rem',
+            lineHeight: 1.7,
+            wordBreak: 'break-all',
+          }}
+        >
+          <DebugRow
+            label="pushEnabled"
+            value={pushEnabled ? 'YES ✅' : 'NO ❌'}
+          />
+          <DebugRow label="id" value={fmt(diag.id)} />
+          <DebugRow label="token" value={fmt(diag.token)} />
+          <DebugRow label="optedIn" value={fmt(diag.optedIn)} />
+          <DebugRow label="permission" value={fmt(diag.permission)} />
+          <div style={{ marginTop: '0.7rem', opacity: 0.7 }}>
+            last write attempt:
+          </div>
+          {last ? (
+            <>
+              <DebugRow label="decision" value={fmt(last.decision)} />
+              <DebugRow label="reason" value={fmt(last.reason)} />
+              <DebugRow label="stage" value={fmt(last.stage)} />
+              <DebugRow label="at" value={fmt(last.at)} />
+            </>
+          ) : (
+            <DebugRow
+              label="decision"
+              value="none yet (tap “Fix notification link” above)"
+            />
+          )}
+        </div>
+      ) : (
+        <p style={{ fontSize: '0.8rem', color: 'var(--stone)' }}>Reading…</p>
+      )}
     </div>
   );
 }
