@@ -21,9 +21,28 @@ function setInitState(status, error) {
 }
 
 export function initOneSignal() {
+  // Exactly-once guard. OneSignal v16 throws "SDK already initialized" on a
+  // second init() call and ends up half-initialized — the service worker never
+  // registers and requestPermission() hangs forever. So init() must run at most
+  // once for the app's lifetime.
+  //
+  // Two rules make that airtight:
+  //  1. Assign `initPromise` SYNCHRONOUSLY, before calling OneSignal.init(), so
+  //     no racing caller can see it null and start a second init.
+  //  2. NEVER reset `initPromise` to null — not even in the catch. Once init is
+  //     attempted we keep the (settled) promise so it is never re-attempted,
+  //     even if it failed. (The previous `initPromise = null` in catch was the
+  //     bug: a failed/racing init cleared the guard and the next caller
+  //     re-invoked init(), producing "SDK already initialized".)
   if (initPromise) return initPromise;
   setInitState('in-progress');
-  initPromise = OneSignal.init({
+
+  let settle;
+  initPromise = new Promise((resolve) => {
+    settle = resolve;
+  });
+
+  OneSignal.init({
     appId: 'c1c9bf15-50ef-41c0-a427-c7849e520527',
     safari_web_id: 'web.onesignal.auto.4d38dcde-f055-4772-b947-a310d959e18a',
     // vite-plugin-pwa (which registered sw.js at scope '/') has been removed, so
@@ -49,16 +68,19 @@ export function initOneSignal() {
         ],
       },
     },
-  }).then(() => {
-    setInitState('done');
-    console.log('[OneSignal] initialized');
-  }).catch((err) => {
-    // Surface, don't swallow — a silent init failure is exactly what would leave
-    // requestPermission() hanging with no worker registered.
-    setInitState('failed', err);
-    console.warn('[OneSignal] init failed:', err);
-    initPromise = null;
-  });
+  })
+    .then(() => {
+      setInitState('done');
+      console.log('[OneSignal] initialized');
+    })
+    .catch((err) => {
+      // Record the failure but do NOT reject or clear the guard — awaiters just
+      // proceed and read whatever state is available; init is never retried.
+      setInitState('failed', err);
+      console.warn('[OneSignal] init failed:', err);
+    })
+    .finally(() => settle());
+
   return initPromise;
 }
 
