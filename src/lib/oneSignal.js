@@ -10,8 +10,12 @@ export function initOneSignal() {
   initPromise = OneSignal.init({
     appId: 'c1c9bf15-50ef-41c0-a427-c7849e520527',
     safari_web_id: 'web.onesignal.auto.4d38dcde-f055-4772-b947-a310d959e18a',
-    serviceWorkerParam: { scope: '/' },
-    serviceWorkerPath: 'OneSignalSDKWorker.js',
+    // OneSignal's worker lives in its OWN scope so it can't collide with the
+    // vite-plugin-pwa worker (sw.js) at scope '/'. Two SW registrations sharing
+    // scope '/' overwrite each other, which shadowed OneSignal's worker and made
+    // requestPermission() hang without ever showing the iOS prompt.
+    serviceWorkerParam: { scope: '/onesignal/' },
+    serviceWorkerPath: 'onesignal/OneSignalSDKWorker.js',
     notifyButton: { enable: false },
     allowLocalhostAsSecureOrigin: true,
     promptOptions: {
