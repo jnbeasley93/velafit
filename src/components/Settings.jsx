@@ -745,6 +745,44 @@ function NotificationDebugSection() {
               value="none yet (tap “Fix notification link” above)"
             />
           )}
+
+          <div style={{ marginTop: '0.7rem', opacity: 0.7 }}>
+            service workers:
+          </div>
+          {diag.serviceWorkers?.supported === false ? (
+            <DebugRow label="support" value="serviceWorker unsupported" />
+          ) : diag.serviceWorkers?.error ? (
+            <DebugRow label="error" value={fmt(diag.serviceWorkers.error)} />
+          ) : (
+            <>
+              <DebugRow
+                label="controller"
+                value={fmt(diag.serviceWorkers?.controller)}
+              />
+              {(diag.serviceWorkers?.registrations || []).length === 0 ? (
+                <DebugRow label="registrations" value="none" />
+              ) : (
+                diag.serviceWorkers.registrations.map((r, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      marginTop: '0.4rem',
+                      paddingLeft: '0.5rem',
+                      borderLeft: '2px solid var(--card-border)',
+                    }}
+                  >
+                    <DebugRow label={`#${i} scope`} value={fmt(r.scope)} />
+                    <DebugRow label="script" value={fmt(r.scriptURL)} />
+                    <DebugRow label="state" value={fmt(r.state)} />
+                    <DebugRow
+                      label="controlling"
+                      value={r.controlling ? 'YES ✅' : 'no'}
+                    />
+                  </div>
+                ))
+              )}
+            </>
+          )}
         </div>
       ) : (
         <p style={{ fontSize: '0.8rem', color: 'var(--stone)' }}>Reading…</p>

@@ -150,13 +150,55 @@ export async function registerPushSubscription(userId) {
 
 // Live push-subscription state plus the last registration attempt, for the
 // on-device debug readout in Settings.
+// Enumerate every service worker registration the browser holds for this
+// origin, plus which one currently controls the page. This is the proof of the
+// scope collision: two registrations both scoped '/' (sw.js + OneSignal) means
+// they were fighting; after the fix only OneSignal's '/onesignal/' worker
+// should remain.
+async function readServiceWorkerRegistrations() {
+  try {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      return { supported: false, controller: null, registrations: [] };
+    }
+    const regs = await navigator.serviceWorker.getRegistrations();
+    const controllerUrl = navigator.serviceWorker.controller
+      ? navigator.serviceWorker.controller.scriptURL
+      : null;
+    const registrations = regs.map((r) => {
+      const sw = r.active || r.waiting || r.installing;
+      const scriptURL = sw ? sw.scriptURL : null;
+      const state = r.active
+        ? r.active.state
+        : r.waiting
+          ? 'waiting'
+          : r.installing
+            ? 'installing'
+            : 'unknown';
+      return {
+        scope: r.scope,
+        scriptURL,
+        state,
+        controlling: !!controllerUrl && scriptURL === controllerUrl,
+      };
+    });
+    return { supported: true, controller: controllerUrl, registrations };
+  } catch (err) {
+    return { supported: true, error: String(err), controller: null, registrations: [] };
+  }
+}
+
 export async function getPushDiagnostics() {
   try {
     await initOneSignal();
   } catch {
     /* fall through and report whatever state we can read */
   }
-  return { ...readPushState(), lastAttempt: lastDiag, permFlow: permDiag };
+  return {
+    ...readPushState(),
+    lastAttempt: lastDiag,
+    permFlow: permDiag,
+    serviceWorkers: await readServiceWorkerRegistrations(),
+  };
 }
 
 async function saveSubscriptionToSupabase(userId, subscriptionId) {
