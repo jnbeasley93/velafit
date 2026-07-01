@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission, registerPushSubscription, getPushDiagnostics } from '../lib/oneSignal';
+import { promptNotificationPermission, registerPushSubscription, getPushDiagnostics, notePermTap } from '../lib/oneSignal';
 import OnboardingSurvey, {
   NOTIFICATION_TIME_MAP,
   NOTIFICATION_TIME_OPTIONS,
@@ -515,6 +515,9 @@ function NotificationsSection() {
   }, [profile?.notification_time]);
 
   const handleEnable = useCallback(async () => {
+    // Mark the tap synchronously, then call the permission request with NO
+    // preceding await — iOS discards the request otherwise (see oneSignal.js).
+    notePermTap('settings');
     setEnabling(true);
     try {
       await promptNotificationPermission();
@@ -701,6 +704,31 @@ function NotificationDebugSection() {
           <DebugRow label="token" value={fmt(diag.token)} />
           <DebugRow label="optedIn" value={fmt(diag.optedIn)} />
           <DebugRow label="permission" value={fmt(diag.permission)} />
+
+          <div style={{ marginTop: '0.7rem', opacity: 0.7 }}>
+            permission request:
+          </div>
+          {diag.permFlow ? (
+            <>
+              <DebugRow label="step" value={fmt(diag.permFlow.step)} />
+              {diag.permFlow.result !== undefined && (
+                <DebugRow label="result" value={fmt(diag.permFlow.result)} />
+              )}
+              {diag.permFlow.error !== undefined && (
+                <DebugRow label="error" value={fmt(diag.permFlow.error)} />
+              )}
+              {diag.permFlow.source !== undefined && (
+                <DebugRow label="source" value={fmt(diag.permFlow.source)} />
+              )}
+              <DebugRow label="at" value={fmt(diag.permFlow.at)} />
+            </>
+          ) : (
+            <DebugRow
+              label="step"
+              value="none yet (tap “Enable Reminders” above)"
+            />
+          )}
+
           <div style={{ marginTop: '0.7rem', opacity: 0.7 }}>
             last write attempt:
           </div>

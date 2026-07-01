@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission } from '../lib/oneSignal';
+import { promptNotificationPermission, notePermTap } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
 import ProgressionCard from './ProgressionCard';
 import styles from './Dashboard.module.css';
@@ -187,6 +187,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   const showNotifPrompt = notifPermission === 'default';
 
   const handleEnableNotifications = useCallback(async () => {
+    notePermTap('dashboard');
     await promptNotificationPermission();
     if ('Notification' in window) {
       setNotifPermission(Notification.permission);

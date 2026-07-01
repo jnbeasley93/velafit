@@ -52,6 +52,22 @@ export async function sendTag(key, value) {
 // reachable console).
 let lastDiag = null;
 
+// Step-by-step trace of the most recent permission request, so we can see
+// on-device exactly where the flow stops (tapped → calling → returned/threw).
+let permDiag = null;
+
+function setPermStep(step, extra) {
+  permDiag = { step, ...(extra || {}), at: new Date().toISOString() };
+  console.log(`[Perm] ${step}`, extra || '');
+}
+
+// Timestamp the tap itself. MUST be called synchronously at the very top of the
+// gesture handler, before any await, so we can tell "tapped but request never
+// fired" apart from "request fired but native prompt hung".
+export function notePermTap(source) {
+  setPermStep('button tapped', { source });
+}
+
 // Read the full push-subscription state at this instant.
 function readPushState() {
   let permission = 'unknown';
@@ -136,7 +152,7 @@ export async function getPushDiagnostics() {
   } catch {
     /* fall through and report whatever state we can read */
   }
-  return { ...readPushState(), lastAttempt: lastDiag };
+  return { ...readPushState(), lastAttempt: lastDiag, permFlow: permDiag };
 }
 
 async function saveSubscriptionToSupabase(userId, subscriptionId) {
@@ -155,11 +171,46 @@ async function saveSubscriptionToSupabase(userId, subscriptionId) {
   }
 }
 
-export async function promptNotificationPermission() {
-  try {
-    await initOneSignal();
-    await OneSignal.Notifications.requestPermission();
-  } catch (err) {
-    console.warn('[OneSignal] permission request failed:', err);
+export function promptNotificationPermission() {
+  // CRITICAL (iOS / WebKit): the permission request must be issued synchronously
+  // within the user-gesture turn. ANY await before requestPermission() — even
+  // `await initOneSignal()` on an already-resolved promise — yields to the
+  // microtask queue and drops the transient user activation, so iOS silently
+  // discards the request: no native prompt appears and the promise can hang.
+  //
+  // OneSignal is initialized at app load (see main.jsx), so it is ready by the
+  // time any button can be tapped. We therefore do NOT await init here; we call
+  // requestPermission() directly and only chain the .then() afterwards.
+  if (
+    !OneSignal.Notifications ||
+    typeof OneSignal.Notifications.requestPermission !== 'function'
+  ) {
+    // init hasn't finished yet — kick it off (fire-and-forget) and ask the user
+    // to tap again. We must not await it here or we'd reintroduce the break.
+    setPermStep('SDK not ready — init incomplete; retrying init, tap again');
+    initOneSignal().catch(() => {});
+    return Promise.resolve();
   }
+
+  setPermStep('requestPermission: calling');
+  let call;
+  try {
+    // Fired directly inside the gesture — this is the line iOS must see synchronously.
+    call = OneSignal.Notifications.requestPermission();
+  } catch (err) {
+    setPermStep('requestPermission: threw', { error: String(err) });
+    console.warn('[OneSignal] permission request failed:', err);
+    return Promise.resolve();
+  }
+
+  return Promise.resolve(call)
+    .then((result) => {
+      setPermStep('requestPermission: returned', { result: String(result) });
+      console.log('[Perm] requestPermission returned:', result);
+      return result;
+    })
+    .catch((err) => {
+      setPermStep('requestPermission: rejected', { error: String(err) });
+      console.warn('[OneSignal] permission request rejected:', err);
+    });
 }
