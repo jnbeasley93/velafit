@@ -700,6 +700,14 @@ function NotificationDebugSection() {
             label="pushEnabled"
             value={pushEnabled ? 'YES ✅' : 'NO ❌'}
           />
+          <DebugRow
+            label="init"
+            value={
+              diag.init
+                ? `${fmt(diag.init.status)}${diag.init.error ? ' — ' + diag.init.error : ''}`
+                : 'null'
+            }
+          />
           <DebugRow label="id" value={fmt(diag.id)} />
           <DebugRow label="token" value={fmt(diag.token)} />
           <DebugRow label="optedIn" value={fmt(diag.optedIn)} />
@@ -781,6 +789,23 @@ function NotificationDebugSection() {
                   </div>
                 ))
               )}
+            </>
+          )}
+
+          <div style={{ marginTop: '0.7rem', opacity: 0.7 }}>
+            worker file (/OneSignalSDKWorker.js):
+          </div>
+          {diag.worker?.error ? (
+            <DebugRow label="fetch" value={fmt(diag.worker.error)} />
+          ) : (
+            <>
+              <DebugRow label="status" value={fmt(diag.worker?.status)} />
+              <DebugRow label="ok" value={fmt(diag.worker?.ok)} />
+              <DebugRow label="contentType" value={fmt(diag.worker?.contentType)} />
+              <DebugRow
+                label="looksValid"
+                value={diag.worker?.looksValid ? 'YES ✅' : 'NO ❌'}
+              />
             </>
           )}
         </div>

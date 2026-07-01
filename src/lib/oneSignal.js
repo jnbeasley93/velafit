@@ -5,17 +5,33 @@ const LINK_FN_URL =
 
 let initPromise = null;
 
+// Init lifecycle, surfaced in the Settings debug box so we can see on-device
+// whether OneSignal.init() actually completed or failed silently (the iOS PWA
+// has no reachable console).
+let initState = { status: 'not-started', error: null, at: null };
+
+function setInitState(status, error) {
+  initState = {
+    status,
+    error: error ? String(error && error.message ? error.message : error) : null,
+    at: new Date().toISOString(),
+  };
+  if (error) console.error(`[OneSignal] init → ${status}:`, error);
+  else console.log(`[OneSignal] init → ${status}`);
+}
+
 export function initOneSignal() {
   if (initPromise) return initPromise;
+  setInitState('in-progress');
   initPromise = OneSignal.init({
     appId: 'c1c9bf15-50ef-41c0-a427-c7849e520527',
     safari_web_id: 'web.onesignal.auto.4d38dcde-f055-4772-b947-a310d959e18a',
-    // OneSignal's worker lives in its OWN scope so it can't collide with the
-    // vite-plugin-pwa worker (sw.js) at scope '/'. Two SW registrations sharing
-    // scope '/' overwrite each other, which shadowed OneSignal's worker and made
-    // requestPermission() hang without ever showing the iOS prompt.
-    serviceWorkerParam: { scope: '/onesignal/' },
-    serviceWorkerPath: 'onesignal/OneSignalSDKWorker.js',
+    // vite-plugin-pwa (which registered sw.js at scope '/') has been removed, so
+    // scope '/' is now free. OneSignal's worker needs the ROOT scope to control
+    // the app pages at '/'; a narrow '/onesignal/' scope can't, which is why the
+    // worker effectively never registered/controlled anything.
+    serviceWorkerParam: { scope: '/' },
+    serviceWorkerPath: 'OneSignalSDKWorker.js',
     notifyButton: { enable: false },
     allowLocalhostAsSecureOrigin: true,
     promptOptions: {
@@ -34,8 +50,12 @@ export function initOneSignal() {
       },
     },
   }).then(() => {
+    setInitState('done');
     console.log('[OneSignal] initialized');
   }).catch((err) => {
+    // Surface, don't swallow — a silent init failure is exactly what would leave
+    // requestPermission() hanging with no worker registered.
+    setInitState('failed', err);
     console.warn('[OneSignal] init failed:', err);
     initPromise = null;
   });
@@ -187,6 +207,24 @@ async function readServiceWorkerRegistrations() {
   }
 }
 
+// Confirm the OneSignal worker file is actually served at the root URL the SDK
+// registers. If this 404s or returns HTML (e.g. SPA fallback), the browser
+// cannot register the worker and OneSignal hangs — this makes that visible.
+async function checkWorkerReachable() {
+  try {
+    const res = await fetch('/OneSignalSDKWorker.js', { cache: 'no-store' });
+    const text = await res.text();
+    return {
+      status: res.status,
+      ok: res.ok,
+      contentType: res.headers.get('content-type'),
+      looksValid: text.includes('OneSignalSDK.sw.js'),
+    };
+  } catch (err) {
+    return { error: String(err) };
+  }
+}
+
 export async function getPushDiagnostics() {
   try {
     await initOneSignal();
@@ -195,9 +233,11 @@ export async function getPushDiagnostics() {
   }
   return {
     ...readPushState(),
+    init: initState,
     lastAttempt: lastDiag,
     permFlow: permDiag,
     serviceWorkers: await readServiceWorkerRegistrations(),
+    worker: await checkWorkerReachable(),
   };
 }
 
