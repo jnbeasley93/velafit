@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -19,9 +20,21 @@ export default function Navbar({ onGetStarted, onLogin }) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  // Safety net: close the mobile menu on any route change (render-time state
+  // adjustment instead of an effect — avoids a cascading re-render).
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
+    setMenuOpen(false);
+  }
 
   const handleHash = (hash) => (e) => {
     e.preventDefault();
+    closeMenu();
     scrollToHash(hash, navigate, location.pathname);
   };
 
@@ -33,15 +46,18 @@ export default function Navbar({ onGetStarted, onLogin }) {
       </Link>
 
       {user ? (
-        <ul className={styles.centerLinks}>
-          <li><Link to="/dashboard">🏋️ Move</Link></li>
-          <li><Link to="/sharpen">🧩 Sharpen</Link></li>
-          <li><Link to="/settle">🧘 Settle</Link></li>
-          <li><Link to="/journal">📓 Journal</Link></li>
-          <li><Link to="/learn">📚 Learn</Link></li>
-          <li><Link to="/about">Our Story</Link></li>
-          <li><Link to="/history">History</Link></li>
-          <li><Link to="/settings">Settings</Link></li>
+        <ul
+          className={`${styles.centerLinks} ${menuOpen ? styles.open : ''}`}
+          id="nav-menu"
+        >
+          <li><Link to="/dashboard" onClick={closeMenu}>🏋️ Move</Link></li>
+          <li><Link to="/sharpen" onClick={closeMenu}>🧩 Sharpen</Link></li>
+          <li><Link to="/settle" onClick={closeMenu}>🧘 Settle</Link></li>
+          <li><Link to="/journal" onClick={closeMenu}>📓 Journal</Link></li>
+          <li><Link to="/learn" onClick={closeMenu}>📚 Learn</Link></li>
+          <li><Link to="/about" onClick={closeMenu}>Our Story</Link></li>
+          <li><Link to="/history" onClick={closeMenu}>History</Link></li>
+          <li><Link to="/settings" onClick={closeMenu}>Settings</Link></li>
           {!isPro && (
             <li>
               <a
@@ -55,13 +71,16 @@ export default function Navbar({ onGetStarted, onLogin }) {
           )}
         </ul>
       ) : (
-        <ul className={styles.centerLinks}>
+        <ul
+          className={`${styles.centerLinks} ${menuOpen ? styles.open : ''}`}
+          id="nav-menu"
+        >
           <li><a href="#how" onClick={handleHash('how')}>How It Works</a></li>
           <li><a href="#features" onClick={handleHash('features')}>Features</a></li>
           <li><a href="#mind" onClick={handleHash('mind')}>Mind &amp; Journal</a></li>
           <li><a href="#nutrition" onClick={handleHash('nutrition')}>Nutrition</a></li>
           <li><a href="#pricing" onClick={handleHash('pricing')}>Pricing</a></li>
-          <li><Link to="/about">Our Story</Link></li>
+          <li><Link to="/about" onClick={closeMenu}>Our Story</Link></li>
         </ul>
       )}
 
@@ -101,6 +120,15 @@ export default function Navbar({ onGetStarted, onLogin }) {
             </a>
           </>
         )}
+        <button
+          className={styles.hamburger}
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="nav-menu"
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
       </div>
     </nav>
   );

@@ -175,26 +175,71 @@
   background: var(--green-mid) !important;
 }
 
+/* ── Hamburger (hidden on desktop) ──────────── */
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--green-deep);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.hamburger:hover {
+  background: rgba(74, 140, 92, 0.1);
+}
+
 /* ── Mobile ─────────────────────────────────── */
 @media (max-width: 900px) {
   .nav {
-    padding: 0.7rem 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-  }
-
-  .centerLinks {
-    order: 3;
-    flex-basis: 100%;
-    justify-content: space-around;
+    padding: 0.4rem 1rem;
     gap: 0.75rem;
-    padding: 0.4rem 0 0;
-    border-top: 1px solid rgba(74, 140, 92, 0.1);
   }
 
-  .centerLinks a {
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+  .hamburger {
+    display: flex;
+  }
+
+  /* Links collapse into a dropdown under the fixed bar */
+  .centerLinks {
+    display: none;
+  }
+
+  .centerLinks.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    gap: 0;
+    padding: 0.3rem 0 0.5rem;
+    background: color-mix(in srgb, var(--warm-white) 97%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(74, 140, 92, 0.15);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .centerLinks.open li {
+    width: 100%;
+  }
+
+  .centerLinks.open a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    font-size: 0.82rem;
+    opacity: 0.85;
   }
 
   .right {
@@ -216,11 +261,8 @@
     display: none;
   }
 
-  .centerLinks {
-    gap: 0.4rem;
-  }
-
-  .centerLinks a {
-    font-size: 0.62rem;
+  .cta {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.78rem;
   }
 }
