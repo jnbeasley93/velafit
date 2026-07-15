@@ -197,7 +197,7 @@ function JournalPhase({ onDone, onSkip, journalText, setJournalText }) {
 }
 
 // ─────────────────────────────────────────────
-// Phase: Mind Game Placeholder
+// Phase: Mind Game
 // ─────────────────────────────────────────────
 
 function MindGamePhase({ preferences, onDone }) {
@@ -207,11 +207,11 @@ function MindGamePhase({ preferences, onDone }) {
     <div className={styles.bodyInner}>
       <div className={styles.mindCard}>
         <div className={styles.mindEmoji}>🧩</div>
-        <h3 className={styles.mindTitle}>Mind game coming soon</h3>
+        <h3 className={styles.mindTitle}>Sharpen your mind</h3>
         <p className={styles.mindSub}>
-          Cognitive exercises will appear here between sets and after workouts.
-          Your session will include short games to sharpen focus and give your
-          body micro-recovery time.
+          Round out your session with a quick cognitive puzzle. Sharpen has
+          Sudoku, word, memory, logic, and crossword games — five to ten
+          minutes keeps your focus as fit as the rest of you.
         </p>
         {prefs.length > 0 && (
           <div className={styles.mindPrefs}>
@@ -220,9 +220,19 @@ function MindGamePhase({ preferences, onDone }) {
             ))}
           </div>
         )}
-        <button className={styles.btnPrimary} onClick={onDone}>
-          Continue to rating →
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className={styles.btnSecondary} onClick={onDone}>
+            Continue to rating →
+          </button>
+          <button
+            className={styles.btnPrimary}
+            onClick={() =>
+              window.open('/sharpen', '_blank', 'noopener,noreferrer')
+            }
+          >
+            Open Sharpen ↗
+          </button>
+        </div>
       </div>
     </div>
   );
