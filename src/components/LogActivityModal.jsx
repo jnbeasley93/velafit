@@ -302,28 +302,33 @@ export default function LogActivityModal({ open, onClose, prefill }) {
                       </div>
                       <div className={styles.exerciseFields}>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           className={styles.exerciseNum}
                           placeholder="Sets"
-                          min={0}
                           value={ex.sets}
-                          onChange={(e) => updateExercise(i, 'sets', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => updateExercise(i, 'sets', e.target.value.replace(/\D/g, ''))}
                         />
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           className={styles.exerciseNum}
                           placeholder="Reps"
-                          min={0}
                           value={ex.reps}
-                          onChange={(e) => updateExercise(i, 'reps', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => updateExercise(i, 'reps', e.target.value.replace(/\D/g, ''))}
                         />
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           className={styles.exerciseNum}
                           placeholder="lbs (optional)"
-                          min={0}
                           value={ex.weight}
-                          onChange={(e) => updateExercise(i, 'weight', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => updateExercise(i, 'weight', e.target.value.replace(/[^0-9.]/g, ''))}
                         />
                       </div>
                     </div>

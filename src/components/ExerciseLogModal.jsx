@@ -10,13 +10,24 @@ import styles from './ExerciseLogModal.module.css';
 
 const FEEL_LABELS = ['1 Easy', '2', '3', '4', '5 Max'];
 
+const DEFAULT_SETS = 3;
+const DEFAULT_REPS = 10;
+
+// Field state stays a string while editing (so it can be empty);
+// clamp to a valid number on blur/save.
+const clampInt = (value, min, max, fallback) => {
+  const n = parseInt(value, 10);
+  if (Number.isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+};
+
 export default function ExerciseLogModal({ open, onClose, exercise, userId, sessionId, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
   const [suggestion, setSuggestion] = useState(null);
 
-  const [sets, setSets] = useState(3);
-  const [reps, setReps] = useState(10);
+  const [sets, setSets] = useState(String(DEFAULT_SETS));
+  const [reps, setReps] = useState(String(DEFAULT_REPS));
   const [weight, setWeight] = useState('');
   const [feel, setFeel] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -39,8 +50,8 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
       // Pre-fill from last session
       if (hist.length > 0) {
         const last = hist[0];
-        if (last.sets) setSets(last.sets);
-        if (last.reps) setReps(last.reps);
+        if (last.sets) setSets(String(last.sets));
+        if (last.reps) setReps(String(last.reps));
         if (last.weight_lbs) setWeight(String(last.weight_lbs));
       }
       setLoading(false);
@@ -50,8 +61,8 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
   // Reset state when modal closes
   useEffect(() => {
     if (!open) {
-      setSets(3);
-      setReps(10);
+      setSets(String(DEFAULT_SETS));
+      setReps(String(DEFAULT_REPS));
       setWeight('');
       setFeel(null);
       setSaving(false);
@@ -69,8 +80,8 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
       exercise_name: exercise.name,
       session_id: sessionId || null,
       date: localDateStr(),
-      sets,
-      reps,
+      sets: clampInt(sets, 1, 10, DEFAULT_SETS),
+      reps: clampInt(reps, 1, 100, DEFAULT_REPS),
       weight_lbs: isBodyweightOnly ? 0 : (parseFloat(weight) || 0),
       intensity_feel: feel,
     });
@@ -126,22 +137,26 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
                   <label className={styles.fieldLabel}>Sets</label>
                   <input
                     className={styles.fieldInput}
-                    type="number"
-                    min={1}
-                    max={10}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={sets}
-                    onChange={(e) => setSets(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setSets(e.target.value.replace(/\D/g, ''))}
+                    onBlur={() => setSets(String(clampInt(sets, 1, 10, DEFAULT_SETS)))}
                   />
                 </div>
                 <div className={styles.field}>
                   <label className={styles.fieldLabel}>Reps</label>
                   <input
                     className={styles.fieldInput}
-                    type="number"
-                    min={1}
-                    max={100}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={reps}
-                    onChange={(e) => setReps(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setReps(e.target.value.replace(/\D/g, ''))}
+                    onBlur={() => setReps(String(clampInt(reps, 1, 100, DEFAULT_REPS)))}
                   />
                 </div>
                 {!isBodyweightOnly && (
@@ -149,11 +164,12 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
                     <label className={styles.fieldLabel}>Weight (lbs)</label>
                     <input
                       className={styles.fieldInput}
-                      type="number"
-                      min={0}
+                      type="text"
+                      inputMode="decimal"
                       placeholder="0 = bodyweight"
                       value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => setWeight(e.target.value.replace(/[^0-9.]/g, ''))}
                     />
                   </div>
                 )}
