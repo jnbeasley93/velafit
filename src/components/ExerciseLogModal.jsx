@@ -229,7 +229,7 @@ export default function ExerciseLogModal({ open, onClose, exercise, userId, sess
               {saving ? 'Saving...' : 'Log this set \u2192'}
             </button>
             <button className={styles.btnSkip} onClick={onClose}>
-              Skip \u2192
+              Skip →
             </button>
           </div>
         )}
