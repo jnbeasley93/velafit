@@ -1,6 +1,7 @@
 // VelaFit build April 13
 import { useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -305,6 +306,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AppInner />
+        <Analytics />
       </AuthProvider>
     </ThemeProvider>
   );
