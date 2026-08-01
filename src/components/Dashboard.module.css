@@ -185,6 +185,17 @@
   opacity: 0.7;
 }
 
+.quickLogRow {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quickLogRow .logActivityLink {
+  margin: 0.5rem 0 1.5rem;
+}
+
 .logActivityLink {
   display: block;
   text-align: center;

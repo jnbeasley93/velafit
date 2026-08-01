@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
 import ProgressionCard from './ProgressionCard';
+import LogWalkModal from './LogWalkModal';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -114,6 +115,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   const [logs, setLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [walkOpen, setWalkOpen] = useState(false);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -405,9 +407,17 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
         )}
 
         {user && (
-          <button className={styles.logActivityLink} onClick={onLogActivity}>
-            + Log other activity
-          </button>
+          <div className={styles.quickLogRow}>
+            <button
+              className={styles.logActivityLink}
+              onClick={() => setWalkOpen(true)}
+            >
+              🚶 Log a walk
+            </button>
+            <button className={styles.logActivityLink} onClick={onLogActivity}>
+              + Log other activity
+            </button>
+          </div>
         )}
 
         {/* ── Notification prompt ── */}
@@ -477,6 +487,12 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
           </>
         )}
       </div>
+
+      <LogWalkModal
+        open={walkOpen}
+        onClose={() => setWalkOpen(false)}
+        onSaved={fetchLogs}
+      />
     </div>
   );
 }

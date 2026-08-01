@@ -51,6 +51,7 @@ function computeStats(workoutLogs, activityLogs) {
 }
 
 const ACTIVITY_EMOJIS = {
+  'Walk': '🚶',
   'Walking': '🚶',
   'Running': '🏃',
   'Walking/Running': '🏃',
