@@ -147,6 +147,7 @@
 .dayTimeRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   background: var(--cream);
   border-radius: 2px;
@@ -164,6 +165,7 @@
 .dayTimeRowSelect {
   composes: formSelect;
   flex: 1;
+  min-width: 9rem;
   padding: 0.4rem 0.75rem;
   font-size: 0.82rem;
   border-color: rgba(74, 140, 92, 0.2);

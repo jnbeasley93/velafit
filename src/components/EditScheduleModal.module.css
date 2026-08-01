@@ -107,6 +107,7 @@
 .dayTimeRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   background: var(--cream);
   border-radius: 2px;
@@ -123,6 +124,7 @@
 
 .dayTimeSelect {
   flex: 1;
+  min-width: 9rem;
   padding: 0.4rem 0.7rem;
   border: 1.5px solid var(--card-border);
   border-radius: 2px;

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import { sendTag } from '../lib/oneSignal';
+import { availableSettings, SETTING_LABELS } from '../lib/daySettings';
 import styles from './PlanBuilderModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -73,7 +74,15 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
   const [name, setName] = useState('');
   const [selectedDays, setSelectedDays] = useState([]);
   const [dayTimes, setDayTimes] = useState({});
+  const [daySettings, setDaySettings] = useState({});
   const [goal, setGoal] = useState(GOALS[0]);
+
+  // Per-day workout settings derived from the equipment inventory; [0] is the
+  // fullest and the default. One option (bodyweight only) → no extra control.
+  const settingOptions = availableSettings(fitnessProfile?.equipment);
+  const defaultSetting = settingOptions[0];
+  const settingForDay = (day) =>
+    settingOptions.includes(daySettings[day]) ? daySettings[day] : defaultSetting;
 
   // Pre-fill location from fitness profile equipment (array)
   function deriveLocation(equipment) {
@@ -94,6 +103,7 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
     setName('');
     setSelectedDays([]);
     setDayTimes({});
+    setDaySettings({});
     setGoal(GOALS[0]);
     setLocation(LOCATIONS[0]);
     setShowResult(false);
@@ -113,6 +123,10 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
 
   const setDayTime = useCallback((day, value) => {
     setDayTimes((prev) => ({ ...prev, [day]: value }));
+  }, []);
+
+  const setDaySetting = useCallback((day, value) => {
+    setDaySettings((prev) => ({ ...prev, [day]: value }));
   }, []);
 
   const handleBuild = useCallback(() => {
@@ -197,6 +211,19 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
                           </option>
                         ))}
                       </select>
+                      {settingOptions.length > 1 && (
+                        <select
+                          className={styles.dayTimeRowSelect}
+                          value={settingForDay(day)}
+                          onChange={(e) => setDaySetting(day, e.target.value)}
+                        >
+                          {settingOptions.map((key) => (
+                            <option key={key} value={key}>
+                              {SETTING_LABELS[key]}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -270,11 +297,14 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
                   ? async () => {
                       // Build the plan object with day → minutes mapping
                       const days = {};
+                      const settings = {};
                       for (const d of selectedDays) {
                         days[d] = parseInt(dayTimes[d] || '30', 10);
+                        settings[d] = settingForDay(d);
                       }
                       const plan = {
                         days,
+                        daySettings: settings,
                         goal,
                         location,
                         createdAt: localDateStr(),
@@ -294,8 +324,11 @@ export default function PlanBuilderModal({ open, onClose, onStartSession }) {
                       }
                       const todayDay = getTodayName();
                       const todayMins = parseInt(dayTimes[todayDay] || '30', 10);
+                      // Pass today's setting directly — the plan refresh is
+                      // async, so App can't read it from userPlan yet.
+                      const todaySetting = settingForDay(todayDay);
                       handleClose();
-                      onStartSession?.(todayMins);
+                      onStartSession?.(todayMins, { daySetting: todaySetting });
                     }
                   : handleBuild
             }

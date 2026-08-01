@@ -3,6 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import { promptNotificationPermission, sendTag } from '../lib/oneSignal';
+import {
+  toEquipmentList,
+  availableSettings,
+  SETTING_LABELS,
+} from '../lib/daySettings';
 import styles from './OnboardingSurvey.module.css';
 
 const NOTIF_SUPPORTED = typeof window !== 'undefined' && 'Notification' in window;
@@ -118,17 +123,10 @@ function getTodayName() {
     .slice(0, 3);
 }
 
-// Legacy profiles (pre-multi-select) store equipment as a single string —
-// normalize everything read from the stored profile to an array so the
-// toggle/selected/canProceed logic never sees a bare string.
-function toList(value) {
-  return Array.isArray(value) ? value : value ? [value] : [];
-}
-
 // Mirrors PlanBuilderModal's location derivation so plans built here and there
 // carry the same shape.
 function deriveLocation(equipment) {
-  const list = toList(equipment);
+  const list = toEquipmentList(equipment);
   if (list.includes('Commercial gym access')) return 'Gym';
   if (list.some((e) => e && e !== 'None — bodyweight only')) return 'Home — some equipment';
   return 'Home — no equipment';
@@ -149,6 +147,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const [answers, setAnswers] = useState({});
   const [selectedDays, setSelectedDays] = useState([]);
   const [sessionLen, setSessionLen] = useState(30);
+  const [daySettings, setDaySettings] = useState({});
   const [daysTouched, setDaysTouched] = useState(false);
   const [notifTimeLabel, setNotifTimeLabel] = useState(NOTIFICATION_TIME_OPTIONS[1]);
   const [saving, setSaving] = useState(false);
@@ -165,11 +164,12 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     setStep(0);
     setSaveError(false);
     setAnswers({
-      equipment: toList(fitnessProfile?.equipment),
-      mind_games: toList(fitnessProfile?.mind_games),
+      equipment: toEquipmentList(fitnessProfile?.equipment),
+      mind_games: toEquipmentList(fitnessProfile?.mind_games),
     });
     setSelectedDays([getTodayName()]);
     setSessionLen(30);
+    setDaySettings({});
     setDaysTouched(false);
     setNotifTimeLabel(
       TIME_TO_LABEL[profile?.notification_time] || NOTIFICATION_TIME_OPTIONS[1],
@@ -188,6 +188,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     const days = userPlan?.days;
     if (!days || Object.keys(days).length === 0) return;
     setSelectedDays(ALL_DAYS.filter((d) => d in days));
+    if (userPlan.daySettings) setDaySettings({ ...userPlan.daySettings });
     const firstLen = Object.values(days)[0];
     setSessionLen(
       SESSION_LENGTHS.reduce((a, b) =>
@@ -218,7 +219,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const handleMultiToggle = useCallback(
     (value) => {
       setAnswers((prev) => {
-        const existing = toList(prev[current.key]);
+        const existing = toEquipmentList(prev[current.key]);
         const exclusive = current.exclusive;
         if (exclusive && value === exclusive) {
           return { ...prev, [current.key]: [exclusive] };
@@ -246,6 +247,18 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     setDaysTouched(true);
     setSessionLen(mins);
   }, []);
+
+  const pickDaySetting = useCallback((day, key) => {
+    setDaysTouched(true);
+    setDaySettings((prev) => ({ ...prev, [day]: key }));
+  }, []);
+
+  // Settings the just-picked inventory supports; [0] is the fullest and the
+  // default. Single-option users (bodyweight only) see no per-day control.
+  const settingOptions = availableSettings(answers.equipment);
+  const defaultSetting = settingOptions[0];
+  const settingForDay = (day) =>
+    settingOptions.includes(daySettings[day]) ? daySettings[day] : defaultSetting;
 
   const canProceed =
     current.type === 'multi'
@@ -289,9 +302,14 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
       if (profileError) throw profileError;
 
       const days = {};
-      for (const d of selectedDays) days[d] = sessionLen;
+      const settings = {};
+      for (const d of selectedDays) {
+        days[d] = sessionLen;
+        settings[d] = settingForDay(d);
+      }
       const plan = {
         days,
+        daySettings: settings,
         goal: 'Build consistent habits',
         location: deriveLocation(answers.equipment),
         createdAt: localDateStr(),
@@ -330,6 +348,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     answers,
     selectedDays,
     sessionLen,
+    daySettings,
     notifTimeLabel,
     totalSteps,
     refreshProfile,
@@ -447,6 +466,33 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
                   </button>
                 ))}
               </div>
+              {settingOptions.length > 1 && selectedDays.length > 0 && (
+                <>
+                  <p className={styles.fieldCaption}>Workout setting per day</p>
+                  <div className={styles.settingList}>
+                    {ALL_DAYS.filter((d) => selectedDays.includes(d)).map((day) => (
+                      <div key={day} className={styles.settingRow}>
+                        <span className={styles.settingDay}>{day}</span>
+                        <div className={styles.settingChips}>
+                          {settingOptions.map((key) => (
+                            <button
+                              key={key}
+                              className={
+                                settingForDay(day) === key
+                                  ? styles.settingChipSelected
+                                  : styles.settingChip
+                              }
+                              onClick={() => pickDaySetting(day, key)}
+                            >
+                              {SETTING_LABELS[key]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
               <p className={styles.fieldHint}>
                 You can fine-tune each day&apos;s length later from your dashboard.
               </p>

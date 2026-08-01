@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { localDateStr } from '../lib/dates';
 import { sendTag } from '../lib/oneSignal';
+import { availableSettings, SETTING_LABELS } from '../lib/daySettings';
 import styles from './EditScheduleModal.module.css';
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -69,7 +70,15 @@ export default function EditScheduleModal({ open, onClose }) {
 
   const [selectedDays, setSelectedDays] = useState([]);
   const [dayTimes, setDayTimes] = useState({});
+  const [daySettings, setDaySettings] = useState({});
   const [saving, setSaving] = useState(false);
+
+  // Per-day workout settings derived from the equipment inventory; [0] is the
+  // fullest and the default. One option (bodyweight only) → no extra control.
+  const settingOptions = availableSettings(fitnessProfile?.equipment);
+  const defaultSetting = settingOptions[0];
+  const settingForDay = (day) =>
+    settingOptions.includes(daySettings[day]) ? daySettings[day] : defaultSetting;
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -83,11 +92,15 @@ export default function EditScheduleModal({ open, onClose }) {
       }
       setSelectedDays(days);
       setDayTimes(times);
+      // Pre-feature plans have no daySettings — settingForDay falls back to
+      // the fullest setting, which matches their current behavior.
+      setDaySettings(userPlan.daySettings ? { ...userPlan.daySettings } : {});
       setError('');
       setSuccess(false);
     } else if (open) {
       setSelectedDays([]);
       setDayTimes({});
+      setDaySettings({});
       setError('');
       setSuccess(false);
     }
@@ -113,13 +126,24 @@ export default function EditScheduleModal({ open, onClose }) {
     setDayTimes((prev) => ({ ...prev, [day]: value }));
   }, []);
 
+  const setDaySetting = useCallback((day, value) => {
+    setDaySettings((prev) => ({ ...prev, [day]: value }));
+  }, []);
+
   const handleCopyAll = useCallback(() => {
     if (selectedDays.length < 2) return;
-    const firstTime = dayTimes[selectedDays[0]] || '30';
-    const copy = {};
-    for (const d of selectedDays) copy[d] = firstTime;
-    setDayTimes(copy);
-  }, [selectedDays, dayTimes]);
+    const first = selectedDays[0];
+    const firstTime = dayTimes[first] || '30';
+    const firstSetting = settingForDay(first);
+    const times = {};
+    const settings = {};
+    for (const d of selectedDays) {
+      times[d] = firstTime;
+      settings[d] = firstSetting;
+    }
+    setDayTimes(times);
+    setDaySettings(settings);
+  }, [selectedDays, dayTimes, daySettings]);
 
   const handleSave = useCallback(async () => {
     if (selectedDays.length === 0) {
@@ -131,11 +155,14 @@ export default function EditScheduleModal({ open, onClose }) {
     setError('');
 
     const days = {};
+    const settings = {};
     for (const d of selectedDays) {
       days[d] = parseInt(dayTimes[d] || '30', 10);
+      settings[d] = settingForDay(d);
     }
     const plan = {
       days,
+      daySettings: settings,
       goal: userPlan?.goal || 'Build consistent habits',
       location: userPlan?.location || 'Home — no equipment',
       createdAt: userPlan?.createdAt || localDateStr(),
@@ -169,7 +196,7 @@ export default function EditScheduleModal({ open, onClose }) {
       setSaving(false);
       onClose();
     }, 1500);
-  }, [selectedDays, dayTimes, user, userPlan, refreshPlan, onClose]);
+  }, [selectedDays, dayTimes, daySettings, user, userPlan, refreshPlan, onClose]);
 
   if (!open) return null;
 
@@ -240,6 +267,19 @@ export default function EditScheduleModal({ open, onClose }) {
                           </option>
                         ))}
                       </select>
+                      {settingOptions.length > 1 && (
+                        <select
+                          className={styles.dayTimeSelect}
+                          value={settingForDay(d)}
+                          onChange={(e) => setDaySetting(d, e.target.value)}
+                        >
+                          {settingOptions.map((key) => (
+                            <option key={key} value={key}>
+                              {SETTING_LABELS[key]}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                     <BreakdownBar
                       mins={dayTimes[d] || '30'}
@@ -251,7 +291,8 @@ export default function EditScheduleModal({ open, onClose }) {
 
               {selectedDays.length >= 2 && (
                 <button className={styles.copyAll} onClick={handleCopyAll}>
-                  ↓ Copy {selectedDays[0]}'s time to all days
+                  ↓ Copy {selectedDays[0]}'s{' '}
+                  {settingOptions.length > 1 ? 'setup' : 'time'} to all days
                 </button>
               )}
             </>

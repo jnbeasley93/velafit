@@ -34,10 +34,17 @@ import Research from './components/Research';
 import Learn from './components/Learn';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { buildSession } from './lib/buildSession';
+import { equipmentForSetting } from './lib/daySettings';
 import './App.css';
 
+function getTodayName() {
+  return new Date()
+    .toLocaleDateString('en-US', { weekday: 'short' })
+    .slice(0, 3);
+}
+
 function AppInner() {
-  const { user, onboardingCompleted, fitnessProfile, profile } = useAuth();
+  const { user, onboardingCompleted, fitnessProfile, profile, userPlan } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
@@ -118,20 +125,26 @@ function AppInner() {
     setLogActivityOpen(true);
   }, []);
 
-  const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false } = {}) => {
-    console.log('[App] handleStartSession:', { mins, impromptu, bodyweightOnly });
+  const handleStartSession = useCallback((mins, { impromptu = false, bodyweightOnly = false, daySetting = null } = {}) => {
+    console.log('[App] handleStartSession:', { mins, impromptu, bodyweightOnly, daySetting });
     const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
     const intensity = profile?.intensity_level ?? 2;
-    // If bodyweight only, override the profile equipment
-    const fp = bodyweightOnly
-      ? { ...fitnessProfile, equipment: ['None — bodyweight only'] }
+    // Which setting governs this session's exercise pool: an explicit
+    // bodyweight-only toggle wins, then the caller's day setting, then —
+    // for scheduled (non-impromptu) starts — today's setting from the plan.
+    // Missing setting = full inventory, so pre-feature plans are unchanged.
+    const setting = bodyweightOnly
+      ? 'bodyweight'
+      : daySetting ?? (impromptu ? null : userPlan?.daySettings?.[getTodayName()] ?? null);
+    const fp = setting
+      ? { ...fitnessProfile, equipment: equipmentForSetting(fitnessProfile?.equipment, setting) }
       : fitnessProfile;
     const session = buildSession(fp, mins, noMindGames, intensity);
     setSessionMins(mins);
     setSessionIsImpromptu(impromptu);
     setSessionData(session);
     setSessionOpen(true);
-  }, [fitnessProfile, profile]);
+  }, [fitnessProfile, profile, userPlan]);
 
   const handleQuickStart = useCallback(({ minutes, bodyweightOnly }) => {
     console.log('[App] handleQuickStart:', { minutes, bodyweightOnly });

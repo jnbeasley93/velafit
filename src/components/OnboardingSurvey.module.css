@@ -158,6 +158,47 @@
   color: var(--cream);
 }
 
+/* Per-day workout setting rows (days step) */
+.settingList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.settingDay {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  min-width: 2.4rem;
+}
+
+.settingChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.settingChip {
+  composes: chip;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.74rem;
+}
+
+.settingChipSelected {
+  composes: chipSelected;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.74rem;
+}
+
 /* Field captions/hints (days + notification steps) */
 .fieldCaption {
   font-size: 0.72rem;
