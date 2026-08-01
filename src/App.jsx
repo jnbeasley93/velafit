@@ -1,5 +1,5 @@
 // VelaFit build April 13
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -54,22 +54,21 @@ function AppInner() {
   // onboarding_completed = false gets the survey, no matter how they arrived
   // (fresh signup, email-confirmation return, or abandoning it last visit).
   // Users who completed it are never re-shown it. Waits for the profile row
-  // to load so we never flash the survey at existing users.
-  useEffect(() => {
-    if (!user) {
-      setOnboardingOpen(false);
-      return;
-    }
-    if (!profile) return;
-    if (!profile.onboarding_completed) {
-      setOnboardingOpen(true);
-    } else if (pendingPlanBuilder) {
-      // Completed user who clicked "Get Started" before logging in — go
-      // straight to the plan builder as before.
-      setPendingPlanBuilder(false);
-      setModalOpen(true);
-    }
-  }, [user, profile, pendingPlanBuilder]);
+  // to load so we never flash the survey at existing users. Render-time state
+  // adjustment (same pattern as Navbar) instead of an effect — avoids a
+  // cascading re-render; every set is guarded so it settles in one pass.
+  if (!user && onboardingOpen) {
+    setOnboardingOpen(false);
+  }
+  if (user && profile && !profile.onboarding_completed && !onboardingOpen) {
+    setOnboardingOpen(true);
+  }
+  if (user && profile?.onboarding_completed && pendingPlanBuilder) {
+    // Completed user who clicked "Get Started" before logging in — go
+    // straight to the plan builder as before.
+    setPendingPlanBuilder(false);
+    setModalOpen(true);
+  }
 
   const handleGetStarted = useCallback(() => {
     if (user) {

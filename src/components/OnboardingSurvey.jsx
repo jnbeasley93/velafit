@@ -135,13 +135,14 @@ function deriveLocation(equipment) {
  *    and never touches user_plans, notifications, or onboarding_completed.
  */
 export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt, variant = 'full' }) {
-  const { user, profile, fitnessProfile, refreshProfile, refreshPlan } = useAuth();
+  const { user, profile, fitnessProfile, userPlan, refreshProfile, refreshPlan } = useAuth();
   const steps = variant === 'profile' ? PROFILE_STEPS : FULL_STEPS;
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [selectedDays, setSelectedDays] = useState([]);
   const [sessionLen, setSessionLen] = useState(30);
+  const [daysTouched, setDaysTouched] = useState(false);
   const [notifTimeLabel, setNotifTimeLabel] = useState(NOTIFICATION_TIME_OPTIONS[1]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -162,12 +163,31 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     });
     setSelectedDays([getTodayName()]);
     setSessionLen(30);
+    setDaysTouched(false);
     setNotifTimeLabel(
       TIME_TO_LABEL[profile?.notification_time] || NOTIFICATION_TIME_OPTIONS[1],
     );
     if (NOTIF_SUPPORTED) setNotifPermission(Notification.permission);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- prefill snapshot on open only
   }, [open]);
+
+  // Prefill the days step from an existing plan (e.g. a tester who built one
+  // via the plan builder before completing onboarding) so finishing doesn't
+  // silently replace their schedule with the today+30min default. Only runs
+  // until the user edits the step, so a plan arriving mid-survey (the plan
+  // fetch is async) can't stomp their selection.
+  useEffect(() => {
+    if (!open || variant !== 'full' || daysTouched) return;
+    const days = userPlan?.days;
+    if (!days || Object.keys(days).length === 0) return;
+    setSelectedDays(ALL_DAYS.filter((d) => d in days));
+    const firstLen = Object.values(days)[0];
+    setSessionLen(
+      SESSION_LENGTHS.reduce((a, b) =>
+        Math.abs(b - firstLen) < Math.abs(a - firstLen) ? b : a,
+      ),
+    );
+  }, [open, variant, daysTouched, userPlan]);
 
   // Funnel tracking: record the highest step reached, fire-and-forget. Errors
   // are swallowed on purpose — if the onboarding_step column hasn't been
@@ -209,9 +229,15 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   );
 
   const toggleDay = useCallback((day) => {
+    setDaysTouched(true);
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
     );
+  }, []);
+
+  const pickSessionLen = useCallback((mins) => {
+    setDaysTouched(true);
+    setSessionLen(mins);
   }, []);
 
   const canProceed =
@@ -408,7 +434,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
                     className={
                       sessionLen === mins ? styles.chipSelected : styles.chip
                     }
-                    onClick={() => setSessionLen(mins)}
+                    onClick={() => pickSessionLen(mins)}
                   >
                     {mins} min
                   </button>
