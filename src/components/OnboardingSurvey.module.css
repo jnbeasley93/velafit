@@ -158,6 +158,78 @@
   color: var(--cream);
 }
 
+/* Field captions/hints (days + notification steps) */
+.fieldCaption {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--stone);
+  margin: 1.1rem 0 0.5rem;
+}
+
+.fieldHint {
+  font-size: 0.8rem;
+  color: var(--stone);
+  font-weight: 300;
+  line-height: 1.5;
+  margin-top: 0.8rem;
+}
+
+/* Notification perks */
+.perkList {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.perkItem {
+  font-size: 0.85rem;
+  color: var(--charcoal);
+  padding: 0.6rem 0.9rem;
+  background: var(--card-bg);
+  border: 1.5px solid rgba(74, 140, 92, 0.15);
+  border-radius: 2px;
+  line-height: 1.4;
+}
+
+/* Save failure */
+.saveError {
+  font-size: 0.82rem;
+  color: #c9534c;
+  line-height: 1.5;
+  margin-top: 1rem;
+}
+
+/* Notification step footer: primary + skip link stacked */
+.notifActions {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skipLink {
+  background: none;
+  border: none;
+  color: var(--stone);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.3rem;
+  text-align: center;
+}
+
+.skipLink:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Footer */
 .footer {
   padding: 0 2rem 1.5rem;

@@ -8,6 +8,7 @@ import OnboardingSurvey, {
   NOTIFICATION_TIME_MAP,
   NOTIFICATION_TIME_OPTIONS,
   TIME_TO_LABEL,
+  OPTIONAL_PROFILE_QUESTIONS,
 } from './OnboardingSurvey';
 import { detectPlatform, INSTALL_CONTENT } from './InstallPrompt';
 import styles from './Settings.module.css';
@@ -22,10 +23,6 @@ const MIND_GAME_OPTIONS = [
 ];
 
 const PROFILE_LABELS = {
-  age_range: 'Age Range',
-  activity_level: 'Activity Level',
-  pushup_range: 'Push-up Range',
-  exercise_frequency: 'Exercise Frequency',
   equipment: 'Equipment',
 };
 
@@ -101,6 +98,43 @@ export default function Settings({ onEditSchedule }) {
       setSaving(false);
     }
   }, [user, fitnessProfile, mindGames, refreshProfile]);
+
+  // "About You" — the optional questions that used to be onboarding steps 1-4.
+  const [aboutYou, setAboutYou] = useState({});
+  const [aboutSaving, setAboutSaving] = useState(false);
+  const [aboutSaved, setAboutSaved] = useState(false);
+
+  useEffect(() => {
+    const next = {};
+    for (const q of OPTIONAL_PROFILE_QUESTIONS) {
+      next[q.key] = fitnessProfile?.[q.key] || '';
+    }
+    setAboutYou(next);
+  }, [fitnessProfile]);
+
+  const handleSaveAboutYou = useCallback(async () => {
+    if (!user) return;
+    setAboutSaving(true);
+    setAboutSaved(false);
+    try {
+      const updated = { ...(fitnessProfile || {}) };
+      for (const q of OPTIONAL_PROFILE_QUESTIONS) {
+        if (aboutYou[q.key]) updated[q.key] = aboutYou[q.key];
+      }
+      const { error } = await supabase
+        .from('profiles')
+        .update({ fitness_profile: updated })
+        .eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+      setAboutSaved(true);
+      setTimeout(() => setAboutSaved(false), 2000);
+    } catch (err) {
+      console.error('[Settings] About You save failed:', err);
+    } finally {
+      setAboutSaving(false);
+    }
+  }, [user, fitnessProfile, aboutYou, refreshProfile]);
 
   const handleRetakeComplete = useCallback(() => {
     setRetakeOpen(false);
@@ -264,6 +298,53 @@ export default function Settings({ onEditSchedule }) {
             </button>
           </div>
         </div>
+
+        {/* About You (optional) */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>About You (optional)</h3>
+          <p className={styles.sectionDesc}>
+            A few optional details that help Vela understand where you&apos;re
+            starting from. Skip anything you like.
+          </p>
+          {OPTIONAL_PROFILE_QUESTIONS.map((q) => (
+            <div key={q.key} className={styles.fieldRow}>
+              <span className={styles.fieldLabel}>{q.label}</span>
+              <select
+                value={aboutYou[q.key] || ''}
+                onChange={(e) =>
+                  setAboutYou((prev) => ({ ...prev, [q.key]: e.target.value }))
+                }
+                style={{
+                  padding: '0.45rem 0.6rem',
+                  border: '1.5px solid var(--card-border)',
+                  borderRadius: '2px',
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '0.82rem',
+                  color: 'var(--charcoal)',
+                  background: 'var(--warm-white)',
+                  maxWidth: '60%',
+                }}
+              >
+                <option value="">Not set</option>
+                {q.options.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.8rem' }}>
+            <button
+              className={styles.btnSave}
+              onClick={handleSaveAboutYou}
+              disabled={aboutSaving}
+            >
+              {aboutSaving ? 'Saving...' : 'Save Details'}
+            </button>
+            {aboutSaved && <span className={styles.saved}>Saved! 🐸</span>}
+          </div>
+        </div>
         {/* Notifications */}
         <NotificationsSection />
 
@@ -293,6 +374,7 @@ export default function Settings({ onEditSchedule }) {
       <OnboardingSurvey
         open={retakeOpen}
         onComplete={handleRetakeComplete}
+        variant="profile"
       />
     </div>
   );

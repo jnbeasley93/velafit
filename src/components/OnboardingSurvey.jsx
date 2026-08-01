@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { promptNotificationPermission } from '../lib/oneSignal';
+import { localDateStr } from '../lib/dates';
+import { promptNotificationPermission, sendTag } from '../lib/oneSignal';
 import styles from './OnboardingSurvey.module.css';
 
 const NOTIF_SUPPORTED = typeof window !== 'undefined' && 'Notification' in window;
@@ -21,19 +22,18 @@ export const TIME_TO_LABEL = Object.fromEntries(
   Object.entries(NOTIFICATION_TIME_MAP).map(([label, time]) => [time, label]),
 );
 
-const STEPS = [
+// Optional get-to-know-you questions. These are NOT part of signup onboarding —
+// nothing in plan/session generation reads them today — so they live in
+// Settings ("About You") where users can fill them in later.
+export const OPTIONAL_PROFILE_QUESTIONS = [
   {
     key: 'age_range',
-    title: 'How old are you?',
-    vela: "Let's start with the basics. This helps me scale your plan to where your body is right now.",
-    type: 'single',
+    label: 'Age Range',
     options: ['Under 20', '21–29', '30–39', '40–49', '50+'],
   },
   {
     key: 'activity_level',
-    title: 'How sedentary is your day?',
-    vela: "No judgement here — most of us sit more than we think. I just need to know your baseline.",
-    type: 'single',
+    label: 'Activity Level',
     options: [
       'Mostly sitting (desk job / sedentary)',
       'Lightly active (some walking)',
@@ -43,18 +43,22 @@ const STEPS = [
   },
   {
     key: 'pushup_range',
-    title: 'Push-up check',
-    vela: "Quick benchmark — how many push-ups can you do right now, cold, no warm-up? Be honest.",
-    type: 'single',
+    label: 'Push-up Range',
     options: ['0–5', '6–15', '16–30', '30+'],
   },
   {
     key: 'exercise_frequency',
-    title: 'Current exercise habits',
-    vela: "How often do you currently move with intention? Even walks count.",
-    type: 'single',
+    label: 'Exercise Frequency',
     options: ['Never', '1–2x per week', '3–4x per week', '5+ per week'],
   },
+];
+
+const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const SESSION_LENGTHS = [15, 30, 45, 60];
+
+// The two questions the plan/session engine actually consumes.
+const PROFILE_STEPS = [
   {
     key: 'equipment',
     title: 'Available equipment',
@@ -85,55 +89,113 @@ const STEPS = [
       'No mind games',
     ],
   },
+];
+
+const FULL_STEPS = [
+  ...PROFILE_STEPS,
   {
-    key: 'notification_time',
-    title: 'When should Vela check in?',
-    vela:
-      "When do you usually work out — or when would you like to be reminded it's a training day?",
-    type: 'single',
-    options: NOTIFICATION_TIME_OPTIONS,
+    key: 'training_days',
+    title: 'When can you train?',
+    vela: "Pick your training days — even two is a real plan. I'll place rest days around them and adapt when life shifts.",
+    type: 'days',
   },
   {
     key: 'notifications',
-    title: 'Stay on track.',
-    vela: "The biggest predictor of success is showing up consistently. VelaFit will send you a gentle reminder on your training days — nothing spammy, just Vela checking in.",
+    title: 'When should Vela check in?',
+    vela: "Consistency beats intensity. Tell me when to nudge you on training days — nothing spammy, just Vela checking in.",
     type: 'notifications',
     perks: [
-      '🏋️ Training day reminders at 8 AM',
+      '🏋️ Training day reminders at your time',
       "⚡ Evening nudge if you haven't trained yet",
       '📅 Weekly schedule check-in on Sundays',
     ],
   },
 ];
 
-export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt }) {
-  const { user, refreshProfile } = useAuth();
+function getTodayName() {
+  return new Date()
+    .toLocaleDateString('en-US', { weekday: 'short' })
+    .slice(0, 3);
+}
+
+// Mirrors PlanBuilderModal's location derivation so plans built here and there
+// carry the same shape.
+function deriveLocation(equipment) {
+  const list = Array.isArray(equipment) ? equipment : [equipment].filter(Boolean);
+  if (list.includes('Commercial gym access')) return 'Gym';
+  if (list.some((e) => e && e !== 'None — bodyweight only')) return 'Home — some equipment';
+  return 'Home — no equipment';
+}
+
+/**
+ * variant:
+ *  - 'full' (default): signup onboarding — profile questions, training days,
+ *    notification opt-in; saves fitness_profile AND creates the user_plan.
+ *  - 'profile': Settings retake — profile questions only; saves fitness_profile
+ *    and never touches user_plans, notifications, or onboarding_completed.
+ */
+export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt, variant = 'full' }) {
+  const { user, profile, fitnessProfile, refreshProfile, refreshPlan } = useAuth();
+  const steps = variant === 'profile' ? PROFILE_STEPS : FULL_STEPS;
+
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [sessionLen, setSessionLen] = useState(30);
+  const [notifTimeLabel, setNotifTimeLabel] = useState(NOTIFICATION_TIME_OPTIONS[1]);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [requestingPerm, setRequestingPerm] = useState(false);
-
-  const current = STEPS[step];
-  const totalSteps = STEPS.length;
-  const progress = ((step + 1) / totalSteps) * 100;
-
-  const handleSingleSelect = useCallback(
-    (value) => {
-      setAnswers((prev) => ({ ...prev, [current.key]: value }));
-    },
-    [current],
+  const [notifPermission, setNotifPermission] = useState(
+    () => (NOTIF_SUPPORTED ? Notification.permission : 'unsupported'),
   );
+
+  // (Re)initialize whenever the survey opens: prefill from the existing
+  // profile (retakes), preselect today as a training day, reset errors.
+  useEffect(() => {
+    if (!open) return;
+    setStep(0);
+    setSaveError(false);
+    setAnswers({
+      equipment: fitnessProfile?.equipment ?? [],
+      mind_games: fitnessProfile?.mind_games ?? [],
+    });
+    setSelectedDays([getTodayName()]);
+    setSessionLen(30);
+    setNotifTimeLabel(
+      TIME_TO_LABEL[profile?.notification_time] || NOTIFICATION_TIME_OPTIONS[1],
+    );
+    if (NOTIF_SUPPORTED) setNotifPermission(Notification.permission);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- prefill snapshot on open only
+  }, [open]);
+
+  // Funnel tracking: record the highest step reached, fire-and-forget. Errors
+  // are swallowed on purpose — if the onboarding_step column hasn't been
+  // migrated yet, onboarding must still work.
+  useEffect(() => {
+    if (!open || !user || variant !== 'full') return;
+    supabase
+      .from('profiles')
+      .update({ onboarding_step: step + 1 })
+      .eq('id', user.id)
+      .then(({ error }) => {
+        if (error) console.warn('[Onboarding] step tracking skipped:', error.message);
+      });
+  }, [open, user, variant, step]);
+
+  const current = steps[step];
+  const totalSteps = steps.length;
+  const progress = ((step + 1) / totalSteps) * 100;
+  const isLast = step === totalSteps - 1;
 
   const handleMultiToggle = useCallback(
     (value) => {
       setAnswers((prev) => {
         const existing = prev[current.key] || [];
         const exclusive = current.exclusive;
-        // If the user picked the exclusive/"none" option, deselect everything else
         if (exclusive && value === exclusive) {
           return { ...prev, [current.key]: [exclusive] };
         }
-        // Otherwise remove the exclusive option and toggle normally
         const without = exclusive
           ? existing.filter((v) => v !== exclusive)
           : existing;
@@ -146,51 +208,110 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     [current],
   );
 
+  const toggleDay = useCallback((day) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
+  }, []);
+
   const canProceed =
-    current.type === 'notifications'
-      ? true
-      : current.type === 'single'
-        ? !!answers[current.key]
-        : (answers[current.key] || []).length > 0;
+    current.type === 'multi'
+      ? (answers[current.key] || []).length > 0
+      : current.type === 'days'
+        ? selectedDays.length > 0
+        : true;
 
-  const handleNext = useCallback(async () => {
-    if (step < totalSteps - 1) {
-      setStep((s) => s + 1);
-      return;
-    }
-
-    // Final step — save to Supabase
+  const finishSetup = useCallback(async () => {
+    if (!user) return;
     setSaving(true);
+    setSaveError(false);
     try {
-      const fitnessProfile = {};
-      for (const s of STEPS) {
-        if (s.type === 'notifications') continue;
-        if (s.key === 'notification_time') continue;
-        fitnessProfile[s.key] = answers[s.key];
+      // Merge, don't replace: retakes must not wipe optional About You answers.
+      const mergedProfile = {
+        ...(fitnessProfile || {}),
+        equipment: answers.equipment,
+        mind_games: answers.mind_games,
+      };
+
+      if (variant === 'profile') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ fitness_profile: mergedProfile })
+          .eq('id', user.id);
+        if (error) throw error;
+        await refreshProfile();
+        onComplete();
+        return;
       }
 
-      const notificationTime =
-        NOTIFICATION_TIME_MAP[answers.notification_time] || '07:00';
-
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          fitness_profile: fitnessProfile,
-          notification_time: notificationTime,
+          fitness_profile: mergedProfile,
+          notification_time: NOTIFICATION_TIME_MAP[notifTimeLabel] || '07:00',
           onboarding_completed: true,
           intensity_level: 2,
         })
         .eq('id', user.id);
+      if (profileError) throw profileError;
+
+      const days = {};
+      for (const d of selectedDays) days[d] = sessionLen;
+      const plan = {
+        days,
+        goal: 'Build consistent habits',
+        location: deriveLocation(answers.equipment),
+        createdAt: localDateStr(),
+      };
+      const { error: planError } = await supabase.from('user_plans').upsert(
+        { user_id: user.id, plan, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' },
+      );
+      if (planError) throw planError;
+
+      // Terminal funnel marker — fire-and-forget like the per-step updates.
+      supabase
+        .from('profiles')
+        .update({ onboarding_step: totalSteps + 1 })
+        .eq('id', user.id)
+        .then(() => {});
+
+      sendTag('training_days', Object.keys(days).join(','));
+      sendTag('has_plan', 'true');
+      sendTag('plan_updated', new Date().toISOString());
 
       await refreshProfile();
+      await refreshPlan();
       onComplete();
       onShowInstallPrompt?.();
     } catch (err) {
-      console.error('Failed to save profile:', err);
+      console.error('[Onboarding] save failed:', err);
+      setSaveError(true);
     } finally {
       setSaving(false);
     }
-  }, [step, totalSteps, answers, user, refreshProfile, onComplete, onShowInstallPrompt]);
+  }, [
+    user,
+    variant,
+    fitnessProfile,
+    answers,
+    selectedDays,
+    sessionLen,
+    notifTimeLabel,
+    totalSteps,
+    refreshProfile,
+    refreshPlan,
+    onComplete,
+    onShowInstallPrompt,
+  ]);
+
+  const handleNext = useCallback(() => {
+    if (!isLast) {
+      setStep((s) => s + 1);
+      return;
+    }
+    finishSetup();
+  }, [isLast, finishSetup]);
 
   const handleBack = useCallback(() => {
     if (step > 0) setStep((s) => s - 1);
@@ -199,6 +320,10 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const handleEnableNotifs = useCallback(async () => {
     setRequestingPerm(true);
     try {
+      // CRITICAL (iOS): promptNotificationPermission() must be invoked
+      // synchronously inside this tap handler with no await before it —
+      // Promise.race's arguments are evaluated synchronously, so the request
+      // fires within the user gesture. See lib/oneSignal.js.
       await Promise.race([
         promptNotificationPermission(),
         new Promise((resolve) => setTimeout(resolve, 5000)),
@@ -207,11 +332,15 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
       // Permission flow errored — proceed anyway, user is not blocked.
     } finally {
       setRequestingPerm(false);
+      if (NOTIF_SUPPORTED) setNotifPermission(Notification.permission);
     }
-    handleNext();
-  }, [handleNext]);
+    finishSetup();
+  }, [finishSetup]);
 
   if (!open) return null;
+
+  const alreadyGranted = notifPermission === 'granted';
+  const notifBlocked = notifPermission === 'denied';
 
   return (
     <div className={styles.overlay}>
@@ -236,24 +365,6 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
         </div>
 
         <div className={styles.body}>
-          {current.type === 'single' && (
-            <div className={styles.optionList}>
-              {current.options.map((opt) => (
-                <button
-                  key={opt}
-                  className={
-                    answers[current.key] === opt
-                      ? styles.optionSelected
-                      : styles.option
-                  }
-                  onClick={() => handleSingleSelect(opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          )}
-
           {current.type === 'multi' && (
             <div className={styles.chipGrid}>
               {current.options.map((opt) => (
@@ -272,100 +383,139 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
             </div>
           )}
 
+          {current.type === 'days' && (
+            <div>
+              <div className={styles.chipGrid}>
+                {ALL_DAYS.map((day) => (
+                  <button
+                    key={day}
+                    className={
+                      selectedDays.includes(day)
+                        ? styles.chipSelected
+                        : styles.chip
+                    }
+                    onClick={() => toggleDay(day)}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+              <p className={styles.fieldCaption}>Minutes per session</p>
+              <div className={styles.chipGrid}>
+                {SESSION_LENGTHS.map((mins) => (
+                  <button
+                    key={mins}
+                    className={
+                      sessionLen === mins ? styles.chipSelected : styles.chip
+                    }
+                    onClick={() => setSessionLen(mins)}
+                  >
+                    {mins} min
+                  </button>
+                ))}
+              </div>
+              <p className={styles.fieldHint}>
+                You can fine-tune each day&apos;s length later from your dashboard.
+              </p>
+            </div>
+          )}
+
           {current.type === 'notifications' && (
             <div>
-              <ul
-                style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: '0 0 1rem 0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
-              >
-                {current.perks.map((perk) => (
-                  <li
-                    key={perk}
-                    style={{
-                      fontSize: '0.88rem',
-                      color: 'var(--charcoal)',
-                      padding: '0.7rem 1rem',
-                      background: 'var(--card-bg)',
-                      border: '1.5px solid rgba(74, 140, 92, 0.15)',
-                      borderRadius: '2px',
-                      lineHeight: 1.4,
-                    }}
+              <div className={styles.optionList}>
+                {NOTIFICATION_TIME_OPTIONS.map((opt) => (
+                  <button
+                    key={opt}
+                    className={
+                      notifTimeLabel === opt
+                        ? styles.optionSelected
+                        : styles.option
+                    }
+                    onClick={() => setNotifTimeLabel(opt)}
                   >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+              <ul className={styles.perkList}>
+                {current.perks.map((perk) => (
+                  <li key={perk} className={styles.perkItem}>
                     {perk}
                   </li>
                 ))}
               </ul>
+              {alreadyGranted && (
+                <p className={styles.fieldHint}>
+                  ✓ Notifications are already on for this device.
+                </p>
+              )}
+              {notifBlocked && (
+                <p className={styles.fieldHint}>
+                  Notifications are blocked in this browser — you can enable
+                  them later from Settings.
+                </p>
+              )}
               {!NOTIF_SUPPORTED && (
-                <p
-                  style={{
-                    fontSize: '0.85rem',
-                    color: 'var(--stone)',
-                    lineHeight: 1.5,
-                    marginTop: '0.5rem',
-                  }}
-                >
-                  Notifications aren't supported in this browser. You can enable them later from Settings.
+                <p className={styles.fieldHint}>
+                  Notifications aren&apos;t supported in this browser. You can
+                  enable them later from Settings.
                 </p>
               )}
             </div>
+          )}
+
+          {saveError && (
+            <p className={styles.saveError}>
+              Couldn&apos;t save your setup — check your connection and try
+              again. Your answers are still here.
+            </p>
           )}
         </div>
 
         <div className={styles.footer}>
           {step > 0 && (
-            <button className={styles.btnBack} onClick={handleBack}>
+            <button className={styles.btnBack} onClick={handleBack} disabled={saving}>
               Back
             </button>
           )}
           {current.type === 'notifications' ? (
-            <div
-              style={{
-                flex: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-              }}
-            >
-              {NOTIF_SUPPORTED && (
+            <div className={styles.notifActions}>
+              {NOTIF_SUPPORTED && !alreadyGranted && !notifBlocked ? (
+                <>
+                  <button
+                    className={styles.btnNext}
+                    onClick={handleEnableNotifs}
+                    disabled={requestingPerm || saving}
+                  >
+                    {requestingPerm
+                      ? 'Requesting...'
+                      : saving
+                        ? 'Saving...'
+                        : saveError
+                          ? 'Retry — Enable Reminders →'
+                          : 'Enable Reminders →'}
+                  </button>
+                  <button
+                    className={styles.skipLink}
+                    onClick={finishSetup}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Maybe later'}
+                  </button>
+                </>
+              ) : (
                 <button
                   className={styles.btnNext}
-                  onClick={handleEnableNotifs}
-                  disabled={requestingPerm || saving}
+                  onClick={finishSetup}
+                  disabled={saving}
                 >
-                  {requestingPerm
-                    ? 'Requesting...'
-                    : saving
-                      ? 'Saving...'
-                      : 'Enable Reminders →'}
+                  {saving
+                    ? 'Saving...'
+                    : saveError
+                      ? 'Retry →'
+                      : 'Finish Setup →'}
                 </button>
               )}
-              <button
-                onClick={handleNext}
-                disabled={saving}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--stone)',
-                  fontFamily: 'DM Sans, sans-serif',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                  padding: '0.3rem',
-                  textAlign: 'center',
-                }}
-              >
-                {NOTIF_SUPPORTED
-                  ? 'Skip for now'
-                  : saving
-                    ? 'Saving...'
-                    : 'Continue →'}
-              </button>
             </div>
           ) : (
             <button
@@ -375,8 +525,10 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
             >
               {saving
                 ? 'Saving...'
-                : step === totalSteps - 1
-                  ? 'Finish Setup →'
+                : isLast
+                  ? saveError
+                    ? 'Retry →'
+                    : 'Finish Setup →'
                   : 'Continue →'}
             </button>
           )}

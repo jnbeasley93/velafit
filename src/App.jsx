@@ -1,5 +1,5 @@
 // VelaFit build April 13
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -50,10 +50,30 @@ function AppInner() {
   const [sessionIsImpromptu, setSessionIsImpromptu] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
+  // Onboarding is not optional: any signed-in user whose profile says
+  // onboarding_completed = false gets the survey, no matter how they arrived
+  // (fresh signup, email-confirmation return, or abandoning it last visit).
+  // Users who completed it are never re-shown it. Waits for the profile row
+  // to load so we never flash the survey at existing users.
+  useEffect(() => {
+    if (!user) {
+      setOnboardingOpen(false);
+      return;
+    }
+    if (!profile) return;
+    if (!profile.onboarding_completed) {
+      setOnboardingOpen(true);
+    } else if (pendingPlanBuilder) {
+      // Completed user who clicked "Get Started" before logging in — go
+      // straight to the plan builder as before.
+      setPendingPlanBuilder(false);
+      setModalOpen(true);
+    }
+  }, [user, profile, pendingPlanBuilder]);
+
   const handleGetStarted = useCallback(() => {
     if (user) {
       if (!onboardingCompleted) {
-        setPendingPlanBuilder(true);
         setOnboardingOpen(true);
       } else {
         setModalOpen(true);
@@ -76,20 +96,17 @@ function AppInner() {
   }, []);
 
   const handleAuthSuccess = useCallback(() => {
+    // The profile-driven effect above decides what opens next: onboarding for
+    // incomplete profiles, the plan builder for completed ones.
     setAuthOpen(false);
-    if (pendingPlanBuilder) {
-      // After auth, check if onboarding is needed
-      setOnboardingOpen(true);
-    }
-  }, [pendingPlanBuilder]);
+  }, []);
 
   const handleOnboardingComplete = useCallback(() => {
+    // Onboarding now creates the plan itself, so the user lands directly on
+    // the dashboard with today's session ready to start.
     setOnboardingOpen(false);
-    if (pendingPlanBuilder) {
-      setPendingPlanBuilder(false);
-      setModalOpen(true);
-    }
-  }, [pendingPlanBuilder]);
+    setPendingPlanBuilder(false);
+  }, []);
 
   const [quickSessionOpen, setQuickSessionOpen] = useState(false);
   const [logActivityOpen, setLogActivityOpen] = useState(false);

@@ -355,7 +355,9 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
                 className={styles.btnStart}
                 onClick={() => onStartSession?.(todayMins)}
               >
-                Start Today's Session →
+                {logs.length === 0 && activityLogs.length === 0
+                  ? 'Start Your First Session →'
+                  : "Start Today's Session →"}
               </button>
             </div>
           ) : (
