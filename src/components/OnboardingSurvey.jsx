@@ -118,10 +118,17 @@ function getTodayName() {
     .slice(0, 3);
 }
 
+// Legacy profiles (pre-multi-select) store equipment as a single string —
+// normalize everything read from the stored profile to an array so the
+// toggle/selected/canProceed logic never sees a bare string.
+function toList(value) {
+  return Array.isArray(value) ? value : value ? [value] : [];
+}
+
 // Mirrors PlanBuilderModal's location derivation so plans built here and there
 // carry the same shape.
 function deriveLocation(equipment) {
-  const list = Array.isArray(equipment) ? equipment : [equipment].filter(Boolean);
+  const list = toList(equipment);
   if (list.includes('Commercial gym access')) return 'Gym';
   if (list.some((e) => e && e !== 'None — bodyweight only')) return 'Home — some equipment';
   return 'Home — no equipment';
@@ -158,8 +165,8 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     setStep(0);
     setSaveError(false);
     setAnswers({
-      equipment: fitnessProfile?.equipment ?? [],
-      mind_games: fitnessProfile?.mind_games ?? [],
+      equipment: toList(fitnessProfile?.equipment),
+      mind_games: toList(fitnessProfile?.mind_games),
     });
     setSelectedDays([getTodayName()]);
     setSessionLen(30);
@@ -211,7 +218,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const handleMultiToggle = useCallback(
     (value) => {
       setAnswers((prev) => {
-        const existing = prev[current.key] || [];
+        const existing = toList(prev[current.key]);
         const exclusive = current.exclusive;
         if (exclusive && value === exclusive) {
           return { ...prev, [current.key]: [exclusive] };
