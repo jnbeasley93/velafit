@@ -60,6 +60,7 @@ export default function LogActivityModal({ open, onClose, prefill }) {
   const [exercises, setExercises] = useState([]);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const today = localDateStr();
   const minDate = localDateStr(
@@ -82,6 +83,7 @@ export default function LogActivityModal({ open, onClose, prefill }) {
       setExercises([]);
       setSaving(false);
       setSuccess(false);
+      setSaveError(false);
     }
   }, [open]);
 
@@ -128,10 +130,13 @@ export default function LogActivityModal({ open, onClose, prefill }) {
   const handleSubmit = useCallback(async () => {
     if (!canSubmit || !user) return;
     setSaving(true);
+    setSaveError(false);
     try {
       const exercisesPayload = exercises.length > 0 ? exercises : null;
 
-      await supabase.from('activity_logs').insert({
+      // Supabase returns errors rather than throwing — check each insert
+      // explicitly so a failed save can never show the success state.
+      const { error: activityError } = await supabase.from('activity_logs').insert({
         user_id: user.id,
         date: selectedDate,
         activity_type: activityType,
@@ -140,8 +145,9 @@ export default function LogActivityModal({ open, onClose, prefill }) {
         notes: notes.trim() || null,
         exercises_completed: exercisesPayload,
       });
+      if (activityError) throw activityError;
 
-      await supabase.from('workout_logs').insert({
+      const { error: workoutError } = await supabase.from('workout_logs').insert({
         user_id: user.id,
         date: selectedDate,
         session_length: duration,
@@ -153,11 +159,13 @@ export default function LogActivityModal({ open, onClose, prefill }) {
         exercises_completed: exercisesPayload,
         journal_entry: notes.trim() || null,
       });
+      if (workoutError) throw workoutError;
 
       setSuccess(true);
       setTimeout(() => onClose(), 1500);
     } catch (err) {
       console.error('Failed to log activity:', err);
+      setSaveError(true);
       setSaving(false);
     }
   }, [canSubmit, user, selectedDate, activityType, duration, feeling, notes, exercises, onClose]);
@@ -345,6 +353,13 @@ export default function LogActivityModal({ open, onClose, prefill }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
+
+          {saveError && (
+            <p className={styles.errorMsg}>
+              Couldn&apos;t save — check your connection and try again. Your
+              entry is still here.
+            </p>
+          )}
         </div>
 
         <div className={styles.footer}>
@@ -356,7 +371,7 @@ export default function LogActivityModal({ open, onClose, prefill }) {
             onClick={handleSubmit}
             disabled={!canSubmit || saving}
           >
-            {saving ? 'Saving...' : 'Log It →'}
+            {saving ? 'Saving...' : saveError ? 'Retry →' : 'Log It →'}
           </button>
         </div>
       </div>
