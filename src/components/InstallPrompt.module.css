@@ -98,6 +98,61 @@
   flex: 1;
 }
 
+/* iOS variant: fill the viewport so the arrow sits at the very bottom of our
+   UI, pointing past it at Safari's toolbar. Nothing renders below the arrow. */
+.modalIos {
+  min-height: 100%;
+}
+
+.modalIos .arrowHint {
+  margin-top: auto;
+  margin-bottom: 0.3rem;
+}
+
+.laterLink {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: rgba(245, 240, 232, 0.55);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.4rem 0;
+  margin-bottom: 0.8rem;
+}
+
+.laterLink:hover {
+  color: var(--cream);
+}
+
+.incentive {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.5;
+  margin-bottom: 1.4rem;
+  max-width: 340px;
+}
+
+.iosInstruction {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: var(--cream);
+  line-height: 1.6;
+  max-width: 340px;
+  margin-bottom: 1.6rem;
+}
+
+.shareIcon {
+  width: 1.35em;
+  height: 1.35em;
+  vertical-align: -0.3em;
+  color: var(--gold);
+  display: inline-block;
+}
+
 .arrowHint {
   display: flex;
   flex-direction: column;

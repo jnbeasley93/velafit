@@ -1,5 +1,11 @@
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import velaImg from '../assets/vela.jpg';
+import {
+  getDeferredInstallPrompt,
+  subscribeInstallPrompt,
+  promptInstall,
+  isStandalone,
+} from '../lib/installPrompt';
 import styles from './InstallPrompt.module.css';
 
 export const INSTALL_PROMPTED_KEY = 'vela_install_prompted';
@@ -10,28 +16,18 @@ export function detectPlatform() {
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isAndroid = /Android/.test(ua);
-  const isChrome = /Chrome/.test(ua);
-  const isSafari = /Safari/.test(ua) && !isChrome;
-  if (isIOS) return isSafari ? 'ios' : 'ios';
-  if (isAndroid) return isChrome ? 'android' : 'android';
+  if (isIOS) return 'ios';
+  if (isAndroid) return 'android';
   return 'desktop';
 }
 
-function isStandalone() {
-  if (typeof window === 'undefined') return false;
-  return (
-    window.matchMedia?.('(display-mode: standalone)')?.matches ||
-    window.navigator.standalone === true
-  );
-}
+const INCENTIVE_LINE = 'Installing is what turns on your workout reminders.';
 
-const VELA_LINE =
-  'For the best experience — and so Vela is always one tap away — add this to your home screen.';
-
+// Still consumed by Settings' "Add to Home Screen" section — keep the shape.
 export const INSTALL_CONTENT = {
   ios: {
     title: 'Add VelaFit to your home screen',
-    vela: VELA_LINE,
+    vela: INCENTIVE_LINE,
     steps: [
       '📤 Tap the Share button at the bottom of your browser',
       '📲 Scroll down and tap "Add to Home Screen"',
@@ -41,7 +37,7 @@ export const INSTALL_CONTENT = {
   },
   android: {
     title: 'Add VelaFit to your home screen',
-    vela: VELA_LINE,
+    vela: INCENTIVE_LINE,
     steps: [
       '⋮ Tap the three dots menu in the top right',
       '📲 Tap "Add to Home Screen" or "Install App"',
@@ -58,6 +54,28 @@ export const INSTALL_CONTENT = {
   },
 };
 
+// The iOS share glyph (tray with an up arrow), inline so the instruction can
+// show the exact icon the user must find in Safari's toolbar.
+function ShareIcon() {
+  return (
+    <svg
+      className={styles.shareIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="Share icon"
+    >
+      <path d="M8 8H6.5A1.5 1.5 0 0 0 5 9.5v10A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-10A1.5 1.5 0 0 0 17.5 8H16" />
+      <path d="M12 14V3" />
+      <path d="M8.5 6.5 12 3l3.5 3.5" />
+    </svg>
+  );
+}
+
 export function InstallSteps({ platform }) {
   const config = INSTALL_CONTENT[platform] || INSTALL_CONTENT.desktop;
 
@@ -71,51 +89,126 @@ export function InstallSteps({ platform }) {
   }
 
   return (
-    <>
-      <ol className={styles.steps}>
-        {config.steps.map((step, i) => (
-          <li key={i} className={styles.step}>
-            <span className={styles.stepNumber}>{i + 1}</span>
-            <span className={styles.stepText}>{step}</span>
-          </li>
-        ))}
-      </ol>
-      {config.showArrow && (
-        <div className={styles.arrowHint} aria-hidden="true">
-          <span className={styles.arrowText}>Share button is below ↓</span>
-          <span className={styles.arrowIcon}>⌄</span>
-        </div>
-      )}
-    </>
+    <ol className={styles.steps}>
+      {config.steps.map((step, i) => (
+        <li key={i} className={styles.step}>
+          <span className={styles.stepNumber}>{i + 1}</span>
+          <span className={styles.stepText}>{step}</span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
 export default function InstallPrompt({ open, onClose }) {
   const platform = useMemo(() => detectPlatform(), []);
+  const [installEvt, setInstallEvt] = useState(getDeferredInstallPrompt);
+  const [celebrating, setCelebrating] = useState(false);
 
-  if (!open) return null;
-  if (typeof window !== 'undefined' && isStandalone()) return null;
+  useEffect(() => subscribeInstallPrompt(setInstallEvt), []);
 
-  const config = INSTALL_CONTENT[platform];
-
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     try {
       localStorage.setItem(INSTALL_PROMPTED_KEY, 'true');
     } catch {
       // localStorage may be unavailable (private mode) — ignore
     }
     onClose();
-  };
+  }, [onClose]);
 
+  const handleInstall = useCallback(async () => {
+    const outcome = await promptInstall();
+    if (outcome === 'accepted') {
+      setCelebrating(true);
+      setTimeout(() => {
+        try {
+          localStorage.setItem(INSTALL_PROMPTED_KEY, 'true');
+        } catch {
+          // ignore
+        }
+        onClose();
+      }, 2400);
+    }
+    // Declined the native dialog: the event is spent, so the component falls
+    // back to manual instructions automatically.
+  }, [onClose]);
+
+  if (!open) return null;
+  // Already running installed — this screen has no job to do.
+  if (isStandalone()) return null;
+
+  if (celebrating) {
+    return (
+      <div className={styles.overlay} role="dialog" aria-modal="true">
+        <div className={styles.modal}>
+          <img src={velaImg} alt="" className={styles.mascot} />
+          <h2 className={styles.title}>Installed! 🎉</h2>
+          <p className={styles.velaLine}>
+            Vela is one tap away now — see you on the home screen. 🐸
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Native install available (Android / desktop Chrome & Edge): one button,
+  // no instructions to follow.
+  if (installEvt) {
+    return (
+      <div className={styles.overlay} role="dialog" aria-modal="true">
+        <div className={styles.modal}>
+          <img src={velaImg} alt="" className={styles.mascot} />
+          <h2 className={styles.title}>Add VelaFit to your home screen</h2>
+          <p className={styles.incentive}>{INCENTIVE_LINE}</p>
+          <button className={styles.btnPrimary} onClick={handleInstall}>
+            Install VelaFit
+          </button>
+          <button className={styles.btnSkip} onClick={dismiss}>
+            I&apos;ll do this later
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // iOS Safari: no install API. Nothing may sit below the arrow — the only
+  // tap target down there must be Safari's own share button. Dismiss lives
+  // at the top as a small text link.
+  if (platform === 'ios') {
+    return (
+      <div className={styles.overlay} role="dialog" aria-modal="true">
+        <div className={`${styles.modal} ${styles.modalIos}`}>
+          <button className={styles.laterLink} onClick={dismiss}>
+            I&apos;ll do this later
+          </button>
+          <img src={velaImg} alt="" className={styles.mascot} />
+          <h2 className={styles.title}>Add VelaFit to your home screen</h2>
+          <p className={styles.incentive}>{INCENTIVE_LINE}</p>
+          <p className={styles.iosInstruction}>
+            Tap the <ShareIcon /> in Safari&apos;s toolbar below, then{' '}
+            <strong>&ldquo;Add to Home Screen&rdquo;</strong>.
+          </p>
+          <div className={styles.arrowHint} aria-hidden="true">
+            <span className={styles.arrowText}>
+              Safari&apos;s share button is down here
+            </span>
+            <span className={styles.arrowIcon}>⌄</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Android without a captured prompt, or desktop: manual instructions.
+  // No arrow points down here, so bottom buttons don't compete with anything.
+  const config = INSTALL_CONTENT[platform];
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.modal}>
         <img src={velaImg} alt="" className={styles.mascot} />
         <h2 className={styles.title}>{config.title}</h2>
         <p className={styles.velaLine}>{config.vela}</p>
-
         <InstallSteps platform={platform} />
-
         <button className={styles.btnPrimary} onClick={dismiss}>
           Got it! 🐸
         </button>

@@ -6,6 +6,13 @@ import { promptNotificationPermission } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
 import ProgressionCard from './ProgressionCard';
 import LogWalkModal from './LogWalkModal';
+import InstallPrompt, { INSTALL_PROMPTED_KEY } from './InstallPrompt';
+import {
+  getDeferredInstallPrompt,
+  promptInstall,
+  isStandalone,
+  wasInstalledThisSession,
+} from '../lib/installPrompt';
 import styles from './Dashboard.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -116,6 +123,33 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [walkOpen, setWalkOpen] = useState(false);
+
+  // "Install for reminders" banner: shown in browser (non-installed) sessions
+  // after the user dismissed the post-onboarding install screen, so the
+  // install path stays available. Hidden forever once running standalone.
+  const [installOpen, setInstallOpen] = useState(false);
+  const [installAccepted, setInstallAccepted] = useState(false);
+  const installDismissed = (() => {
+    try {
+      return localStorage.getItem(INSTALL_PROMPTED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  })();
+  const showInstallBanner =
+    installDismissed &&
+    !installAccepted &&
+    !isStandalone() &&
+    !wasInstalledThisSession();
+
+  const handleInstallBanner = useCallback(async () => {
+    if (getDeferredInstallPrompt()) {
+      const outcome = await promptInstall();
+      if (outcome === 'accepted') setInstallAccepted(true);
+      return;
+    }
+    setInstallOpen(true);
+  }, []);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -420,6 +454,18 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
           </div>
         )}
 
+        {/* ── Install-for-reminders banner ── */}
+        {showInstallBanner && (
+          <button className={styles.installBanner} onClick={handleInstallBanner}>
+            <span className={styles.installBannerIcon}>📲</span>
+            <span className={styles.installBannerText}>
+              <strong>Install for reminders</strong> — VelaFit on your home
+              screen is what turns on workout notifications.
+            </span>
+            <span className={styles.installBannerCta}>Install →</span>
+          </button>
+        )}
+
         {/* ── Notification prompt ── */}
         {showNotifPrompt && (
           <div className={styles.notifCard}>
@@ -492,6 +538,11 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
         open={walkOpen}
         onClose={() => setWalkOpen(false)}
         onSaved={fetchLogs}
+      />
+
+      <InstallPrompt
+        open={installOpen}
+        onClose={() => setInstallOpen(false)}
       />
     </div>
   );

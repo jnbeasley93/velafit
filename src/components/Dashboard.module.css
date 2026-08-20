@@ -218,6 +218,54 @@
   color: var(--green-deep);
 }
 
+/* ── Install-for-reminders banner ───────────── */
+.installBanner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1.5px solid var(--gold);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+
+.installBanner:hover {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.installBannerIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.installBannerText {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--charcoal);
+  line-height: 1.45;
+}
+
+.installBannerText strong {
+  color: var(--green-deep);
+}
+
+.installBannerCta {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: var(--gold);
+  border-radius: 2px;
+  padding: 0.45rem 0.7rem;
+  white-space: nowrap;
+}
+
 /* ── No plan card ───────────────────────────── */
 .noPlanCard {
   background: var(--card-bg);
