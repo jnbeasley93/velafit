@@ -146,7 +146,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [selectedDays, setSelectedDays] = useState([]);
-  const [sessionLen, setSessionLen] = useState(30);
+  const [dayTimes, setDayTimes] = useState({});
   const [daySettings, setDaySettings] = useState({});
   const [daysTouched, setDaysTouched] = useState(false);
   const [notifTimeLabel, setNotifTimeLabel] = useState(NOTIFICATION_TIME_OPTIONS[1]);
@@ -168,7 +168,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
       mind_games: toEquipmentList(fitnessProfile?.mind_games),
     });
     setSelectedDays([getTodayName()]);
-    setSessionLen(30);
+    setDayTimes({});
     setDaySettings({});
     setDaysTouched(false);
     setNotifTimeLabel(
@@ -189,12 +189,14 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     if (!days || Object.keys(days).length === 0) return;
     setSelectedDays(ALL_DAYS.filter((d) => d in days));
     if (userPlan.daySettings) setDaySettings({ ...userPlan.daySettings });
-    const firstLen = Object.values(days)[0];
-    setSessionLen(
-      SESSION_LENGTHS.reduce((a, b) =>
-        Math.abs(b - firstLen) < Math.abs(a - firstLen) ? b : a,
-      ),
-    );
+    // Snap each day's stored minutes to the nearest selectable option.
+    const times = {};
+    for (const [d, len] of Object.entries(days)) {
+      times[d] = SESSION_LENGTHS.reduce((a, b) =>
+        Math.abs(b - len) < Math.abs(a - len) ? b : a,
+      );
+    }
+    setDayTimes(times);
   }, [open, variant, daysTouched, userPlan]);
 
   // Funnel tracking: record the highest step reached, fire-and-forget. Errors
@@ -243,9 +245,9 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     );
   }, []);
 
-  const pickSessionLen = useCallback((mins) => {
+  const setDayTime = useCallback((day, mins) => {
     setDaysTouched(true);
-    setSessionLen(mins);
+    setDayTimes((prev) => ({ ...prev, [day]: mins }));
   }, []);
 
   const pickDaySetting = useCallback((day, key) => {
@@ -304,7 +306,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
       const days = {};
       const settings = {};
       for (const d of selectedDays) {
-        days[d] = sessionLen;
+        days[d] = dayTimes[d] ?? 30;
         settings[d] = settingForDay(d);
       }
       const plan = {
@@ -347,7 +349,7 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
     fitnessProfile,
     answers,
     selectedDays,
-    sessionLen,
+    dayTimes,
     daySettings,
     notifTimeLabel,
     totalSteps,
@@ -452,49 +454,53 @@ export default function OnboardingSurvey({ open, onComplete, onShowInstallPrompt
                   </button>
                 ))}
               </div>
-              <p className={styles.fieldCaption}>Minutes per session</p>
-              <div className={styles.chipGrid}>
-                {SESSION_LENGTHS.map((mins) => (
-                  <button
-                    key={mins}
-                    className={
-                      sessionLen === mins ? styles.chipSelected : styles.chip
-                    }
-                    onClick={() => pickSessionLen(mins)}
-                  >
-                    {mins} min
-                  </button>
-                ))}
-              </div>
-              {settingOptions.length > 1 && selectedDays.length > 0 && (
+              {selectedDays.length > 0 && (
                 <>
-                  <p className={styles.fieldCaption}>Workout setting per day</p>
+                  <p className={styles.fieldCaption}>
+                    {settingOptions.length > 1
+                      ? 'Time & setting per day'
+                      : 'Minutes per day'}
+                  </p>
                   <div className={styles.settingList}>
                     {ALL_DAYS.filter((d) => selectedDays.includes(d)).map((day) => (
                       <div key={day} className={styles.settingRow}>
                         <span className={styles.settingDay}>{day}</span>
-                        <div className={styles.settingChips}>
-                          {settingOptions.map((key) => (
-                            <button
-                              key={key}
-                              className={
-                                settingForDay(day) === key
-                                  ? styles.settingChipSelected
-                                  : styles.settingChip
-                              }
-                              onClick={() => pickDaySetting(day, key)}
-                            >
-                              {SETTING_LABELS[key]}
-                            </button>
+                        <select
+                          className={styles.timeSelect}
+                          value={dayTimes[day] ?? 30}
+                          onChange={(e) => setDayTime(day, Number(e.target.value))}
+                        >
+                          {SESSION_LENGTHS.map((mins) => (
+                            <option key={mins} value={mins}>
+                              {mins} min
+                            </option>
                           ))}
-                        </div>
+                        </select>
+                        {settingOptions.length > 1 && (
+                          <div className={styles.settingChips}>
+                            {settingOptions.map((key) => (
+                              <button
+                                key={key}
+                                className={
+                                  settingForDay(day) === key
+                                    ? styles.settingChipSelected
+                                    : styles.settingChip
+                                }
+                                onClick={() => pickDaySetting(day, key)}
+                              >
+                                {SETTING_LABELS[key]}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 </>
               )}
               <p className={styles.fieldHint}>
-                You can fine-tune each day&apos;s length later from your dashboard.
+                Every day can be different — tweak any of this later from your
+                dashboard.
               </p>
             </div>
           )}
