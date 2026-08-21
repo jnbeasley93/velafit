@@ -19,6 +19,14 @@
   color: var(--cream);
   text-align: center;
   animation: fadeInUp 0.35s ease;
+  /* Accent for highlights on the --green-deep backdrop. */
+  --install-accent: var(--gold);
+}
+
+/* In dark theme --green-deep resolves to a pale mint and --gold has almost
+   no contrast on it — use the dark green accent there instead. */
+:global([data-theme='dark']) .modal {
+  --install-accent: var(--green-light);
 }
 
 @keyframes fadeInUp {
@@ -101,7 +109,11 @@
 /* iOS variant: fill the viewport so the arrow sits at the very bottom of our
    UI, pointing past it at Safari's toolbar. Nothing renders below the arrow. */
 .modalIos {
-  min-height: 100%;
+  /* Size to the visible area above Safari's dynamic toolbar so the bottom
+     arrow hint is never clipped: small viewport height, minus the overlay's
+     2rem top + bottom padding. vh fallback for browsers without svh. */
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100svh - 4rem);
   /* Keep the top dismiss link clear of the status bar/notch and the arrow
      clear of the home indicator. Without viewport-fit=cover in the viewport
      meta, env() resolves to 0 in Safari — the max() guarantees clearance
@@ -119,8 +131,10 @@
   align-self: flex-end;
   background: none;
   border: none;
-  /* Visible at a glance but still clearly secondary to the instructions. */
-  color: rgba(245, 240, 232, 0.85);
+  /* Theme-aware (cream inverts to dark green in dark theme); opacity keeps
+     it visible at a glance but clearly secondary to the instructions. */
+  color: var(--cream);
+  opacity: 0.85;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.88rem;
   cursor: pointer;
@@ -131,14 +145,14 @@
 }
 
 .laterLink:hover {
-  color: var(--cream);
+  opacity: 1;
 }
 
 .incentive {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--gold);
+  color: var(--install-accent);
   line-height: 1.5;
   margin-bottom: 1.4rem;
   max-width: 340px;
@@ -157,7 +171,7 @@
   width: 1.35em;
   height: 1.35em;
   vertical-align: -0.3em;
-  color: var(--gold);
+  color: var(--install-accent);
   display: inline-block;
 }
 
@@ -167,7 +181,7 @@
   align-items: center;
   gap: 0.15rem;
   margin-bottom: 1.4rem;
-  color: var(--gold);
+  color: var(--install-accent);
   font-family: 'DM Sans', sans-serif;
   font-size: 0.74rem;
   text-transform: uppercase;
