@@ -17,8 +17,9 @@ const plans = [
   },
   {
     tier: 'Pro',
-    amount: '$15',
-    per: 'per month',
+    amount: 'Free',
+    per: 'during early access',
+    note: 'Founding testers get Pro free while we build.',
     features: [
       'Everything in Free',
       'Full mind game library',
@@ -28,7 +29,7 @@ const plans = [
       'Progress analytics',
     ],
     featured: true,
-    badge: 'Most Popular',
+    badge: 'Early Access',
   },
   {
     tier: 'Employer',
@@ -50,7 +51,7 @@ export default function Pricing({ onGetStarted }) {
 
   function btnLabel(tier) {
     if (tier === 'Employer') return 'Contact Us';
-    if (!user) return tier === 'Pro' ? 'Start Free Trial' : 'Get Started';
+    if (!user) return tier === 'Pro' ? 'Join the Beta →' : 'Get Started';
     if (tier === 'Pro') return isPro ? 'Current Plan' : 'Upgrade to Pro';
     return isPro ? 'Free Tier' : 'Current Plan';
   }
@@ -84,6 +85,7 @@ export default function Pricing({ onGetStarted }) {
             <div className={styles.tier}>{p.tier}</div>
             <div className={styles.amount}>{p.amount}</div>
             <div className={styles.per}>{p.per}</div>
+            {p.note && <div className={styles.note}>{p.note}</div>}
             <ul className={styles.features}>
               {p.features.map((f) => (
                 <li key={f}>{f}</li>
