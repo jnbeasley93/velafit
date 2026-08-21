@@ -106,8 +106,8 @@
      clear of the home indicator. Without viewport-fit=cover in the viewport
      meta, env() resolves to 0 in Safari — the max() guarantees clearance
      either way. */
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 0.5rem), 1.5rem);
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 0.5rem), 0.75rem);
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 0.75rem), 1.75rem);
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 0.75rem), 1rem);
 }
 
 .modalIos .arrowHint {
@@ -119,9 +119,10 @@
   align-self: flex-end;
   background: none;
   border: none;
-  color: rgba(245, 240, 232, 0.55);
+  /* Visible at a glance but still clearly secondary to the instructions. */
+  color: rgba(245, 240, 232, 0.85);
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   cursor: pointer;
   text-decoration: underline;
   /* Generous hit area so the small link is comfortably tappable. */
