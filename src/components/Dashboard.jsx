@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { promptNotificationPermission } from '../lib/oneSignal';
 import { localDateStr } from '../lib/dates';
+import { computeStreak } from '../lib/streak';
 import ProgressionCard from './ProgressionCard';
 import LogWalkModal from './LogWalkModal';
 import InstallPrompt, { INSTALL_PROMPTED_KEY } from './InstallPrompt';
@@ -51,26 +52,17 @@ function getTimeBreakdown(totalMins, noMindGames) {
 function computeStats(logs, activityLogs, userPlan) {
   const total = logs.length;
 
-  // Current streak — count days with ANY entry (workout or activity)
+  // Current streak — days with ANY entry (workout or activity), with a
+  // one-day grace: an unlogged today doesn't zero it (see lib/streak.js).
   const allDates = new Set([
     ...logs.map((l) => l.date),
     ...activityLogs.map((l) => l.date),
   ]);
-  let streak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  for (let i = 0; i < 365; i++) {
-    const target = new Date(today);
-    target.setDate(today.getDate() - i);
-    const targetStr = localDateStr(target);
-    if (allDates.has(targetStr)) {
-      streak++;
-    } else {
-      break;
-    }
-  }
+  const streak = computeStreak(allDates);
 
   // This week's sessions (workouts only for the X/Y count)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
   const weekStr = localDateStr(startOfWeek);
