@@ -28,6 +28,7 @@ import { QuickSessionFAB, QuickSessionModal } from './components/QuickSession';
 import LogActivityModal from './components/LogActivityModal';
 import EditScheduleModal from './components/EditScheduleModal';
 import InstallPrompt from './components/InstallPrompt';
+import FeedbackModal from './components/FeedbackModal';
 import About, { AboutSections } from './components/About';
 import Nutrition from './components/Nutrition';
 import Research from './components/Research';
@@ -57,6 +58,7 @@ function AppInner() {
   const [sessionMins, setSessionMins] = useState(30);
   const [sessionIsImpromptu, setSessionIsImpromptu] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Onboarding is not optional: any signed-in user whose profile says
   // onboarding_completed = false gets the survey, no matter how they arrived
@@ -157,6 +159,7 @@ function AppInner() {
       <Navbar
         onGetStarted={handleGetStarted}
         onLogin={handleLogin}
+        onFeedback={() => setFeedbackOpen(true)}
       />
       <Routes>
         <Route
@@ -179,7 +182,7 @@ function AppInner() {
                 <AboutSections />
                 <Pricing onGetStarted={handleGetStarted} />
                 <WaitlistCTA onSignUp={handleGetStarted} />
-                <Footer />
+                <Footer onFeedback={() => setFeedbackOpen(true)} />
               </div>
             )
           }
@@ -246,7 +249,7 @@ function AppInner() {
               <Nutrition />
               <Pricing onGetStarted={handleGetStarted} />
               <WaitlistCTA onSignUp={handleGetStarted} />
-              <Footer />
+              <Footer onFeedback={() => setFeedbackOpen(true)} />
             </div>
           }
         />
@@ -309,6 +312,10 @@ function AppInner() {
         onClose={handleAuthClose}
         onSuccess={handleAuthSuccess}
         initialMode={authMode}
+      />
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
       />
     </BrowserRouter>
   );

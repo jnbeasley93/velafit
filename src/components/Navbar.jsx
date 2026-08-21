@@ -15,7 +15,7 @@ function scrollToHash(hash, navigate, pathname) {
   navigate('/home#' + hash);
 }
 
-export default function Navbar({ onGetStarted, onLogin }) {
+export default function Navbar({ onGetStarted, onLogin, onFeedback }) {
   const { user, isPro, displayName, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -58,6 +58,14 @@ export default function Navbar({ onGetStarted, onLogin }) {
           <li><Link to="/about" onClick={closeMenu}>Our Story</Link></li>
           <li><Link to="/history" onClick={closeMenu}>History</Link></li>
           <li><Link to="/settings" onClick={closeMenu}>Settings</Link></li>
+          <li>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); closeMenu(); onFeedback?.(); }}
+            >
+              💬 Send Feedback
+            </a>
+          </li>
           {!isPro && (
             <li>
               <a
@@ -81,6 +89,14 @@ export default function Navbar({ onGetStarted, onLogin }) {
           <li><a href="#nutrition" onClick={handleHash('nutrition')}>Nutrition</a></li>
           <li><a href="#pricing" onClick={handleHash('pricing')}>Pricing</a></li>
           <li><Link to="/about" onClick={closeMenu}>Our Story</Link></li>
+          <li>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); closeMenu(); onFeedback?.(); }}
+            >
+              💬 Send Feedback
+            </a>
+          </li>
         </ul>
       )}
 

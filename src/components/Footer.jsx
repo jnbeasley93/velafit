@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import velaImg from '../assets/vela.jpg';
 import styles from './Footer.module.css';
 
-export default function Footer() {
+export default function Footer({ onFeedback }) {
   return (
     <footer className={styles.footer}>
       <div>
@@ -17,6 +17,14 @@ export default function Footer() {
         <li><a href="#features">Features</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><Link to="/about">About</Link></li>
+        <li>
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); onFeedback?.(); }}
+          >
+            Contact / Feedback
+          </a>
+        </li>
         <li><a href="#">Privacy</a></li>
         <li><a href="#">Terms</a></li>
       </ul>
