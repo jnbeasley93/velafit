@@ -31,6 +31,16 @@ const features = [
     name: 'Auto-Recalibration',
     desc: "Missed sessions are treated as schedule data — the plan adjusts immediately. Nothing to make up. Nothing to catch up on. Just forward.",
   },
+  {
+    icon: '🌙',
+    name: 'Settle & Unwind',
+    desc: "Guided box breathing, three-pose restorative wind-downs, and a one-line daily gratitude. A few quiet minutes for the evenings your brain won't switch off.",
+  },
+  {
+    icon: '🔬',
+    name: 'Science-Backed Learning',
+    desc: 'Short reads from sources like Harvard Health, Mayo Clinic, and Cleveland Clinic — filtered by topic, summarized in plain language. The why behind the plan, minus the rabbit hole.',
+  },
 ];
 
 export default function FeaturesGrid() {

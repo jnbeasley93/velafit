@@ -2,7 +2,7 @@ import styles from './Hero.module.css';
 
 const stats = [
   { num: '15min', label: 'Minimum session' },
-  { num: '7', label: 'Wellness features' },
+  { num: '8', label: 'Wellness features' },
   { num: '100%', label: 'Schedule-adaptive' },
 ];
 
