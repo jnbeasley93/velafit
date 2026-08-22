@@ -81,6 +81,14 @@
   margin-bottom: 1rem;
 }
 
+.doneVela {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--accent-text);
+  opacity: 0.85;
+  margin-bottom: 0.9rem;
+}
+
 .breakdownBar {
   display: flex;
   border-radius: 2px;

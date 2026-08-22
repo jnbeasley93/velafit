@@ -25,6 +25,12 @@ function getGreeting() {
   return 'Good evening';
 }
 
+const DONE_LINES = [
+  "Showed up. That's the whole game.",
+  'Done. Rest is part of the plan too.',
+  "That's a hop in the right column.",
+];
+
 function getVelaMessage(streak) {
   if (streak >= 8) return "You're consistent. That's the hardest part.";
   if (streak >= 4) return 'One week in. This is where habits form.';
@@ -254,6 +260,12 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
   // Evening streak alert — after 6pm on a training day when session not done
   const todayLocalStr = localDateStr();
   const completedToday = logs.some((l) => l.date === todayLocalStr);
+  // Details for the completed-state today card (logs are date-desc, so this
+  // is today's most recent session).
+  const todayLog = logs.find((l) => l.date === todayLocalStr);
+  const [doneLine] = useState(
+    () => DONE_LINES[Math.floor(Math.random() * DONE_LINES.length)],
+  );
   const [streakAlertDismissed, setStreakAlertDismissed] = useState(
     () => localStorage.getItem('vela_streak_alert_dismissed') === todayLocalStr
   );
@@ -369,6 +381,23 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
         {/* ── Today's Session ── */}
         {hasPlan ? (
           isTrainingDay ? (
+            completedToday ? (
+              <div className={styles.todayCard}>
+                <div className={styles.todayLabel}>Today's Session</div>
+                <h2 className={styles.todayTitle}>✓ {todayFullName} — done</h2>
+                {(todayLog?.session_length || todayLog?.feeling_rating) && (
+                  <p className={styles.todayMeta}>
+                    {todayLog?.session_length ? `${todayLog.session_length} min` : ''}
+                    {todayLog?.session_length && todayLog?.feeling_rating ? ' · ' : ''}
+                    {todayLog?.feeling_rating ? `Feeling: ${todayLog.feeling_rating}` : ''}
+                  </p>
+                )}
+                <p className={styles.doneVela}>🐸 {doneLine}</p>
+                <button className={styles.quickLink} onClick={onQuickSession}>
+                  Go again? ⚡
+                </button>
+              </div>
+            ) : (
             <div className={styles.todayCard}>
               <div className={styles.todayLabel}>Today's Session</div>
               <h2 className={styles.todayTitle}>
@@ -389,6 +418,7 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
                   : "Start Today's Session →"}
               </button>
             </div>
+            )
           ) : (
             <div className={styles.restCard}>
               <h2 className={styles.restTitle}>Rest Day</h2>
