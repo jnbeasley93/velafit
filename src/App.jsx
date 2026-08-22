@@ -59,6 +59,10 @@ function AppInner() {
   const [sessionIsImpromptu, setSessionIsImpromptu] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // Bumped when a session save commits so the Dashboard refetches its logs
+  // (mirrors the walk modal's onSaved pattern, lifted to App level because
+  // PostWorkoutRating is mounted here).
+  const [logsVersion, setLogsVersion] = useState(0);
 
   // Onboarding is not optional: any signed-in user whose profile says
   // onboarding_completed = false gets the survey, no matter how they arrived
@@ -197,6 +201,7 @@ function AppInner() {
                 onQuickSession={() => setQuickSessionOpen(true)}
                 onLogActivity={() => openLogActivity()}
                 onEditSchedule={() => setEditScheduleOpen(true)}
+                logsVersion={logsVersion}
               />
             ) : (
               <Navigate to="/" replace />
@@ -291,6 +296,7 @@ function AppInner() {
       <PostWorkoutRating
         open={ratingOpen}
         onClose={() => { setRatingOpen(false); setSessionIsImpromptu(false); }}
+        onSaved={() => setLogsVersion((v) => v + 1)}
         sessionLength={ratingData.sessionMins}
         isImpromptu={ratingData.isImpromptu}
         exercisesCompleted={ratingData.exercisesCompleted}

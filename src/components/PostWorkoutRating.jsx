@@ -9,13 +9,23 @@ const INTENSITY_OPTIONS = ['Too easy', 'Just right', 'Too hard'];
 const COMPLETION_OPTIONS = ['Yes', 'Mostly', 'No — ran out of time'];
 const FEELING_OPTIONS = ['Great', 'Good', 'Tired', 'Drained'];
 
-export default function PostWorkoutRating({ open, onClose, sessionLength, isImpromptu, exercisesCompleted, exerciseObjects, sessionId, journalEntry }) {
+export default function PostWorkoutRating({ open, onClose, onSaved, sessionLength, isImpromptu, exercisesCompleted, exerciseObjects, sessionId, journalEntry }) {
   const { user, profile, refreshProfile } = useAuth();
   const [intensity, setIntensity] = useState('');
   const [completion, setCompletion] = useState('');
   const [feeling, setFeeling] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+
+  // Reset submission state when the modal closes so the next session's
+  // rating starts fresh.
+  useEffect(() => {
+    if (!open) {
+      setSaved(false);
+      setError('');
+    }
+  }, [open]);
 
   // Exercise logging section
   const [exLogOpen, setExLogOpen] = useState(false);
@@ -85,7 +95,7 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
   const canSubmit = intensity && completion && feeling;
 
   const handleSubmit = useCallback(async () => {
-    if (!canSubmit || !user) return;
+    if (!canSubmit || !user || saving || saved) return;
     setSaving(true);
     setError('');
 
@@ -112,22 +122,36 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
 
     console.log('[PostWorkoutRating] attempting insert:', payload);
 
+    // Save workout log — MUST destructure { error } since Supabase doesn't
+    // throw on DB errors (try/catch only covers network-level exceptions).
+    let insertError;
     try {
-      // Save workout log — MUST destructure { error } since Supabase doesn't throw on DB errors
-      const { data: insertData, error: insertError } = await supabase
+      ({ error: insertError } = await supabase
         .from('workout_logs')
         .insert(payload)
-        .select();
+        .select());
+    } catch (err) {
+      console.error('[PostWorkoutRating] unexpected error:', err);
+      setError(`Unexpected error: ${err.message || err}`);
+      setSaving(false);
+      return;
+    }
+    if (insertError) {
+      console.error('[PostWorkoutRating] Supabase insert error:', insertError);
+      setError(`Save failed: ${insertError.message}`);
+      setSaving(false);
+      return;
+    }
 
-      if (insertError) {
-        console.error('[PostWorkoutRating] Supabase insert error:', insertError);
-        setError(`Save failed: ${insertError.message}`);
-        setSaving(false);
-        return;
-      }
+    // The row is committed. From here on nothing may re-enable submission —
+    // a failure in the follow-up work below used to surface as an error with
+    // a live Submit button, and retries wrote duplicate rows.
+    setSaved(true);
+    setSaving(false);
+    onSaved?.();
+    setTimeout(() => onClose(), 1800);
 
-      console.log('[PostWorkoutRating] insert success:', insertData);
-
+    try {
       // OneSignal tags — notification scheduling uses these
       const totalSessions = (profile?.total_sessions || 0) + 1;
       sendTag('last_session', localDateStr());
@@ -162,20 +186,36 @@ export default function PostWorkoutRating({ open, onClose, sessionLength, isImpr
       }
 
       await refreshProfile();
-      onClose();
     } catch (err) {
-      console.error('[PostWorkoutRating] unexpected error:', err);
-      setError(`Unexpected error: ${err.message || err}`);
-    } finally {
-      setSaving(false);
+      // Log-only: the session is saved; follow-up failures must not alarm
+      // the user or reopen the submit path.
+      console.error('[PostWorkoutRating] post-save follow-up failed:', err);
     }
-  }, [canSubmit, user, profile, intensity, completion, feeling, sessionLength, isImpromptu, exercisesCompleted, extraExercises, journalEntry, refreshProfile, onClose]);
+  }, [canSubmit, user, saving, saved, profile, intensity, completion, feeling, sessionLength, isImpromptu, exercisesCompleted, extraExercises, journalEntry, refreshProfile, onSaved, onClose]);
 
   const handleSkip = useCallback(() => {
     onClose();
   }, [onClose]);
 
   if (!open) return null;
+
+  if (saved) {
+    return (
+      <div className={styles.overlay}>
+        <div className={styles.modal}>
+          <div className={styles.header}>
+            <h2>How did it go?</h2>
+          </div>
+          <div className={styles.successState}>
+            <div className={styles.successEmoji}>🐸</div>
+            <p className={styles.successText}>
+              Session logged. Showing up is the whole game — and you just did.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.overlay}>

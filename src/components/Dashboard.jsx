@@ -109,7 +109,7 @@ function getISOWeek(date = new Date()) {
   return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
-export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity, onEditSchedule }) {
+export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession, onLogActivity, onEditSchedule, logsVersion = 0 }) {
   const { user, userPlan, fitnessProfile, profile } = useAuth();
   const [logs, setLogs] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
@@ -165,7 +165,8 @@ export default function Dashboard({ onStartSession, onBuildPlan, onQuickSession,
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+  // Refetch on mount and whenever App signals a committed session save.
+  useEffect(() => { fetchLogs(); }, [fetchLogs, logsVersion]);
 
   const noMindGames = fitnessProfile?.mind_games?.includes('No mind games') ?? false;
   const userName = profile?.display_name || user?.email?.split('@')[0] || 'there';
